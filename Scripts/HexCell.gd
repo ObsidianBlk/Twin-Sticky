@@ -1,4 +1,4 @@
-extends Object
+extends Reference
 tool
 class_name HexCell
 
