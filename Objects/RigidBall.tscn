@@ -1,11 +1,10 @@
 [gd_scene load_steps=3 format=2]
 
 [sub_resource type="SphereMesh" id=1]
-radius = 6.0
-height = 12.0
+radial_segments = 16
+rings = 8
 
 [sub_resource type="SphereShape" id=2]
-radius = 6.0
 
 [node name="RigidBody" type="RigidBody"]
 

@@ -236,7 +236,6 @@ func get_region(rng : int) -> Array:
 	var res : Array = []
 	for q in range(-rng, rng+1):
 		for r in range(max(-rng, -q-rng), min(rng, -q+rng) + 1):
-			print("QR: ", q, ", ", r)
 			var s = -q-r
 			res.append(get_script().new(Vector3(q + c.x, s + c.y, r + c.z)))
 	return res

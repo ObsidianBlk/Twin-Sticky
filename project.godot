@@ -13,9 +13,15 @@ _global_script_classes=[ {
 "class": "HexCell",
 "language": "GDScript",
 "path": "res://Scripts/HexCell.gd"
+}, {
+"base": "Resource",
+"class": "RegionResource",
+"language": "GDScript",
+"path": "res://Scripts/RegionResource.gd"
 } ]
 _global_script_class_icons={
-"HexCell": ""
+"HexCell": "",
+"RegionResource": ""
 }
 
 [application]
@@ -29,6 +35,10 @@ config/icon="res://icon.png"
 Utils="*res://Scripts/Auto/Utils.gd"
 Log="*res://Scripts/Auto/Log.gd"
 Net="*res://Scripts/Auto/Net.gd"
+
+[editor_plugins]
+
+enabled=PoolStringArray( "res://addons/imrp/plugin.cfg" )
 
 [physics]
 
