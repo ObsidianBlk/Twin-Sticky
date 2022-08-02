@@ -1,7 +1,7 @@
 [gd_scene load_steps=6 format=2]
 
 [ext_resource path="res://Objects/HexRegion/HexRegion.tscn" type="PackedScene" id=1]
-[ext_resource path="res://Objects/RigidBall.tscn" type="PackedScene" id=2]
+[ext_resource path="res://Objects/TrackBot/TrackBot.tscn" type="PackedScene" id=2]
 [ext_resource path="res://Scripts/RegionResource.gd" type="Script" id=3]
 
 [sub_resource type="Environment" id=1]
@@ -15,7 +15,7 @@ period = 40.0
 persistence = 0.8
 size = 10
 max_height = 10.0
-hex_size = 1.0
+hex_size = 2.0
 
 [node name="Game" type="Spatial"]
 
@@ -26,8 +26,8 @@ environment = SubResource( 1 )
 transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 15.225, 25.5193, 23.0401 )
 omni_range = 36.361
 
-[node name="RigidBody" parent="." groups=["PlayerP1"] instance=ExtResource( 2 )]
-transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 30.0376, 0 )
-
 [node name="HexRegion" parent="." instance=ExtResource( 1 )]
 region_resource = SubResource( 2 )
+
+[node name="TrackBot" parent="." groups=["Player_1"] instance=ExtResource( 2 )]
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 100.892, 0 )

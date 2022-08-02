@@ -172,7 +172,8 @@ func _Rebuild() -> void:
 	
 	meshinst_node.mesh = mesh
 	if not Engine.editor_hint:
-		meshinst_node.create_trimesh_collision()
+		meshinst_node.create_convex_collision(true)
+		#meshinst_node.create_trimesh_collision()
 
 # -----------------------------------------------------------------------------
 # Public Methods

@@ -29,7 +29,7 @@ render_target_update_mode = 3
 [node name="Game" parent="GameView/Viewports/VP1C/Viewport_P1" instance=ExtResource( 1 )]
 
 [node name="Camera" parent="GameView/Viewports/VP1C/Viewport_P1" instance=ExtResource( 3 )]
-target_group = "PlayerP1"
+target_group = "Player_1"
 height = 16.0
 
 [node name="VP2C" type="ViewportContainer" parent="GameView/Viewports"]
