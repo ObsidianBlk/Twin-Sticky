@@ -14,7 +14,7 @@ octaves = 6
 period = 40.0
 persistence = 0.8
 size = 10
-max_height = 10.0
+max_height = 2.0
 hex_size = 2.0
 
 [node name="Game" type="Spatial"]

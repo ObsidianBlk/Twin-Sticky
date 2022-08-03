@@ -47,13 +47,9 @@ size_override_stretch = true
 handle_input_locally = false
 render_target_update_mode = 0
 
-[node name="Camera" type="Camera" parent="GameView/Viewports/VP2C/Viewport_P2"]
-transform = Transform( -0.0194243, 0, -0.999811, 0, 1, 0, 0.999811, 0, -0.0194243, -64.9227, 46.27, 25.7741 )
-current = true
-near = 0.01
-far = 10000.0
+[node name="Camera" parent="GameView/Viewports/VP2C/Viewport_P2" instance=ExtResource( 3 )]
+target_group = "Player_2"
+height = 16.0
 
 [node name="UI" type="CanvasLayer" parent="."]
 layer = 6
-
-[connection signal="local_player_2" from="GameView/Viewports/VP1C/Viewport_P1/Game" to="." method="_on_local_player2"]

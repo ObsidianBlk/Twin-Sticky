@@ -1,25 +1,6 @@
-[gd_scene load_steps=13 format=2]
+[gd_scene load_steps=7 format=2]
 
 [ext_resource path="res://Objects/TrackBot/TrackBot.gd" type="Script" id=1]
-[ext_resource path="res://Objects/TrackBot/Booster.gd" type="Script" id=2]
-
-[sub_resource type="CylinderMesh" id=1]
-top_radius = 0.25
-bottom_radius = 0.5
-height = 1.0
-radial_segments = 16
-
-[sub_resource type="ConvexPolygonShape" id=5]
-points = PoolVector3Array( 0.25, 0.5, 0, 0.230912, 0.5, -0.0957322, 0.230912, 0.5, 0.0956343, 0.41572, -0.30002, 0.172181, 0.461922, -0.5, 0.191269, 0.5, -0.5, 0, 0.461922, -0.5, -0.191366, 0.41572, -0.30002, -0.172279, 0.212118, 0.299922, -0.212216, 0.176684, 0.5, -0.176782, 0.176684, 0.5, 0.176684, 0.212118, 0.299922, 0.212118, 0.353465, -0.5, 0.353465, 0.353465, -0.5, -0.353563, 0.172181, -0.30002, -0.415818, 0.0956343, 0.5, -0.23101, 0.0956343, 0.5, 0.230912, 0.172181, -0.30002, 0.41572, 0.191269, -0.5, 0.461922, 0.191269, -0.5, -0.46202, 0, -0.30002, -0.450078, 0, 0.5, -0.25, 0, 0.5, 0.25, 0, -0.5, 0.5, 0, -0.5, -0.5, -0.191366, -0.5, -0.46202, -0.172279, -0.30002, -0.415818, -0.0957322, 0.5, -0.23101, -0.0957322, 0.5, 0.230912, -0.172279, -0.30002, 0.41572, -0.191366, -0.5, 0.461922, -0.353563, -0.5, -0.353563, -0.212216, 0.299922, -0.212216, -0.176782, 0.5, -0.176782, -0.176782, 0.5, 0.176684, -0.212216, 0.299922, 0.212118, -0.353563, -0.5, 0.353465, -0.46202, -0.5, -0.191366, -0.415818, -0.30002, -0.172279, -0.23101, 0.5, -0.0957322, -0.23101, 0.5, 0.0956343, -0.415818, -0.30002, 0.172181, -0.46202, -0.5, 0.191269, -0.5, -0.5, 0, -0.450078, -0.30002, 0, -0.25, 0.5, 0 )
-
-[sub_resource type="CubeMesh" id=6]
-size = Vector3( 0.25, 0.25, 1 )
-
-[sub_resource type="ConvexPolygonShape" id=12]
-points = PoolVector3Array( 0.125, 0.125, 0.5, 0.125, -0.125, 0.5, 0.125, 0.125, -0.5, -0.125, 0.125, 0.5, -0.125, -0.125, 0.5, 0.125, -0.125, -0.5, -0.125, 0.125, -0.5, -0.125, -0.125, -0.5 )
-
-[sub_resource type="ConvexPolygonShape" id=13]
-points = PoolVector3Array( 0.125, 0.125, 0.5, 0.125, -0.125, 0.5, 0.125, 0.125, -0.5, -0.125, 0.125, 0.5, -0.125, -0.125, 0.5, 0.125, -0.125, -0.5, -0.125, 0.125, -0.5, -0.125, -0.125, -0.5 )
 
 [sub_resource type="VisualShaderNodeColorConstant" id=9]
 constant = Color( 0.617188, 0.234375, 1, 1 )
@@ -68,6 +49,7 @@ rings = 8
 
 [node name="TrackBot" type="RigidBody"]
 collision_layer = 2
+collision_mask = 3
 mass = 8.0
 continuous_cd = true
 script = ExtResource( 1 )
@@ -77,42 +59,6 @@ script = ExtResource( 1 )
 [node name="GroundCast" type="RayCast" parent="Hat"]
 enabled = true
 cast_to = Vector3( 0, -2, 0 )
-
-[node name="Booster" type="Area" parent="Hat"]
-script = ExtResource( 2 )
-local_player_id = 1
-
-[node name="Engine" type="MeshInstance" parent="Hat/Booster"]
-transform = Transform( 1, 0, 0, 0, -4.37114e-08, 1, 0, -1, -4.37114e-08, 0, 0.5, -1.5 )
-mesh = SubResource( 1 )
-material/0 = null
-
-[node name="CollisionShape" type="CollisionShape" parent="Hat/Booster"]
-transform = Transform( 1, 0, 0, 0, -4.37114e-08, 1, 0, -1, -4.37114e-08, 0, 0.5, -1.5 )
-shape = SubResource( 5 )
-
-[node name="Weapons" type="Area" parent="Hat"]
-collision_layer = 2
-
-[node name="Left Gun" type="MeshInstance" parent="Hat/Weapons"]
-transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 1.1848, 0, 0.548829 )
-mesh = SubResource( 6 )
-skeleton = NodePath("../../Booster")
-material/0 = null
-
-[node name="CollisionShape" type="CollisionShape" parent="Hat/Weapons"]
-transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 1.1848, 0, 0.548829 )
-shape = SubResource( 12 )
-
-[node name="Right Gun" type="MeshInstance" parent="Hat/Weapons"]
-transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, -1.199, 0, 0.548829 )
-mesh = SubResource( 6 )
-skeleton = NodePath("../../Booster")
-material/0 = null
-
-[node name="CollisionShape2" type="CollisionShape" parent="Hat/Weapons"]
-transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, -1.199, 0, 0.548829 )
-shape = SubResource( 13 )
 
 [node name="Ball" type="MeshInstance" parent="."]
 mesh = SubResource( 3 )
