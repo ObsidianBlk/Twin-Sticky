@@ -13,7 +13,7 @@ var _boost_direction : Vector3 = Vector3.ZERO
 var _boost_strength : float = 0.0
 var _boost_jump_strength : float = 0.0
 
-var _booster_node : Area = null
+var _booster_node : Spatial = null
 var _weaponmount_node : Spatial = null
 
 # ------------------------------------------------------------------------------
@@ -44,25 +44,34 @@ func _UpdateHatRotation() -> void:
 	hat_node.transform.basis = Basis(transform.basis.get_rotation_quat().inverse())
 	print("Rotation: ", rotation, " | Hat Rotation: ", hat_node.rotation)
 
+func _IsBooster(obj : Spatial) -> bool:
+	var signals = obj.get_signal_list()
+	for sig in signals:
+		if sig.name.begins_with("booster_"):
+			return true
+	return false
+
 # ------------------------------------------------------------------------------
 # Public Methods
 # ------------------------------------------------------------------------------
-func get_booster() -> Area:
+func get_booster() -> Spatial:
 	return _booster_node
 
-func add_booster(booster : Area) -> void:
+func add_booster(booster : Spatial) -> void:
 	if _booster_node == null:
-		# TODO: Varify booster is what we think it is!
+		if not _IsBooster(booster):
+			return
+		
 		_booster_node = booster
 		hat_node.add_child(_booster_node)
 		
-		_booster_node.connect("booster_facing_changed", self, "_on_booster_facing_changed")
-		_booster_node.connect("booster_ignited", self, "_on_booster_ignited")
-		_booster_node.connect("booster_off", self, "_on_booster_off")
-		_booster_node.connect("booster_jump", self, "_on_booster_jump")
+		var _res : int = _booster_node.connect("booster_facing_changed", self, "_on_booster_facing_changed")
+		_res = _booster_node.connect("booster_ignited", self, "_on_booster_ignited")
+		_res = _booster_node.connect("booster_off", self, "_on_booster_off")
+		_res = _booster_node.connect("booster_jump", self, "_on_booster_jump")
 		_boost_direction = _booster_node.get_facing()
 
-func remove_booster() -> Area:
+func remove_booster() -> Spatial:
 	if _booster_node != null:
 		_boost_strength = 0.0
 		_boost_jump_strength = 0.0

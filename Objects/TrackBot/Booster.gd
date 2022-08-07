@@ -1,4 +1,4 @@
-extends Area
+extends Spatial
 
 # ------------------------------------------------------------------------------
 # Signals
@@ -62,7 +62,7 @@ func set_local_player_id(id : int) -> void:
 func _ready() -> void:
 	_tween = Tween.new()
 	add_child(_tween)
-	_tween.connect("tween_all_completed", self, "_on_facing_complete")
+	var _res : int = _tween.connect("tween_all_completed", self, "_on_facing_complete")
 
 func _unhandled_input(event : InputEvent) -> void:
 	if event.is_action_pressed("booster_left_%s"%[local_player_id]):
@@ -116,7 +116,7 @@ remotesync func _EmitFacingChanged() -> void:
 # Public Methods
 # ------------------------------------------------------------------------------
 remotesync func set_facing(facing : Vector2) -> void:
-	_tween.remove_all()
+	var _res : int = _tween.remove_all()
 	_active = false
 	_target_facing = Vector3(facing.x, 0.0, facing.y)
 	rotation.y = Vector3.FORWARD.angle_to(_target_facing)
