@@ -96,11 +96,10 @@ func _BuildRegion(reset : bool = false) -> void:
 				var hex : HexCell = HexCell.new(qrs)
 				if int(hex.distance_to(origin)) > size:
 					emit_signal("region_hex_removed", hex)
-					_region.erase(qrs)
+					var _res : int = _region.erase(qrs)
 					
 		# Now we fill the board up, only adding cells not already there...
 		var cells = origin.get_region(size)
-		print("Max Height: ", max_height)
 		for cell in cells:
 			var new_cell : bool = not cell.qrs in _region
 			_region[cell.qrs] = (_osn.get_noise_2dv(cell.to_point() * hex_size) + 1.0) * max_height

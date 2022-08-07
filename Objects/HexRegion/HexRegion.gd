@@ -25,7 +25,7 @@ func set_region_resource(r : Resource) -> void:
 			region_resource.disconnect("region_hex_added", self, "_on_region_hex_added")
 		region_resource = r
 		if region_resource != null:
-			region_resource.connect("region_hex_added", self, "_on_region_hex_added")
+			var _res : int = region_resource.connect("region_hex_added", self, "_on_region_hex_added")
 
 # ------------------------------------------------------------------------------
 # Override Methods

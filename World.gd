@@ -38,11 +38,11 @@ onready var game_node : Spatial = $GameView/Viewports/VP1C/Viewport_P1/Game
 # -----------------------------------------------------------------------------
 func _ready() -> void:
 	viewport_p2.world = viewport_p1.world
-	game_node.connect("local_player_2", self, "_on_local_player_2")
-	Input.connect("joy_connection_changed", self, "_on_joy_connection_changed")
+	var _res : int = game_node.connect("local_player_2", self, "_on_local_player_2")
+	_res = Input.connect("joy_connection_changed", self, "_on_joy_connection_changed")
 
 func _physics_process(_delta : float) -> void:
-	Input
+	pass
 
 
 func _unhandled_input(event : InputEvent) -> void:
@@ -101,7 +101,6 @@ func _SetLocalPlayerInputMap(pid : int, device_type : String, device_id : int = 
 							var kinput : InputEventKey = input.duplicate()
 							InputMap.add_action(naction_name)
 							InputMap.action_add_event(naction_name, kinput)
-							print("Adding keyboard action \"", naction_name, "\"")
 							break
 					"jp":
 						var icls = input.get_class()
@@ -111,7 +110,6 @@ func _SetLocalPlayerInputMap(pid : int, device_type : String, device_id : int = 
 							if not InputMap.has_action(naction_name):
 								InputMap.add_action(naction_name)
 							InputMap.action_add_event(naction_name, jinput)
-							print("Adding joypad action \"", naction_name, "\"")
 	game_node.spawn_local(pid)
 
 func _ClearLocalPlayerInputMap(pid : int) -> void:

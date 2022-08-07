@@ -67,7 +67,7 @@ func _PostNetworkInit(mode : int = -1) -> void:
 	for conn in NET_SIGNALS:
 		if conn.mode == mode or conn.mode == NET_SIG_MODE.Both:
 			if not st.is_connected(conn.signal_name, self, conn.method_name):
-				st.connect(conn.signal_name, self, conn.method_name)
+				var _res : int = st.connect(conn.signal_name, self, conn.method_name)
 
 # -----------------------------------------------------------------------------
 # Public Methods
@@ -153,7 +153,7 @@ remote func r_unregister_player_profile() -> void:
 	var id : int = get_tree().get_rpc_sender_id()
 	print(_pid)
 	if id in _pid:
-		_pid.erase(id)
+		var _res : int = _pid.erase(id)
 		Log.info("Unregistered client: %d"%[id])
 		#print("Unregistered client: ", id)
 
@@ -182,7 +182,7 @@ func _on_network_peer_connected(id : int) -> void:
 func _on_network_peer_disconnected(id : int) -> void:
 	if id != get_tree().get_network_unique_id():
 		if id in _pid:
-			_pid.erase(id)
+			var _res : int = _pid.erase(id)
 		Log.info("Client disconnected: %d"%[id])
 		#print("Client disconnected: ", id)
 

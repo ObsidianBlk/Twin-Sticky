@@ -41,10 +41,10 @@ func set_region_resource(r : Resource) -> void:
 			region_resource.disconnect("hex_size_changed", self, "_on_hex_size_changed")
 		region_resource = r
 		if region_resource != null:
-			region_resource.connect("region_cleared", self, "_on_region_cleared")
-			region_resource.connect("region_changed", self, "_on_region_changed")
-			region_resource.connect("region_hex_removed", self, "_on_region_hex_removed")
-			region_resource.connect("hex_size_changed", self, "_on_hex_size_changed")
+			var _res : int = region_resource.connect("region_cleared", self, "_on_region_cleared")
+			_res = region_resource.connect("region_changed", self, "_on_region_changed")
+			_res = region_resource.connect("region_hex_removed", self, "_on_region_hex_removed")
+			_res = region_resource.connect("hex_size_changed", self, "_on_hex_size_changed")
 			size = region_resource.hex_size
 			height = region_resource.get_height_at(_origin)
 			#print("My Height: ", height)
