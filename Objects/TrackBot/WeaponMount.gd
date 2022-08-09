@@ -17,6 +17,7 @@ export var dps : float = 180.0						setget set_dps
 # Variables
 # ------------------------------------------------------------------------------
 var _target_facing : Vector3 = Vector3.FORWARD
+var _mounted_items : Dictionary = {}
 
 var _dx : Array = [0.0, 0.0]
 var _dy : Array = [0.0, 0.0]
@@ -60,6 +61,11 @@ func _unhandled_input(event : InputEvent) -> void:
 		_dy[1] = event.get_action_strength("wm_backward_%s"%[local_player_id])
 	elif event.is_action_released("wm_backward_%s"%[local_player_id]):
 		_dy[1] = 0.0
+	
+	if event.is_action_pressed("wm_fire_l_%s"%[local_player_id]):
+		fire(1)
+	if event.is_action_pressed("wm_fire_r_%s"%[local_player_id]):
+		fire(2)
 
 
 func _physics_process(delta : float) -> void:
@@ -81,6 +87,11 @@ func _physics_process(delta : float) -> void:
 # ------------------------------------------------------------------------------
 # Public Methods
 # ------------------------------------------------------------------------------
+remotesync func fire(id) -> void:
+	if id in _mounted_items:
+		if _mounted_items[id].has_method("fire"):
+			_mounted_items[id].fire()
+
 remotesync func set_facing(facing : Vector2) -> void:
 	_target_facing = Vector3(facing.x, 0.0, facing.y)
 	rotation.y = Vector3.FORWARD.angle_to(_target_facing)
@@ -97,6 +108,39 @@ remotesync func face(facing : Vector2) -> void:
 
 remotesync func facing_degrees(angle : float) -> void:
 	_target_facing = Vector3.FORWARD.rotated(Vector3.UP, deg2rad(angle))
+
+func item_mounted(id : int) -> bool:
+	return id in _mounted_items
+
+func mount_item(item : Spatial, id : int, unmount_existing : bool = false) -> void:
+	if item == null:
+		return
+	if not item.has_method("get_mount_point"):
+		return
+	
+	if _mounted_items.keys().find(id) >= 0:
+		if not unmount_existing:
+			return # Something is already mounted, and we're not told to remove. Bail
+		var old_item : Spatial = unmount_item(id)
+		if old_item != null:
+			old_item.queue_free()
+	
+	var mp = get_node_or_null("MountPoint_%s"%[id])
+	if mp is Position3D:
+		var item_mp = item.get_mount_point(id)
+		if item_mp != null:
+			add_child(item)
+			item.transform.origin = mp.transform.origin - item_mp.transform.origin
+			_mounted_items[id] = item
+
+func unmount_item(id : int) -> Spatial:
+	if not (id in _mounted_items):
+		return null
+	
+	remove_child(_mounted_items[id])
+	var item : Spatial = _mounted_items[id]
+	var _res : int = _mounted_items.erase(id)
+	return item
 
 # ------------------------------------------------------------------------------
 # Handler Methods

@@ -1,0 +1,62 @@
+[gd_scene load_steps=4 format=2]
+
+[ext_resource path="res://Objects/TrackBot/Weapons/Jank_Shotty/Jank_Shotty.gd" type="Script" id=1]
+
+[sub_resource type="CubeMesh" id=1]
+size = Vector3( 0.1, 0.25, 0.5 )
+
+[sub_resource type="CubeMesh" id=2]
+size = Vector3( 0.25, 0.25, 0.5 )
+
+[node name="Jank_Shotty" type="Spatial"]
+script = ExtResource( 1 )
+
+[node name="Handle" type="MeshInstance" parent="."]
+mesh = SubResource( 1 )
+
+[node name="Boomer" type="MeshInstance" parent="."]
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0.5 )
+mesh = SubResource( 2 )
+
+[node name="Trajectories" type="Spatial" parent="."]
+
+[node name="RayCast_C" type="RayCast" parent="Trajectories"]
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0.751 )
+enabled = true
+cast_to = Vector3( 0, 0, 10 )
+collision_mask = 2
+debug_shape_custom_color = Color( 0.0784314, 1, 0, 1 )
+
+[node name="RayCast_R" type="RayCast" parent="Trajectories"]
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, -0.0829164, 0, 0.751 )
+enabled = true
+cast_to = Vector3( 0, 0, 10 )
+collision_mask = 2
+debug_shape_custom_color = Color( 0.0784314, 1, 0, 1 )
+
+[node name="RayCast_L" type="RayCast" parent="Trajectories"]
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0.0921026, 0, 0.751 )
+enabled = true
+cast_to = Vector3( 0, 0, 10 )
+collision_mask = 2
+debug_shape_custom_color = Color( 0.0784314, 1, 0, 1 )
+
+[node name="RayCast_T" type="RayCast" parent="Trajectories"]
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.0719712, 0.751 )
+enabled = true
+cast_to = Vector3( 0, 0, 10 )
+collision_mask = 2
+debug_shape_custom_color = Color( 0.0784314, 1, 0, 1 )
+
+[node name="RayCast_B" type="RayCast" parent="Trajectories"]
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.0612742, 0.751 )
+enabled = true
+cast_to = Vector3( 0, 0, 10 )
+collision_mask = 2
+debug_shape_custom_color = Color( 0.0784314, 1, 0, 1 )
+
+[node name="Mount_2" type="Position3D" parent="."]
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0.145887, 0, 0 )
+
+[node name="Mount_1" type="Position3D" parent="."]
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, -0.146, 0, 0 )

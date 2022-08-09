@@ -13,6 +13,8 @@ const TRACKBOT : PackedScene = preload("res://Objects/TrackBot/TrackBot.tscn")
 const BOOSTER : PackedScene = preload("res://Objects/TrackBot/Boosters/Jank_Booster.tscn")
 const WEAPONMOUNT : PackedScene = preload("res://Objects/TrackBot/WeaponMount/WeaponMount.tscn")
 
+const SHOTTY : PackedScene = preload("res://Objects/TrackBot/Weapons/Jank_Shotty/Jank_Shotty.tscn")
+
 # -----------------------------------------------------------------------------
 # Export Variables
 # -----------------------------------------------------------------------------
@@ -56,6 +58,9 @@ func spawn_local(pid : int) -> void:
 			var wmount = WEAPONMOUNT.instance()
 			wmount.local_player_id = pid + 1
 			_local_tb[pid].add_weapon_mount(wmount)
+			
+			var shotty_1 = SHOTTY.instance()
+			_local_tb[pid].mount_item(shotty_1, 1)
 			
 			var booster = BOOSTER.instance()
 			booster.local_player_id = pid + 1

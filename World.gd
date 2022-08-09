@@ -18,6 +18,8 @@ const INPUT_DEVICE_ACTION_BASES = [
 	"wm_right",
 	"wm_forward",
 	"wm_backward",
+	"wm_fire_l",
+	"wm_fire_r",
 ]
 
 # -----------------------------------------------------------------------------

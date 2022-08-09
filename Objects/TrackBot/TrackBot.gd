@@ -100,6 +100,26 @@ func remove_weapon_mount() -> Spatial:
 		return t
 	return null
 
+func item_mounted(id : int) -> bool:
+	if _weaponmount_node != null:
+		return _weaponmount_node.item_mounted(id)
+	return false
+
+func mount_item(item : Spatial, id : int, unmount_existing : bool = false) -> void:
+	if _weaponmount_node == null:
+		return
+	_weaponmount_node.mount_item(item, id, unmount_existing)
+
+func unmount_item(id : int) -> Spatial:
+	if _weaponmount_node == null:
+		return null
+	return _weaponmount_node.unmount_item(id)
+
+func hit(dmg : float, knockback : Vector3) -> void:
+	# TODO: You know... apply damage
+	if knockback.length() > 0.001:
+		apply_central_impulse(knockback)
+
 # ------------------------------------------------------------------------------
 # Handler Methods
 # ------------------------------------------------------------------------------
