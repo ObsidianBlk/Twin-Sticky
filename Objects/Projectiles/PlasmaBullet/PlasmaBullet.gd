@@ -15,6 +15,7 @@ export var lifetime : float = 3.0					setget set_lifetime
 # Onready Variables
 # ------------------------------------------------------------------------------
 onready var sprite_node : Sprite3D = $Sprite3D
+onready var light_node : OmniLight = $OmniLight
 onready var area_collision_node : CollisionShape = $Area/CollisionShape
 
 # ------------------------------------------------------------------------------
@@ -58,6 +59,7 @@ func _physics_process(delta : float) -> void:
 func _UpdateSprite() -> void:
 	# TODO: Store baseline value if size is going to vary
 	sprite_node.pixel_size *= size
+	light_node.omni_range *= size
 
 func _UpdateCollision() -> void:
 	# TODO: Store baseline value if size is going to vary

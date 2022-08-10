@@ -7,6 +7,7 @@
 
 [sub_resource type="Shader" id=1]
 code = "shader_type spatial;
+render_mode unshaded;
 
 uniform vec4 color : hint_color = vec4(1,1,1,1);
 uniform sampler2D img1;
@@ -34,7 +35,7 @@ void fragment() {
 		ALPHA = mix(c1.a, c2.a, v.r);
 	} else {ALPHA = 0.0;}
 	ALBEDO = color.rgb;
-	EMISSION = color.rgb;
+	EMISSION = color.rgb * 2.0;
 }"
 
 [sub_resource type="OpenSimplexNoise" id=3]
@@ -52,7 +53,7 @@ noise = SubResource( 3 )
 
 [sub_resource type="ShaderMaterial" id=2]
 shader = SubResource( 1 )
-shader_param/color = Color( 1, 1, 1, 1 )
+shader_param/color = Color( 0.972549, 0.831373, 0.529412, 1 )
 shader_param/img1 = ExtResource( 3 )
 shader_param/img2 = ExtResource( 2 )
 shader_param/variance = SubResource( 4 )
@@ -65,6 +66,7 @@ script = ExtResource( 4 )
 
 [node name="Sprite3D" type="Sprite3D" parent="."]
 material_override = SubResource( 2 )
+cast_shadow = 0
 pixel_size = 0.0625
 billboard = 1
 texture = ExtResource( 1 )
@@ -75,5 +77,10 @@ collision_mask = 3
 
 [node name="CollisionShape" type="CollisionShape" parent="Area"]
 shape = SubResource( 5 )
+
+[node name="OmniLight" type="OmniLight" parent="."]
+light_color = Color( 1, 0.792157, 0.47451, 1 )
+omni_range = 4.0
+omni_attenuation = 4.28709
 
 [connection signal="body_entered" from="Area" to="." method="_on_body_entered"]

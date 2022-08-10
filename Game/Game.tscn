@@ -5,7 +5,15 @@
 [ext_resource path="res://Scripts/RegionResource.gd" type="Script" id=3]
 
 [sub_resource type="Environment" id=1]
-background_color = Color( 0.45098, 0.45098, 0.45098, 1 )
+background_mode = 1
+background_energy = 0.0
+ambient_light_color = Color( 0.219608, 0.203922, 0.203922, 1 )
+ambient_light_energy = 0.0
+tonemap_mode = 4
+glow_enabled = true
+glow_bloom = 0.26
+glow_hdr_threshold = 1.05
+glow_bicubic_upscale = true
 
 [sub_resource type="Resource" id=2]
 script = ExtResource( 3 )
