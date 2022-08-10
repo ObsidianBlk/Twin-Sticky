@@ -1,10 +1,15 @@
 extends RigidBody
 
 # ------------------------------------------------------------------------------
+# Signals
+# ------------------------------------------------------------------------------
+signal hp_changed(owner_id, current_hp, max_hp)
+
+# ------------------------------------------------------------------------------
 # Export Variables
 # ------------------------------------------------------------------------------
-
-
+export var owner_id : int = 0
+export var max_hp : float = 100.0
 
 # ------------------------------------------------------------------------------
 # Variables
@@ -12,6 +17,9 @@ extends RigidBody
 var _boost_direction : Vector3 = Vector3.ZERO
 var _boost_strength : float = 0.0
 var _boost_jump_strength : float = 0.0
+
+var _hp : float = 0.0
+var _base_color : Color = Color.white
 
 var _booster_node : Spatial = null
 var _weaponmount_node : Spatial = null
@@ -21,12 +29,27 @@ var _weaponmount_node : Spatial = null
 # ------------------------------------------------------------------------------
 onready var hat_node : Spatial = $Hat
 onready var groundcast_node : RayCast = $Hat/GroundCast
+onready var ball_node : MeshInstance = $Ball
+
+# ------------------------------------------------------------------------------
+# Setters
+# ------------------------------------------------------------------------------
+func set_max_hp(mhp : float) -> void:
+	if mhp > 0.0:
+		max_hp = mhp
+		if max_hp < _hp:
+			_hp = max_hp
+		emit_signal("hp_changed", owner_id, _hp, max_hp)
 
 # ------------------------------------------------------------------------------
 # Override Methods
 # ------------------------------------------------------------------------------
 func _ready() -> void:
-	pass
+	_hp = max_hp
+	if ball_node.get_surface_material_count() > 0:
+		var material : Material = ball_node.get_surface_material(0)
+		if material is ShaderMaterial:
+			_base_color = material.get_shader_param("Color")
 
 func _physics_process(delta : float) -> void:
 	if _boost_strength > 0.0:
@@ -50,6 +73,12 @@ func _IsBooster(obj : Spatial) -> bool:
 		if sig.name.begins_with("booster_"):
 			return true
 	return false
+
+func _SetBallColor(color : Color) -> void:
+	if ball_node.get_surface_material_count() > 0:
+		var material = ball_node.get_active_material(0)
+		if material is ShaderMaterial:
+			material.set_shader_param("Color", color)
 
 # ------------------------------------------------------------------------------
 # Public Methods
@@ -116,9 +145,26 @@ func unmount_item(id : int) -> Spatial:
 	return _weaponmount_node.unmount_item(id)
 
 func hit(dmg : float, knockback : Vector3) -> void:
-	# TODO: You know... apply damage
-	if knockback.length() > 0.001:
-		apply_central_impulse(knockback)
+	if _hp > 0.0:
+		_hp -= dmg
+		print("HP: ", _hp)
+		emit_signal("hp_changed", owner_id, _hp, max_hp)
+		if _hp <= 0.0:
+			if _weaponmount_node:
+				_weaponmount_node.lock_player_control(true)
+			if _booster_node:
+				_booster_node.lock_player_control(true)
+			_SetBallColor(Color.black)
+		if knockback.length() > 0.001:
+			apply_central_impulse(knockback)
+
+func revive() -> void:
+	_hp = max_hp
+	if _weaponmount_node:
+		_weaponmount_node.lock_player_control(false)
+	if _booster_node:
+		_booster_node.lock_player_control(false)
+	_SetBallColor(_base_color)
 
 # ------------------------------------------------------------------------------
 # Handler Methods

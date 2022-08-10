@@ -9,6 +9,8 @@ signal network_initialized()
 signal network_disconnected()
 signal network_init_failed()
 
+signal add_game_world()
+
 
 # -----------------------------------------------------------------------------
 # Constant
@@ -171,20 +173,18 @@ remote func r_receive_data(data, to_id : int = -1) -> void:
 func _on_network_peer_connected(id : int) -> void:
 	if id in _pid:
 		Log.warning("Client ID %d already exists."%[id])
-		#printerr("WARNING: Client ID ", id, " already exists.")
 	Log.info("New client connected, %d"%[id])
-	var sid : int = get_tree().get_network_unique_id()
-	if sid == 1:
-		Log.debug("Sending data to client %d"%[id])
-		send_data("Hello from server", id)
-	#_pid[id] = {"name":"Unknown"} # This is temporary!
+	_pid[id] = {}
+#	var sid : int = get_tree().get_network_unique_id()
+#	if sid == 1:
+#		Log.debug("Sending data to client %d"%[id])
+#		send_data("Hello from server", id)
 
 func _on_network_peer_disconnected(id : int) -> void:
 	if id != get_tree().get_network_unique_id():
 		if id in _pid:
 			var _res : int = _pid.erase(id)
 		Log.info("Client disconnected: %d"%[id])
-		#print("Client disconnected: ", id)
 
 func _on_connected_to_server() -> void:
 	var id : int = get_tree().get_network_unique_id()
@@ -195,11 +195,9 @@ func _on_connected_to_server() -> void:
 
 func _on_connection_failed() -> void:
 	Log.info("Failed to connect to the server")
-	#print("Failed to connect to the server")
 	call_deferred("disconnect_game", false)
 
 func _on_server_disconnected() -> void:
 	Log.info("Server disconnected")
-	#print("Server disconnected")
 	call_deferred("disconnect_game", false)
 

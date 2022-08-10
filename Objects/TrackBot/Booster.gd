@@ -60,6 +60,8 @@ func set_local_player_id(id : int) -> void:
 # Override Methods
 # ------------------------------------------------------------------------------
 func _ready() -> void:
+	if local_player_id <= 0:
+		set_process_unhandled_input(false)
 	_tween = Tween.new()
 	add_child(_tween)
 	var _res : int = _tween.connect("tween_all_completed", self, "_on_facing_complete")
@@ -149,6 +151,11 @@ remotesync func jump() -> void:
 
 func is_boosting() -> bool:
 	return _active
+	
+func lock_player_control(lock : bool = true) -> void:
+	# TODO: Handle AIs if needed.
+	if local_player_id > 0:
+		set_process_unhandled_input(not lock)
 
 # ------------------------------------------------------------------------------
 # Handler Methods

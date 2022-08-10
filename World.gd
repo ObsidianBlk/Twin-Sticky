@@ -4,6 +4,7 @@ extends Node2D
 # -----------------------------------------------------------------------------
 # Constants
 # -----------------------------------------------------------------------------
+const GAME = preload("res://Game/Game.tscn")
 const INPUT_DEVICE_ACTION_BASES = [
 	"booster_forward",
 	"booster_backward",
@@ -27,41 +28,49 @@ const INPUT_DEVICE_ACTION_BASES = [
 # -----------------------------------------------------------------------------
 var _local_player_info : Array = [null, null]
 
+var _game_node : Spatial = null
+
 # -----------------------------------------------------------------------------
 # Onready Variables
 # -----------------------------------------------------------------------------
+onready var ui : CanvasLayer = $UI
 onready var vp2c : ViewportContainer = $GameView/Viewports/VP2C
 onready var viewport_game : Viewport = $GameView/Viewports/Main/Viewport
 onready var viewport_p1 : Viewport = $GameView/Viewports/VP1C/Viewport_P1
+onready var viewport_p1_world : World = $GameView/Viewports/VP1C/Viewport_P1.world
 onready var viewport_p2 : Viewport = $GameView/Viewports/VP2C/Viewport_P2
-onready var game_node : Spatial = $GameView/Viewports/Main/Viewport/Game
+onready var viewport_p2_world : World = $GameView/Viewports/VP2C/Viewport_P2.world
 
 # -----------------------------------------------------------------------------
 # Override Methods
 # -----------------------------------------------------------------------------
 func _ready() -> void:
-	viewport_p1.world = viewport_game.world
-	viewport_p2.world = viewport_game.world
-	var _res : int = game_node.connect("local_player_2", self, "_on_local_player_2")
-	_res = Input.connect("joy_connection_changed", self, "_on_joy_connection_changed")
-
-func _physics_process(_delta : float) -> void:
 	pass
+#	viewport_p1.world = viewport_game.world
+#	viewport_p2.world = viewport_game.world
+#	var _res : int = game_node.connect("local_player_2", self, "_on_local_player_2")
+#	_res = Input.connect("joy_connection_changed", self, "_on_joy_connection_changed")
 
 
 func _unhandled_input(event : InputEvent) -> void:
-	if event is InputEventKey:
-		if not _KeyboardDeviceInUse():
-			if _local_player_info[0] == null:
-				call_deferred("_SetLocalPlayerInputMap", 0, "kb", 0)
-			elif _local_player_info[1] == null:
-				call_deferred("_SetLocalPlayerInputMap", 1, "kb", 0)
-	elif event is InputEventJoypadButton:
-		if not _JoypadDeviceInUse(event.device):
-			if _local_player_info[0] == null:
-				call_deferred("_SetLocalPlayerInputMap", 0, "jp", event.device)
-			elif _local_player_info[1] == null:
-				call_deferred("_SetLocalPlayerInputMap", 1, "jp", event.device)
+	if _game_node == null:
+		return
+	
+	if event.is_action_pressed("ui_cancel"):
+		ui.show_menu("MainMenu")
+	else:
+		if event is InputEventKey:
+			if not _KeyboardDeviceInUse():
+				if _local_player_info[0] == null:
+					call_deferred("_SetLocalPlayerInputMap", 0, "kb", 0)
+				elif _local_player_info[1] == null:
+					call_deferred("_SetLocalPlayerInputMap", 1, "kb", 0)
+		elif event is InputEventJoypadButton:
+			if not _JoypadDeviceInUse(event.device):
+				if _local_player_info[0] == null:
+					call_deferred("_SetLocalPlayerInputMap", 0, "jp", event.device)
+				elif _local_player_info[1] == null:
+					call_deferred("_SetLocalPlayerInputMap", 1, "jp", event.device)
 
 # -----------------------------------------------------------------------------
 # Private Methods
@@ -114,7 +123,7 @@ func _SetLocalPlayerInputMap(pid : int, device_type : String, device_id : int = 
 							if not InputMap.has_action(naction_name):
 								InputMap.add_action(naction_name)
 							InputMap.action_add_event(naction_name, jinput)
-	game_node.spawn_local(pid)
+	_game_node.spawn_local(pid)
 
 func _ClearLocalPlayerInputMap(pid : int) -> void:
 	if not (pid >= 0 and pid < 2):
@@ -140,3 +149,18 @@ func _on_joy_connection_changed(device_id : int, connected : bool) -> void:
 
 func _on_local_player_2(joined : bool) -> void:
 	vp2c.visible = joined
+
+func _on_MainMenu_quit():
+	get_tree().quit()
+
+func _on_MainMenu_local_start():
+	if _game_node == null:
+		_game_node = GAME.instance()
+		viewport_game.add_child(_game_node)
+		viewport_p1.world = viewport_game.world
+		viewport_p2.world = viewport_game.world
+		ui.show_menu("")
+		
+
+func _on_MainMenu_online_start():
+	print("Not ready for my Online presence!")

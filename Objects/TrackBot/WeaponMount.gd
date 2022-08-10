@@ -142,6 +142,11 @@ func unmount_item(id : int) -> Spatial:
 	var _res : int = _mounted_items.erase(id)
 	return item
 
+func lock_player_control(lock : bool = true) -> void:
+	# TODO: Handle AIs if needed.
+	if local_player_id > 0:
+		set_process_unhandled_input(not lock)
+
 # ------------------------------------------------------------------------------
 # Handler Methods
 # ------------------------------------------------------------------------------

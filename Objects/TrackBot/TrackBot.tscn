@@ -1,14 +1,34 @@
-[gd_scene load_steps=7 format=2]
+[gd_scene load_steps=15 format=2]
 
 [ext_resource path="res://Objects/TrackBot/TrackBot.gd" type="Script" id=1]
 
-[sub_resource type="VisualShaderNodeColorConstant" id=9]
-constant = Color( 0.617188, 0.234375, 1, 1 )
+[sub_resource type="VisualShaderNodeColorUniform" id=12]
+uniform_name = "Color"
+default_value_enabled = true
+default_value = Color( 0.772217, 0.346776, 0.7969, 1 )
+
+[sub_resource type="VisualShaderNodeTextureUniform" id=13]
+uniform_name = "Noise"
+texture_type = 1
+
+[sub_resource type="VisualShaderNodeInput" id=14]
+input_name = "uv"
+
+[sub_resource type="VisualShaderNodeVectorInterp" id=15]
+
+[sub_resource type="VisualShaderNodeVectorDecompose" id=16]
+
+[sub_resource type="VisualShaderNodeScalarInterp" id=17]
+
+[sub_resource type="VisualShaderNodeScalarInterp" id=18]
 
 [sub_resource type="VisualShader" id=10]
+resource_local_to_scene = true
 code = "shader_type spatial;
 render_mode specular_schlick_ggx, async_visible;
 
+uniform vec4 Color : hint_color = vec4(0.772217, 0.346776, 0.796900, 1.000000);
+uniform sampler2D Noise : hint_albedo;
 
 
 
@@ -18,12 +38,44 @@ void vertex() {
 }
 
 void fragment() {
-// Color:2
-	vec3 n_out2p0 = vec3(0.617188, 0.234375, 1.000000);
-	float n_out2p1 = 1.000000;
+// ColorUniform:3
+	vec3 n_out3p0 = Color.rgb;
+	float n_out3p1 = Color.a;
+
+// Input:5
+	vec3 n_out5p0 = vec3(UV, 0.0);
+
+// TextureUniform:4
+	vec3 n_out4p0;
+	float n_out4p1;
+	{
+		vec4 n_tex_read = texture(Noise, n_out5p0.xy);
+		n_out4p0 = n_tex_read.rgb;
+		n_out4p1 = n_tex_read.a;
+	}
+
+// VectorMix:6
+	vec3 n_in6p2 = vec3(0.50000, 0.50000, 0.50000);
+	vec3 n_out6p0 = mix(n_out3p0, n_out4p0, n_in6p2);
+
+// VectorDecompose:7
+	float n_out7p0 = n_out4p0.x;
+	float n_out7p1 = n_out4p0.y;
+	float n_out7p2 = n_out4p0.z;
+
+// ScalarMix:8
+	float n_in8p2 = 0.50000;
+	float n_out8p0 = mix(n_out7p0, n_out7p1, n_in8p2);
+
+// ScalarMix:9
+	float n_in9p2 = 0.50000;
+	float n_out9p0 = mix(n_out8p0, n_out7p2, n_in9p2);
 
 // Output:0
-	ALBEDO = n_out2p0;
+	ALBEDO = n_out6p0;
+	METALLIC = n_out9p0;
+	ROUGHNESS = n_out9p0;
+	SPECULAR = n_out9p0;
 
 }
 
@@ -32,15 +84,43 @@ void light() {
 
 }
 "
-graph_offset = Vector2( -462.195, -29.0878 )
-nodes/fragment/2/node = SubResource( 9 )
-nodes/fragment/2/position = Vector2( -180, 140 )
-nodes/fragment/connections = PoolIntArray( 2, 0, 0, 0 )
+graph_offset = Vector2( 101.481, 106.214 )
+nodes/fragment/0/position = Vector2( 940, 140 )
+nodes/fragment/3/node = SubResource( 12 )
+nodes/fragment/3/position = Vector2( -220, 60 )
+nodes/fragment/4/node = SubResource( 13 )
+nodes/fragment/4/position = Vector2( -220, 240 )
+nodes/fragment/5/node = SubResource( 14 )
+nodes/fragment/5/position = Vector2( -580, 120 )
+nodes/fragment/6/node = SubResource( 15 )
+nodes/fragment/6/position = Vector2( 300, 140 )
+nodes/fragment/7/node = SubResource( 16 )
+nodes/fragment/7/position = Vector2( 60, 360 )
+nodes/fragment/8/node = SubResource( 17 )
+nodes/fragment/8/position = Vector2( 300, 280 )
+nodes/fragment/9/node = SubResource( 18 )
+nodes/fragment/9/position = Vector2( 520, 300 )
+nodes/fragment/connections = PoolIntArray( 5, 0, 4, 0, 3, 0, 6, 0, 4, 0, 6, 1, 6, 0, 0, 0, 4, 0, 7, 0, 7, 0, 8, 0, 7, 1, 8, 1, 8, 0, 9, 0, 7, 2, 9, 1, 9, 0, 0, 3, 9, 0, 0, 2, 9, 0, 0, 4 )
+
+[sub_resource type="OpenSimplexNoise" id=19]
+seed = 1701
+octaves = 7
+period = 10.8
+persistence = 0.371
+lacunarity = 3.04
+
+[sub_resource type="NoiseTexture" id=20]
+seamless = true
+noise = SubResource( 19 )
 
 [sub_resource type="ShaderMaterial" id=11]
+resource_local_to_scene = true
 shader = SubResource( 10 )
+shader_param/Color = Color( 0.772217, 0.346776, 0.7969, 1 )
+shader_param/Noise = SubResource( 20 )
 
 [sub_resource type="SphereMesh" id=3]
+resource_local_to_scene = true
 material = SubResource( 11 )
 radial_segments = 16
 rings = 8
@@ -50,7 +130,6 @@ rings = 8
 [node name="TrackBot" type="RigidBody"]
 collision_layer = 2
 collision_mask = 3
-mode = 2
 mass = 8.0
 continuous_cd = true
 contact_monitor = true

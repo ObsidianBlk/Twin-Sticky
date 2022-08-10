@@ -51,6 +51,9 @@ func _ready() -> void:
 
 func _physics_process(delta : float) -> void:
 	global_transform.origin += direction * (speed * delta)
+	lifetime -= delta
+	if lifetime <= 0.0:
+		_Die()
 
 
 # ------------------------------------------------------------------------------
@@ -77,4 +80,4 @@ func _Die() -> void:
 func _on_body_entered(body):
 	if body.has_method("hit"):
 		body.hit(damage, Vector3.ZERO)
-		_Die()
+		call_deferred("_Die")

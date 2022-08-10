@@ -25,7 +25,7 @@ size = 10
 max_height = 2.0
 hex_size = 2.0
 
-[node name="Game" type="Spatial"]
+[node name="Game" type="Spatial" groups=["Game"]]
 script = ExtResource( 2 )
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="."]
