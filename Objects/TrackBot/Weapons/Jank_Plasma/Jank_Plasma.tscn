@@ -1,0 +1,47 @@
+[gd_scene load_steps=5 format=2]
+
+[ext_resource path="res://Objects/TrackBot/Weapons/Jank_Plasma/Jank_Plasma.gd" type="Script" id=1]
+
+[sub_resource type="CubeMesh" id=1]
+size = Vector3( 0.1, 0.25, 0.5 )
+
+[sub_resource type="CubeMesh" id=2]
+size = Vector3( 0.25, 0.25, 0.5 )
+
+[sub_resource type="PrismMesh" id=3]
+size = Vector3( 0.2, 0.1, 0.05 )
+
+[node name="Jank_Plasma" type="Spatial"]
+script = ExtResource( 1 )
+
+[node name="Handle" type="MeshInstance" parent="."]
+mesh = SubResource( 1 )
+
+[node name="Body" type="MeshInstance" parent="."]
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0.5 )
+mesh = SubResource( 2 )
+
+[node name="Poke" type="MeshInstance" parent="Body"]
+transform = Transform( 1, 0, 0, 0, -4.37114e-08, -1, 0, 1, -4.37114e-08, 0, 0.100715, 0.299777 )
+mesh = SubResource( 3 )
+
+[node name="Poke2" type="MeshInstance" parent="Body"]
+transform = Transform( 1, 0, 0, 0, -4.37114e-08, -1, 0, 1, -4.37114e-08, 0, -0.102546, 0.299777 )
+mesh = SubResource( 3 )
+
+[node name="Poke3" type="MeshInstance" parent="Body"]
+transform = Transform( -4.37114e-08, -4.37114e-08, -1, -1, 1.91069e-15, 4.37114e-08, 0, 1, -4.37114e-08, 0.10163, -0.000915375, 0.299777 )
+mesh = SubResource( 3 )
+
+[node name="Poke4" type="MeshInstance" parent="Body"]
+transform = Transform( -4.37114e-08, -4.37114e-08, -1, -1, 1.91069e-15, 4.37114e-08, 0, 1, -4.37114e-08, -0.10163, -0.000915366, 0.299777 )
+mesh = SubResource( 3 )
+
+[node name="Spawn_point" type="Position3D" parent="."]
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0.849153 )
+
+[node name="Mount_2" type="Position3D" parent="."]
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0.145887, 0, 0 )
+
+[node name="Mount_1" type="Position3D" parent="."]
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, -0.146, 0, 0 )

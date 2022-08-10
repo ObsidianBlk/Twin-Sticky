@@ -6,7 +6,7 @@ extends Spatial
 # ------------------------------------------------------------------------------
 export var size : float = 1.0						setget set_size
 export var damage : float = 100.0					setget set_damage
-export var speed : float = 100.0					setget set_speed
+export var speed : float = 10.0						setget set_speed
 export var direction : Vector3 = Vector3.BACK		setget set_direction
 export var lifetime : float = 3.0					setget set_lifetime
 

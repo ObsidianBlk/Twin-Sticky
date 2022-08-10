@@ -58,8 +58,6 @@ func _ready() -> void:
 func _physics_process(delta : float) -> void:
 	if _fire_lock_timer > 0.0:
 		_fire_lock_timer = max(0.0, _fire_lock_timer - delta)
-		if _fire_lock_timer <= 0.0:
-			print("Shotty can fire")
 
 # ------------------------------------------------------------------------------
 # Private Methods

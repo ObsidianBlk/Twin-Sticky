@@ -34,9 +34,7 @@ onready var vp2c : ViewportContainer = $GameView/Viewports/VP2C
 onready var viewport_game : Viewport = $GameView/Viewports/Main/Viewport
 onready var viewport_p1 : Viewport = $GameView/Viewports/VP1C/Viewport_P1
 onready var viewport_p2 : Viewport = $GameView/Viewports/VP2C/Viewport_P2
-#onready var game_node : Spatial = $GameView/Viewports/VP1C/Viewport_P1/Game
 onready var game_node : Spatial = $GameView/Viewports/Main/Viewport/Game
-#onready var game_node : Spatial = $GameViewport/Game
 
 # -----------------------------------------------------------------------------
 # Override Methods
