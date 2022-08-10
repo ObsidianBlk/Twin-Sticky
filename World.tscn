@@ -7,11 +7,29 @@
 [node name="World" type="Node2D"]
 script = ExtResource( 2 )
 
+[node name="GameViewport" type="Viewport" parent="."]
+size = Vector2( 1024, 600 )
+handle_input_locally = false
+render_target_update_mode = 3
+
 [node name="GameView" type="CanvasLayer" parent="."]
 
 [node name="Viewports" type="HBoxContainer" parent="GameView"]
 anchor_right = 1.0
 anchor_bottom = 1.0
+
+[node name="Main" type="ViewportContainer" parent="GameView/Viewports"]
+visible = false
+margin_bottom = 600.0
+stretch = true
+
+[node name="Viewport" type="Viewport" parent="GameView/Viewports/Main"]
+size = Vector2( 1024, 600 )
+size_override_stretch = true
+handle_input_locally = false
+render_target_update_mode = 0
+
+[node name="Game" parent="GameView/Viewports/Main/Viewport" instance=ExtResource( 1 )]
 
 [node name="VP1C" type="ViewportContainer" parent="GameView/Viewports"]
 margin_right = 1024.0
@@ -29,8 +47,6 @@ render_target_update_mode = 3
 [node name="Camera" parent="GameView/Viewports/VP1C/Viewport_P1" instance=ExtResource( 3 )]
 target_group = "Player_1"
 height = 16.0
-
-[node name="Game" parent="GameView/Viewports/VP1C/Viewport_P1" instance=ExtResource( 1 )]
 
 [node name="VP2C" type="ViewportContainer" parent="GameView/Viewports"]
 visible = false

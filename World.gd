@@ -31,15 +31,19 @@ var _local_player_info : Array = [null, null]
 # Onready Variables
 # -----------------------------------------------------------------------------
 onready var vp2c : ViewportContainer = $GameView/Viewports/VP2C
+onready var viewport_game : Viewport = $GameView/Viewports/Main/Viewport
 onready var viewport_p1 : Viewport = $GameView/Viewports/VP1C/Viewport_P1
 onready var viewport_p2 : Viewport = $GameView/Viewports/VP2C/Viewport_P2
-onready var game_node : Spatial = $GameView/Viewports/VP1C/Viewport_P1/Game
+#onready var game_node : Spatial = $GameView/Viewports/VP1C/Viewport_P1/Game
+onready var game_node : Spatial = $GameView/Viewports/Main/Viewport/Game
+#onready var game_node : Spatial = $GameViewport/Game
 
 # -----------------------------------------------------------------------------
 # Override Methods
 # -----------------------------------------------------------------------------
 func _ready() -> void:
-	viewport_p2.world = viewport_p1.world
+	viewport_p1.world = viewport_game.world
+	viewport_p2.world = viewport_game.world
 	var _res : int = game_node.connect("local_player_2", self, "_on_local_player_2")
 	_res = Input.connect("joy_connection_changed", self, "_on_joy_connection_changed")
 
