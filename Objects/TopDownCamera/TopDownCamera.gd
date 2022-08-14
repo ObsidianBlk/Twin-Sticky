@@ -12,7 +12,7 @@ export var height : float = 0.0
 # -----------------------------------------------------------------------------
 # Variables
 # -----------------------------------------------------------------------------
-var _target : Spatial = null
+var _target : WeakRef = null
 
 # -----------------------------------------------------------------------------
 # Onready Variables
@@ -43,7 +43,11 @@ func _ready() -> void:
 
 func _physics_process(_delta : float) -> void:
 	if _target != null:
-		transform.origin = _target.transform.origin
+		var target : Spatial = _target.get_ref()
+		if target:
+			transform.origin = target.transform.origin
+		else:
+			_target = null
 	else:
 		_UpdateTargetNode()
 
@@ -52,8 +56,13 @@ func _physics_process(_delta : float) -> void:
 # -----------------------------------------------------------------------------
 func _UpdateTargetNode() -> void:
 	if target_group != "":
-		var nodes : Array = get_tree().get_nodes_in_group(target_group)
+		var _tg : String = target_group
+		if get_tree().has_network_peer():
+			var remote_pid = get_tree().get_network_unique_id()
+			_tg = "%s_%s"%[_tg, remote_pid]
+		#print("Target Group: ", _tg)
+		var nodes : Array = get_tree().get_nodes_in_group(_tg)
 		if nodes.size() > 0:
-			_target = nodes[0]
+			_target = weakref(nodes[0])
 	else:
 		_target = null

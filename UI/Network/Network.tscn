@@ -1,0 +1,230 @@
+[gd_scene load_steps=2 format=2]
+
+[ext_resource path="res://UI/Network/Network.gd" type="Script" id=1]
+
+[node name="Network" type="CenterContainer"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+script = ExtResource( 1 )
+
+[node name="Choice" type="PanelContainer" parent="."]
+visible = false
+margin_left = 505.0
+margin_top = 293.0
+margin_right = 519.0
+margin_bottom = 307.0
+
+[node name="Layout" type="VBoxContainer" parent="Choice"]
+margin_left = 7.0
+margin_top = 7.0
+margin_right = 146.0
+margin_bottom = 53.0
+
+[node name="Label" type="Label" parent="Choice/Layout"]
+margin_right = 139.0
+margin_bottom = 14.0
+text = "Networking"
+
+[node name="HSeparator" type="HSeparator" parent="Choice/Layout"]
+margin_top = 18.0
+margin_right = 139.0
+margin_bottom = 22.0
+
+[node name="Options" type="HBoxContainer" parent="Choice/Layout"]
+margin_top = 26.0
+margin_right = 139.0
+margin_bottom = 46.0
+
+[node name="OpHost" type="Button" parent="Choice/Layout/Options"]
+unique_name_in_owner = true
+margin_right = 42.0
+margin_bottom = 20.0
+text = "Host"
+
+[node name="OpJoin" type="Button" parent="Choice/Layout/Options"]
+unique_name_in_owner = true
+margin_left = 46.0
+margin_right = 81.0
+margin_bottom = 20.0
+text = "Join"
+
+[node name="OpCancel" type="Button" parent="Choice/Layout/Options"]
+unique_name_in_owner = true
+margin_left = 85.0
+margin_right = 139.0
+margin_bottom = 20.0
+text = "Cancel"
+
+[node name="Join" type="PanelContainer" parent="."]
+visible = false
+margin_left = 505.0
+margin_top = 293.0
+margin_right = 519.0
+margin_bottom = 307.0
+
+[node name="Layout" type="VBoxContainer" parent="Join"]
+margin_left = 7.0
+margin_top = 7.0
+margin_right = 267.0
+margin_bottom = 109.0
+
+[node name="Label" type="Label" parent="Join/Layout"]
+margin_right = 260.0
+margin_bottom = 14.0
+text = "Network Join:"
+
+[node name="HSeparator" type="HSeparator" parent="Join/Layout"]
+margin_top = 18.0
+margin_right = 260.0
+margin_bottom = 22.0
+
+[node name="GridContainer" type="GridContainer" parent="Join/Layout"]
+margin_top = 26.0
+margin_right = 260.0
+margin_bottom = 78.0
+columns = 2
+
+[node name="Label" type="Label" parent="Join/Layout/GridContainer"]
+margin_top = 5.0
+margin_right = 60.0
+margin_bottom = 19.0
+text = "Address: "
+
+[node name="JoinAddress" type="LineEdit" parent="Join/Layout/GridContainer"]
+unique_name_in_owner = true
+margin_left = 64.0
+margin_right = 260.0
+margin_bottom = 24.0
+rect_min_size = Vector2( 196, 0 )
+placeholder_text = "IP/URI of Host"
+
+[node name="Label2" type="Label" parent="Join/Layout/GridContainer"]
+margin_top = 33.0
+margin_right = 60.0
+margin_bottom = 47.0
+text = "Port:"
+
+[node name="JoinPort" type="LineEdit" parent="Join/Layout/GridContainer"]
+unique_name_in_owner = true
+margin_left = 64.0
+margin_top = 28.0
+margin_right = 260.0
+margin_bottom = 52.0
+rect_min_size = Vector2( 196, 0 )
+placeholder_text = "Port"
+
+[node name="Buttons" type="HBoxContainer" parent="Join/Layout"]
+margin_top = 82.0
+margin_right = 260.0
+margin_bottom = 102.0
+
+[node name="Join" type="Button" parent="Join/Layout/Buttons"]
+unique_name_in_owner = true
+margin_right = 84.0
+margin_bottom = 20.0
+size_flags_horizontal = 3
+text = "Join"
+
+[node name="Spacer" type="Control" parent="Join/Layout/Buttons"]
+margin_left = 88.0
+margin_right = 172.0
+margin_bottom = 20.0
+size_flags_horizontal = 3
+
+[node name="JoinCancel" type="Button" parent="Join/Layout/Buttons"]
+unique_name_in_owner = true
+margin_left = 176.0
+margin_right = 260.0
+margin_bottom = 20.0
+size_flags_horizontal = 3
+text = "Cancel"
+
+[node name="Host" type="PanelContainer" parent="."]
+visible = false
+margin_left = 505.0
+margin_top = 293.0
+margin_right = 519.0
+margin_bottom = 307.0
+
+[node name="Layout" type="VBoxContainer" parent="Host"]
+margin_left = 7.0
+margin_top = 7.0
+margin_right = 267.0
+margin_bottom = 129.0
+
+[node name="Label" type="Label" parent="Host/Layout"]
+margin_right = 260.0
+margin_bottom = 14.0
+text = "Hosting Config:"
+
+[node name="HSeparator" type="HSeparator" parent="Host/Layout"]
+margin_top = 18.0
+margin_right = 260.0
+margin_bottom = 22.0
+
+[node name="Config" type="GridContainer" parent="Host/Layout"]
+margin_top = 26.0
+margin_right = 260.0
+margin_bottom = 98.0
+size_flags_horizontal = 3
+size_flags_vertical = 3
+columns = 2
+
+[node name="Label2" type="Label" parent="Host/Layout/Config"]
+margin_top = 33.0
+margin_right = 60.0
+margin_bottom = 47.0
+text = "Port: "
+
+[node name="HostPort" type="LineEdit" parent="Host/Layout/Config"]
+unique_name_in_owner = true
+margin_left = 64.0
+margin_top = 28.0
+margin_right = 260.0
+margin_bottom = 52.0
+rect_min_size = Vector2( 64, 0 )
+placeholder_text = "Port"
+
+[node name="Label3" type="Label" parent="Host/Layout/Config"]
+margin_top = 57.0
+margin_right = 60.0
+margin_bottom = 71.0
+text = "Players: "
+
+[node name="PlayerSlider" type="HSlider" parent="Host/Layout/Config"]
+unique_name_in_owner = true
+margin_left = 64.0
+margin_top = 56.0
+margin_right = 260.0
+margin_bottom = 72.0
+min_value = 2.0
+max_value = 16.0
+value = 2.0
+tick_count = 14
+ticks_on_borders = true
+
+[node name="Buttons" type="HBoxContainer" parent="Host/Layout"]
+margin_top = 102.0
+margin_right = 260.0
+margin_bottom = 122.0
+
+[node name="Host" type="Button" parent="Host/Layout/Buttons"]
+unique_name_in_owner = true
+margin_right = 84.0
+margin_bottom = 20.0
+size_flags_horizontal = 3
+text = "Host"
+
+[node name="Spacer" type="Control" parent="Host/Layout/Buttons"]
+margin_left = 88.0
+margin_right = 172.0
+margin_bottom = 20.0
+size_flags_horizontal = 3
+
+[node name="HostCancel" type="Button" parent="Host/Layout/Buttons"]
+unique_name_in_owner = true
+margin_left = 176.0
+margin_right = 260.0
+margin_bottom = 20.0
+size_flags_horizontal = 3
+text = "Cancel"

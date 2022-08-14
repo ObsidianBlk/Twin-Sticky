@@ -29,7 +29,6 @@ const PROJECTILE : Dictionary = {
 # -----------------------------------------------------------------------------
 # Variables
 # -----------------------------------------------------------------------------
-var _local_tb : Array = [null, null]
 
 # -----------------------------------------------------------------------------
 # Onready Variables
@@ -39,7 +38,9 @@ onready var hexregion_node : Spatial = $HexRegion
 # -----------------------------------------------------------------------------
 # Override Methods
 # -----------------------------------------------------------------------------
-
+func _ready() -> void:
+	Net.connect("add_player", self, "_on_add_player")
+	Net.connect("remove_player", self, "_on_remove_player")
 
 # -----------------------------------------------------------------------------
 # Private Methods
@@ -62,39 +63,62 @@ func _MountWeapon(weapon_name : String, trackbot : Spatial, mount_id : int) -> i
 # -----------------------------------------------------------------------------
 # Public Methods
 # -----------------------------------------------------------------------------
-func spawn_local(pid : int) -> void:
+func spawn_player(pid : int, remote_pid : int) -> void:
 	if not hexregion_node:
 		return
 	
-	if pid >= 0 and pid < _local_tb.size():
-		if _local_tb[pid] == null:
-			var y : float = hexregion_node.region_resource.get_height_at(Vector3.ZERO)
-			_local_tb[pid] = TRACKBOT.instance()
-			_local_tb[pid].add_to_group("Player_%s"%[pid + 1])
-			add_child(_local_tb[pid])
-			_local_tb[pid].transform.origin.y = y + 1.0
-			
-			var wmount = WEAPONMOUNT.instance()
-			wmount.local_player_id = pid + 1
-			_local_tb[pid].add_weapon_mount(wmount)
-			
-			var res : int = _MountWeapon("SHOTTY", _local_tb[pid], 1)
-			if res != OK:
-				printerr("Failed to mount SHOTTY to Trackbot ID ", pid)
-			
-			res = _MountWeapon("PLASMA", _local_tb[pid], 2)
-			if res != OK:
-				printerr("Failed to mount PLASMA to Trackbot ID ", pid)
-			
-			var booster = BOOSTER.instance()
-			booster.local_player_id = pid + 1
-			_local_tb[pid].add_booster(booster)
-			if pid == 1:
+	var group_name : String = "Player_%s"%[pid + 1]
+	if remote_pid > 0:
+		group_name = "%s_%s"%[group_name, remote_pid]
+	print("Group Name: ", group_name)
+	
+	var bots = get_tree().get_nodes_in_group(group_name)
+	if bots.size() <= 0:
+		var y : float = hexregion_node.region_resource.get_height_at(Vector3.ZERO)
+		var tb : Spatial = TRACKBOT.instance()
+		tb.set_name("%s_%s"%[remote_pid, pid + 1])
+		tb.add_to_group(group_name)
+		tb.set_network_master(remote_pid)
+		add_child(tb)
+		tb.transform.origin.y = y + 1.0
+		
+		var wmount = WEAPONMOUNT.instance()
+		wmount.local_player_id = pid + 1
+		wmount.set_network_master(remote_pid)
+		tb.add_weapon_mount(wmount)
+		
+		var res : int = _MountWeapon("SHOTTY", tb, 1)
+		if res != OK:
+			printerr("Failed to mount SHOTTY to Trackbot ID ", pid)
+		
+		res = _MountWeapon("PLASMA", tb, 2)
+		if res != OK:
+			printerr("Failed to mount PLASMA to Trackbot ID ", pid)
+		
+		var booster = BOOSTER.instance()
+		booster.local_player_id = pid + 1
+		booster.set_network_master(remote_pid)
+		tb.add_booster(booster)
+		if get_tree().has_network_peer():
+			if pid == 1 and remote_pid == get_tree().get_network_unique_id():
 				emit_signal("local_player_2", true)
+			rpc("r_announce_local_player", pid)
+		elif pid == 1:
+			emit_signal("local_player_2", true)
 
 # -----------------------------------------------------------------------------
 # Handler Methods
 # -----------------------------------------------------------------------------
+func _on_add_player(local_pid, remote_pid) -> void:
+	spawn_player(local_pid, remote_pid)
+
+func _on_remove_player(local_pid, remote_pid) -> void:
+	var group_name : String = "Player_%s_%s"%[local_pid + 1, remote_pid]
+	var nodes = get_tree().get_nodes_in_group(group_name)
+	if nodes.size() > 0:
+		remove_child(nodes[0])
+		nodes[0].queue_free()
+
 func _on_spawn_projectile(projectile_name : String, position : Vector3, direction : Vector3, trackbot : Spatial) -> void:
 	if projectile_name in PROJECTILE:
 		var projectile = PROJECTILE[projectile_name].instance()

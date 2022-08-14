@@ -45,7 +45,8 @@ onready var viewport_p2_world : World = $GameView/Viewports/VP2C/Viewport_P2.wor
 # Override Methods
 # -----------------------------------------------------------------------------
 func _ready() -> void:
-	pass
+	Log.connect("entry_logged", self, "_on_entry_logged")
+	Net.connect("add_game_world", self, "_on_add_game_world")
 #	viewport_p1.world = viewport_game.world
 #	viewport_p2.world = viewport_game.world
 #	var _res : int = game_node.connect("local_player_2", self, "_on_local_player_2")
@@ -123,7 +124,10 @@ func _SetLocalPlayerInputMap(pid : int, device_type : String, device_id : int = 
 							if not InputMap.has_action(naction_name):
 								InputMap.add_action(naction_name)
 							InputMap.action_add_event(naction_name, jinput)
-	_game_node.spawn_local(pid)
+	if get_tree().has_network_peer():
+		_game_node.spawn_player(pid, get_tree().get_network_unique_id())
+	else:
+		_game_node.spawn_player(pid, 0)
 
 func _ClearLocalPlayerInputMap(pid : int) -> void:
 	if not (pid >= 0 and pid < 2):
@@ -137,10 +141,33 @@ func _ClearLocalPlayerInputMap(pid : int) -> void:
 			InputMap.erase_action(naction_name)
 
 
+func _CreateGame() -> void:
+	if _game_node == null:
+		_game_node = GAME.instance()
+		_game_node.connect("local_player_2", self, "_on_local_player_2")
+		viewport_game.add_child(_game_node)
+		viewport_p1.world = viewport_game.world
+		viewport_p2.world = viewport_game.world
+
+func _CloseGame() -> void:
+	if _game_node != null:
+		Net.disconnect_network()
+		viewport_p1.world = viewport_p1_world
+		viewport_p2.world = viewport_p2_world
+		viewport_game.remove_child(_game_node)
+		_game_node.queue_free()
+		_game_node = null
+
+
+
 
 # -----------------------------------------------------------------------------
 # Handler Methods
 # -----------------------------------------------------------------------------
+func _on_entry_logged(e : Dictionary) -> void:
+	print(e.message)
+
+
 func _on_joy_connection_changed(device_id : int, connected : bool) -> void:
 	if not connected:
 		var pid : int = _PlayerUsingJoypadDevice(device_id)
@@ -155,12 +182,14 @@ func _on_MainMenu_quit():
 
 func _on_MainMenu_local_start():
 	if _game_node == null:
-		_game_node = GAME.instance()
-		viewport_game.add_child(_game_node)
-		viewport_p1.world = viewport_game.world
-		viewport_p2.world = viewport_game.world
 		ui.show_menu("")
-		
+		_CreateGame()
 
 func _on_MainMenu_online_start():
-	print("Not ready for my Online presence!")
+	ui.show_menu("Network")
+
+func _on_add_game_world() -> void:
+	_CreateGame()
+
+func _on_close_game():
+	_CloseGame()
