@@ -58,6 +58,7 @@ var _players : Dictionary = {}
 # Override Methods
 # -----------------------------------------------------------------------------
 func _ready() -> void:
+	print(get_path())
 	var st : SceneTree = get_tree()
 	st.connect("network_peer_connected", self, "_on_network_peer_connected")
 	st.connect("network_peer_disconnected", self, "_on_network_peer_disconnected")
@@ -149,21 +150,29 @@ func send_data(data, to_id : int = -1) -> void:
 	else:
 		rpc_id(1, "r_receive_data", data, to_id)
 
+func announce_local_player(pid : int) -> void:
+	rpc("r_announce_local_player", pid)
+
 # -----------------------------------------------------------------------------
 # Remote Methods
 # -----------------------------------------------------------------------------
-remotesync func r_ready_network() -> void:
+remote func r_ready_network() -> void:
+	Log.debug("Who am I: %s"%[get_tree().get_network_unique_id()])
 	emit_signal("add_game_world")
 	rpc_id(1, "r_network_readied")
 
 remote func r_network_readied() -> void:
 	pass
 
-remote func r_announce_local_player(pid : int) -> void:
+remotesync func r_announce_local_player(pid : int) -> void:
+	var id = get_tree().get_network_unique_id()
 	var remote_pid = get_tree().get_rpc_sender_id()
+	Log.debug("[r_announce_local_player] Who am I: %s"%[id])
+	Log.debug("[r_announce_local_player] Sender: %s"%[remote_pid])
 	if remote_pid in _players:
 		_players[remote_pid]["local_%s"%[pid + 1]] = true
 	if remote_pid != get_tree().get_network_unique_id():
+		Log.debug("[r_announce_local_player] Adding Player for %s"%[remote_pid])
 		emit_signal("add_player", pid, remote_pid)
 
 #remote func r_register_player_profile(profile : Dictionary) -> void:
@@ -197,7 +206,8 @@ func _on_network_peer_connected(id : int) -> void:
 		Log.warning("Client ID %d already exists."%[id])
 	Log.info("New client connected, %d"%[id])
 	_players[id] = {"local_1":false, "local_2":false}
-	rpc_id(id, "r_ready_network")
+	if get_tree().get_network_unique_id() == 1:
+		rpc_id(id, "r_ready_network")
 
 func _on_network_peer_disconnected(id : int) -> void:
 	if id != get_tree().get_network_unique_id():

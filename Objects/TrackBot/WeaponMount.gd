@@ -16,6 +16,7 @@ export var dps : float = 180.0						setget set_dps
 # ------------------------------------------------------------------------------
 # Variables
 # ------------------------------------------------------------------------------
+var _networked : bool = false
 var _target_facing : Vector3 = Vector3.FORWARD
 var _mounted_items : Dictionary = {}
 
@@ -38,7 +39,8 @@ func set_dps(_dps : float) -> void:
 # Override Methods
 # ------------------------------------------------------------------------------
 func _ready() -> void:
-	if local_player_id <= 0:
+	_networked = get_tree().has_network_peer()
+	if not is_network_master():
 		set_process_unhandled_input(false)
 	
 func _unhandled_input(event : InputEvent) -> void:
@@ -79,35 +81,57 @@ func _physics_process(delta : float) -> void:
 
 
 # ------------------------------------------------------------------------------
-# Private Methods
+# Romote Methods
 # ------------------------------------------------------------------------------
-
-
-
-# ------------------------------------------------------------------------------
-# Public Methods
-# ------------------------------------------------------------------------------
-remotesync func fire(id) -> void:
+remotesync func r_fire(id) -> void:
 	if id in _mounted_items:
 		if _mounted_items[id].has_method("fire"):
 			_mounted_items[id].fire()
 
-remotesync func set_facing(facing : Vector2) -> void:
+remotesync func r_set_facing(facing : Vector2) -> void:
 	_target_facing = Vector3(facing.x, 0.0, facing.y)
 	rotation.y = Vector3.FORWARD.angle_to(_target_facing)
 
-func get_facing() -> Vector3:
-	return transform.basis.z
-
-remotesync func face(facing : Vector2) -> void:
+remotesync func r_face(facing : Vector2) -> void:
 	if facing.length() > 0.5:
 		facing = facing.normalized()
 	else:
 		return
 	_target_facing = Vector3(facing.x, 0.0, facing.y)
 
-remotesync func facing_degrees(angle : float) -> void:
+remotesync func r_facing_degrees(angle : float) -> void:
 	_target_facing = Vector3.FORWARD.rotated(Vector3.UP, deg2rad(angle))
+
+# ------------------------------------------------------------------------------
+# Public Methods
+# ------------------------------------------------------------------------------
+func fire(id) -> void:
+	if _networked:
+		rpc("r_fire", id)
+	else:
+		r_fire(id)
+
+func set_facing(facing : Vector2) -> void:
+	if _networked:
+		rpc("r_set_facing", facing)
+	else:
+		r_set_facing(facing)
+
+
+func get_facing() -> Vector3:
+	return transform.basis.z
+
+func face(facing : Vector2) -> void:
+	if _networked:
+		rpc("r_face", facing)
+	else:
+		r_face(facing)
+
+func facing_degrees(angle : float) -> void:
+	if _networked:
+		rpc("r_facing_degrees", angle)
+	else:
+		r_facing_degrees(angle)
 
 func item_mounted(id : int) -> bool:
 	return id in _mounted_items

@@ -45,6 +45,9 @@ func set_max_hp(mhp : float) -> void:
 # Override Methods
 # ------------------------------------------------------------------------------
 func _ready() -> void:
+	if not is_network_master():
+		mode = MODE_KINEMATIC
+	
 	_hp = max_hp
 	if ball_node.get_surface_material_count() > 0:
 		var material : Material = ball_node.get_surface_material(0)
@@ -52,13 +55,15 @@ func _ready() -> void:
 			_base_color = material.get_shader_param("Color")
 
 func _physics_process(delta : float) -> void:
-	if _boost_strength > 0.0:
-		apply_central_impulse(_boost_direction * _boost_strength * delta)
-	if _boost_jump_strength > 0.0:
-		if groundcast_node.is_colliding():
-			apply_central_impulse(Vector3.UP * _boost_jump_strength)
-		_boost_jump_strength = 0.0
-	hat_node.transform.basis = Basis(transform.basis.get_rotation_quat().inverse())
+	if is_network_master():
+		if _boost_strength > 0.0:
+			apply_central_impulse(_boost_direction * _boost_strength * delta)
+		if _boost_jump_strength > 0.0:
+			if groundcast_node.is_colliding():
+				apply_central_impulse(Vector3.UP * _boost_jump_strength)
+			_boost_jump_strength = 0.0
+		hat_node.transform.basis = Basis(transform.basis.get_rotation_quat().inverse())
+		rpc("r_update", transform.origin, transform.basis)
 
 # ------------------------------------------------------------------------------
 # Private Methods
@@ -79,6 +84,14 @@ func _SetBallColor(color : Color) -> void:
 		var material = ball_node.get_active_material(0)
 		if material is ShaderMaterial:
 			material.set_shader_param("Color", color)
+
+# ------------------------------------------------------------------------------
+# Remote Methods
+# ------------------------------------------------------------------------------
+puppet func r_update(pos : Vector3, basis : Basis) -> void:
+	transform.origin = pos
+	transform.basis = basis
+	hat_node.transform.basis = Basis(basis.get_rotation_quat().inverse())
 
 # ------------------------------------------------------------------------------
 # Public Methods
@@ -145,6 +158,7 @@ func unmount_item(id : int) -> Spatial:
 	return _weaponmount_node.unmount_item(id)
 
 func hit(dmg : float, knockback : Vector3) -> void:
+	# TODO: Make this network aware!
 	if _hp > 0.0:
 		_hp -= dmg
 		print("HP: ", _hp)
@@ -159,6 +173,7 @@ func hit(dmg : float, knockback : Vector3) -> void:
 			apply_central_impulse(knockback)
 
 func revive() -> void:
+	# TODO: Make this network aware!
 	_hp = max_hp
 	if _weaponmount_node:
 		_weaponmount_node.lock_player_control(false)

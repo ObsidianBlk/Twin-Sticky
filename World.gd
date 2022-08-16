@@ -56,9 +56,11 @@ func _ready() -> void:
 func _unhandled_input(event : InputEvent) -> void:
 	if _game_node == null:
 		return
-	
+
 	if event.is_action_pressed("ui_cancel"):
 		ui.show_menu("MainMenu")
+	elif event.is_action_pressed("terminal"):
+		ui.show_menu("Terminal")
 	else:
 		if event is InputEventKey:
 			if not _KeyboardDeviceInUse():

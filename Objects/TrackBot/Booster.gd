@@ -24,6 +24,8 @@ export var dps : float = 180.0						setget set_dps
 # ------------------------------------------------------------------------------
 # Variables
 # ------------------------------------------------------------------------------
+var _networked : bool = false
+
 var _target_facing : Vector3 = Vector3.FORWARD
 var _active : bool = false
 var _tween : Tween = null
@@ -60,7 +62,10 @@ func set_local_player_id(id : int) -> void:
 # Override Methods
 # ------------------------------------------------------------------------------
 func _ready() -> void:
-	if local_player_id <= 0:
+	_networked = get_tree().has_network_peer()
+#	if get_tree().has_network_peer():
+#		if get_tree().get_network_unique_id() != get_network_master():
+	if not is_network_master():
 		set_process_unhandled_input(false)
 	_tween = Tween.new()
 	add_child(_tween)
@@ -103,7 +108,7 @@ func _physics_process(delta : float) -> void:
 		var target_position = transform.origin + _target_facing
 		var new_transform = transform.looking_at(target_position, Vector3.UP)
 		transform = transform.interpolate_with(new_transform, deg2rad(dps) * delta)
-		_EmitFacingChanged()
+		_on_facing_complete()
 
 # ------------------------------------------------------------------------------
 # Private Methods
@@ -115,29 +120,32 @@ remotesync func _EmitFacingChanged() -> void:
 	emit_signal("booster_facing_changed", transform.basis.z)
 
 # ------------------------------------------------------------------------------
-# Public Methods
+# Remote Methods
 # ------------------------------------------------------------------------------
-remotesync func set_facing(facing : Vector2) -> void:
+remotesync func r_emit_signal(sig_name : String, args : Array) -> void:
+	var sargs : Array = [sig_name]
+	sargs.append_array(args)
+	callv("emit_signal", sargs)
+
+
+remotesync func r_set_facing(facing : Vector2) -> void:
 	var _res : int = _tween.remove_all()
 	_active = false
 	_target_facing = Vector3(facing.x, 0.0, facing.y)
 	rotation.y = Vector3.FORWARD.angle_to(_target_facing)
 	emit_signal("booster_facing_changed", transform.basis.z)
 
-func get_facing() -> Vector3:
-	return transform.basis.z
-
-remotesync func face(facing : Vector2) -> void:
+remotesync func r_face(facing : Vector2) -> void:
 	if facing.length() > 0.5:
 		facing = facing.normalized()
 	else:
 		return
 	_target_facing = Vector3(facing.x, 0.0, facing.y)
 
-remotesync func facing_degrees(angle : float) -> void:
+remotesync func r_facing_degrees(angle : float) -> void:
 	_target_facing = Vector3.FORWARD.rotated(Vector3.UP, deg2rad(angle))
 
-remotesync func boost(amount : float) -> void:
+remotesync func r_boost(amount : float) -> void:
 	amount = max(0.0, min(1.0, amount))
 	if amount < BOOST_POWER_THRESHOLD:
 		_active = false
@@ -146,8 +154,42 @@ remotesync func boost(amount : float) -> void:
 		_active = true
 		emit_signal("booster_ignited", strength * amount)
 
-remotesync func jump() -> void:
-	emit_signal("booster_jump", jump_strength)
+# ------------------------------------------------------------------------------
+# Public Methods
+# ------------------------------------------------------------------------------
+func set_facing(facing : Vector2) -> void:
+	if _networked:
+		rpc("r_set_facing", facing)
+	else:
+		r_set_facing(facing)
+
+
+func get_facing() -> Vector3:
+	return transform.basis.z
+
+func face(facing : Vector2) -> void:
+	if _networked:
+		rpc("r_face", facing)
+	else:
+		r_face(facing)
+
+func facing_degrees(angle : float) -> void:
+	if _networked:
+		rpc("r_facing_degrees", angle)
+	else:
+		r_facing_degrees(angle)
+
+func boost(amount : float) -> void:
+	if _networked:
+		rpc("r_boost", amount)
+	else:
+		r_boost(amount)
+
+func jump() -> void:
+	if _networked:
+		rpc("r_emit_signal", "booster_jump", [jump_strength])
+	else:
+		emit_signal("booster_jump", jump_strength)
 
 func is_boosting() -> bool:
 	return _active
@@ -160,5 +202,8 @@ func lock_player_control(lock : bool = true) -> void:
 # ------------------------------------------------------------------------------
 # Handler Methods
 # ------------------------------------------------------------------------------
-remotesync func _on_facing_complete() -> void:
-	emit_signal("booster_facing_changed", transform.basis.z)
+func _on_facing_complete() -> void:
+	if _networked:
+		rpc("r_emit_signal", "booster_facing_changed", [transform.basis.z])
+	else:
+		emit_signal("booster_facing_changed", transform.basis.z)

@@ -61,6 +61,17 @@ func _MountWeapon(weapon_name : String, trackbot : Spatial, mount_id : int) -> i
 	return ERR_DOES_NOT_EXIST
 
 # -----------------------------------------------------------------------------
+# Remote Methods
+# -----------------------------------------------------------------------------
+remotesync func r_spawn_projectile(projectile_name : String, position : Vector3, direction : Vector3) -> void:
+	if projectile_name in PROJECTILE:
+		var projectile = PROJECTILE[projectile_name].instance()
+		projectile.direction = direction
+		add_child(projectile)
+		projectile.global_transform.origin = position
+
+
+# -----------------------------------------------------------------------------
 # Public Methods
 # -----------------------------------------------------------------------------
 func spawn_player(pid : int, remote_pid : int) -> void:
@@ -100,9 +111,10 @@ func spawn_player(pid : int, remote_pid : int) -> void:
 		booster.set_network_master(remote_pid)
 		tb.add_booster(booster)
 		if get_tree().has_network_peer():
-			if pid == 1 and remote_pid == get_tree().get_network_unique_id():
-				emit_signal("local_player_2", true)
-			rpc("r_announce_local_player", pid)
+			if remote_pid == get_tree().get_network_unique_id():
+				if pid == 1:
+					emit_signal("local_player_2", true)
+				Net.announce_local_player(pid)
 		elif pid == 1:
 			emit_signal("local_player_2", true)
 
@@ -120,10 +132,14 @@ func _on_remove_player(local_pid, remote_pid) -> void:
 		nodes[0].queue_free()
 
 func _on_spawn_projectile(projectile_name : String, position : Vector3, direction : Vector3, trackbot : Spatial) -> void:
-	if projectile_name in PROJECTILE:
-		var projectile = PROJECTILE[projectile_name].instance()
-		projectile.direction = direction
-		add_child(projectile)
-		projectile.global_transform.origin = position
+	if get_tree().has_network_peer():
+		rpc("r_spawn_projectile", projectile_name, position, direction)
+	else:
+		r_spawn_projectile(projectile_name, position, direction)
+#	if projectile_name in PROJECTILE:
+#		var projectile = PROJECTILE[projectile_name].instance()
+#		projectile.direction = direction
+#		add_child(projectile)
+#		projectile.global_transform.origin = position
 
 

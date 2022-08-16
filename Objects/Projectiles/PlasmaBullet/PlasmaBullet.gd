@@ -50,10 +50,13 @@ func _ready() -> void:
 
 
 func _physics_process(delta : float) -> void:
-	global_transform.origin += direction * (speed * delta)
-	lifetime -= delta
-	if lifetime <= 0.0:
-		_Die()
+	if is_network_master():
+		global_transform.origin += direction * (speed * delta)
+		lifetime -= delta
+		if lifetime <= 0.0:
+			_Die()
+		else:
+			rpc("r_update", global_transform.origin)
 
 
 # ------------------------------------------------------------------------------
@@ -69,6 +72,17 @@ func _UpdateCollision() -> void:
 	area_collision_node.shape.radius *= size
 
 func _Die() -> void:
+	if is_network_master():
+		rpc("r_Die")
+	r_Die()
+
+# ------------------------------------------------------------------------------
+# Remote Methods
+# ------------------------------------------------------------------------------
+puppet func r_update(position : Vector3) -> void:
+	global_transform.origin = position
+
+puppet func r_Die() -> void:
 	var parent = get_parent()
 	if parent:
 		parent.remove_child(self)

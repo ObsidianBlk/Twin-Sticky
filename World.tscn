@@ -1,10 +1,11 @@
-[gd_scene load_steps=6 format=2]
+[gd_scene load_steps=7 format=2]
 
 [ext_resource path="res://UI/Network/Network.tscn" type="PackedScene" id=1]
 [ext_resource path="res://World.gd" type="Script" id=2]
 [ext_resource path="res://Objects/TopDownCamera/TopDownCamera.tscn" type="PackedScene" id=3]
 [ext_resource path="res://UI/MainMenu/MainMenu.tscn" type="PackedScene" id=4]
 [ext_resource path="res://UI/UI.gd" type="Script" id=5]
+[ext_resource path="res://UI/Terminal/Terminal.tscn" type="PackedScene" id=6]
 
 [node name="World" type="Node2D"]
 script = ExtResource( 2 )
@@ -76,6 +77,9 @@ start_visible = true
 
 [node name="Network" parent="UI" instance=ExtResource( 1 )]
 visible = false
+
+[node name="Terminal" parent="UI" instance=ExtResource( 6 )]
+mouse_filter = 2
 
 [connection signal="local_start" from="UI/MainMenu" to="." method="_on_MainMenu_local_start"]
 [connection signal="online_start" from="UI/MainMenu" to="." method="_on_MainMenu_online_start"]

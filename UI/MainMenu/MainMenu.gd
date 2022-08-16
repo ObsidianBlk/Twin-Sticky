@@ -22,3 +22,4 @@ func _ready() -> void:
 # ------------------------------------------------------------------------------
 func _on_pressed(signal_name : String) -> void:
 	emit_signal(signal_name)
+
