@@ -12,6 +12,11 @@ export var lifetime : float = 3.0					setget set_lifetime
 
 
 # ------------------------------------------------------------------------------
+# Variables
+# ------------------------------------------------------------------------------
+var _networked : bool = false
+
+# ------------------------------------------------------------------------------
 # Onready Variables
 # ------------------------------------------------------------------------------
 onready var sprite_node : Sprite3D = $Sprite3D
@@ -45,17 +50,22 @@ func set_lifetime(l : float) -> void:
 # Override Methods
 # ------------------------------------------------------------------------------
 func _ready() -> void:
+	_networked = get_tree().has_network_peer()
 	_UpdateSprite()
 	_UpdateCollision()
 
 
 func _physics_process(delta : float) -> void:
-	if is_network_master():
+	var _process : bool = true
+	if _networked:
+		_process = is_network_master()
+	
+	if _process:
 		global_transform.origin += direction * (speed * delta)
 		lifetime -= delta
 		if lifetime <= 0.0:
 			_Die()
-		else:
+		elif _networked:
 			rpc("r_update", global_transform.origin)
 
 
@@ -72,8 +82,9 @@ func _UpdateCollision() -> void:
 	area_collision_node.shape.radius *= size
 
 func _Die() -> void:
-	if is_network_master():
-		rpc("r_Die")
+	if _networked:
+		if is_network_master():
+			rpc("r_Die")
 	r_Die()
 
 # ------------------------------------------------------------------------------

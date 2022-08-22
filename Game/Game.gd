@@ -74,14 +74,13 @@ remotesync func r_spawn_projectile(projectile_name : String, position : Vector3,
 # -----------------------------------------------------------------------------
 # Public Methods
 # -----------------------------------------------------------------------------
-func spawn_player(pid : int, remote_pid : int) -> void:
+func spawn_player(pid : int, remote_pid : int, player_name : String = "") -> void:
 	if not hexregion_node:
 		return
 	
 	var group_name : String = "Player_%s"%[pid + 1]
 	if remote_pid > 0:
 		group_name = "%s_%s"%[group_name, remote_pid]
-	print("Group Name: ", group_name)
 	
 	var bots = get_tree().get_nodes_in_group(group_name)
 	if bots.size() <= 0:
@@ -92,6 +91,7 @@ func spawn_player(pid : int, remote_pid : int) -> void:
 		tb.set_network_master(remote_pid)
 		add_child(tb)
 		tb.transform.origin.y = y + 1.0
+		Lobby.add_local_player(remote_pid, pid, player_name)
 		
 		var wmount = WEAPONMOUNT.instance()
 		wmount.local_player_id = pid + 1
@@ -114,17 +114,18 @@ func spawn_player(pid : int, remote_pid : int) -> void:
 			if remote_pid == get_tree().get_network_unique_id():
 				if pid == 1:
 					emit_signal("local_player_2", true)
-				Net.announce_local_player(pid)
+				Net.announce_local_player(pid, remote_pid, Lobby.get_player_name(remote_pid, pid))
 		elif pid == 1:
 			emit_signal("local_player_2", true)
 
 # -----------------------------------------------------------------------------
 # Handler Methods
 # -----------------------------------------------------------------------------
-func _on_add_player(local_pid, remote_pid) -> void:
-	spawn_player(local_pid, remote_pid)
+func _on_add_player(local_pid : int , remote_pid : int, player_name : String) -> void:
+	spawn_player(local_pid, remote_pid, player_name)
 
 func _on_remove_player(local_pid, remote_pid) -> void:
+	Lobby.remove_local_player(remote_pid, local_pid)
 	var group_name : String = "Player_%s_%s"%[local_pid + 1, remote_pid]
 	var nodes = get_tree().get_nodes_in_group(group_name)
 	if nodes.size() > 0:

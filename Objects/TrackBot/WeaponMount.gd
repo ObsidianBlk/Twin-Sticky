@@ -40,8 +40,9 @@ func set_dps(_dps : float) -> void:
 # ------------------------------------------------------------------------------
 func _ready() -> void:
 	_networked = get_tree().has_network_peer()
-	if not is_network_master():
-		set_process_unhandled_input(false)
+	if _networked:
+		if not is_network_master():
+			set_process_unhandled_input(false)
 	
 func _unhandled_input(event : InputEvent) -> void:
 	if event.is_action_pressed("wm_left_%s"%[local_player_id]):

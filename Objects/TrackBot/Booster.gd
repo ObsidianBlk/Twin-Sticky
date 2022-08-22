@@ -63,10 +63,9 @@ func set_local_player_id(id : int) -> void:
 # ------------------------------------------------------------------------------
 func _ready() -> void:
 	_networked = get_tree().has_network_peer()
-#	if get_tree().has_network_peer():
-#		if get_tree().get_network_unique_id() != get_network_master():
-	if not is_network_master():
-		set_process_unhandled_input(false)
+	if _networked:
+		if not is_network_master():
+			set_process_unhandled_input(false)
 	_tween = Tween.new()
 	add_child(_tween)
 	var _res : int = _tween.connect("tween_all_completed", self, "_on_facing_complete")

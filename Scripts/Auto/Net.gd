@@ -10,7 +10,7 @@ signal network_disconnected()
 signal network_init_failed()
 
 signal add_game_world()
-signal add_player(local_pid, remote_pid)
+signal add_player(local_pid, remote_pid, player_name)
 signal remove_player(local_pid, remote_pid)
 
 
@@ -150,8 +150,8 @@ func send_data(data, to_id : int = -1) -> void:
 	else:
 		rpc_id(1, "r_receive_data", data, to_id)
 
-func announce_local_player(pid : int) -> void:
-	rpc("r_announce_local_player", pid)
+func announce_local_player(pid : int, _rid : int, player_name : String) -> void:
+	rpc("r_announce_local_player", pid, player_name)
 
 # -----------------------------------------------------------------------------
 # Remote Methods
@@ -161,19 +161,37 @@ remote func r_ready_network() -> void:
 	emit_signal("add_game_world")
 	rpc_id(1, "r_network_readied")
 
-remote func r_network_readied() -> void:
-	pass
+master func r_network_readied() -> void:
+	var rid : int = get_tree().get_rpc_sender_id()
+	Log.debug("Remote player exists: %s"%[rid in _players])
+	for id in Lobby.get_player_groups():
+		if id != rid:
+			Log.debug("Announcing player [%s] to receiver [%s]." %[id, rid])
+			var info : Dictionary = Lobby.get_local_player_info(id, 0)
+			if not info.empty():
+				Log.debug("Announcing for local 0")
+				rpc_id(rid, "r_host_announce_local_player", id, 0, info)
+			info = Lobby.get_local_player_info(id, 1)
+			if not info.empty():
+				Log.debug("Announcing for local 1")
+				rpc_id(rid, "r_host_announce_local_player", id, 1, info)
 
-remotesync func r_announce_local_player(pid : int) -> void:
+remotesync func r_announce_local_player(local_id : int, player_name : String) -> void:
 	var id = get_tree().get_network_unique_id()
 	var remote_pid = get_tree().get_rpc_sender_id()
-	Log.debug("[r_announce_local_player] Who am I: %s"%[id])
-	Log.debug("[r_announce_local_player] Sender: %s"%[remote_pid])
-	if remote_pid in _players:
-		_players[remote_pid]["local_%s"%[pid + 1]] = true
-	if remote_pid != get_tree().get_network_unique_id():
-		Log.debug("[r_announce_local_player] Adding Player for %s"%[remote_pid])
-		emit_signal("add_player", pid, remote_pid)
+	
+	if remote_pid != id:
+		Log.info("Announced player %s:%s \"%s\"."%[remote_pid, local_id, player_name])
+		emit_signal("add_player", local_id, remote_pid, player_name)
+
+puppet func r_host_announce_local_player(remote_id : int, local_id : int, player_info : Dictionary):
+	Log.debug("Host Announced to [%s] a player from [%s]"%[get_tree().get_network_unique_id(), remote_id])
+	if remote_id != get_tree().get_network_unique_id():
+		if "name" in player_info:
+			Log.info("Host announced player %s:%s \"%s\"."%[remote_id, local_id, player_info.name])
+			emit_signal("add_player", local_id, remote_id, player_info.name)
+			if "score" in player_info:
+				Lobby.set_player_score(remote_id, local_id, player_info.score)
 
 #remote func r_register_player_profile(profile : Dictionary) -> void:
 #	var id : int = get_tree().get_rpc_sender_id()
@@ -205,18 +223,23 @@ func _on_network_peer_connected(id : int) -> void:
 	if id in _players:
 		Log.warning("Client ID %d already exists."%[id])
 	Log.info("New client connected, %d"%[id])
-	_players[id] = {"local_1":false, "local_2":false}
+	Lobby.add_player_group(id)
 	if get_tree().get_network_unique_id() == 1:
 		rpc_id(id, "r_ready_network")
 
 func _on_network_peer_disconnected(id : int) -> void:
 	if id != get_tree().get_network_unique_id():
 		if id in _players:
+			if _players[id].local_1:
+				emit_signal("remove_player", 0, id)
+			if _players[id].local_2:
+				emit_signal("remove_player", 1, id)
 			var _res : int = _players.erase(id)
 		Log.info("Client disconnected: %d"%[id])
 
 func _on_connected_to_server() -> void:
 	Log.info("Connected to server")
+	# TODO: Exit active game and kick to main menu
 	var id : int = get_tree().get_network_unique_id()
 	if id != 1:
 		pass

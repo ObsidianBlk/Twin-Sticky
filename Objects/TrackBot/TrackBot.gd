@@ -14,6 +14,8 @@ export var max_hp : float = 100.0
 # ------------------------------------------------------------------------------
 # Variables
 # ------------------------------------------------------------------------------
+var _network_mode : bool = false
+
 var _boost_direction : Vector3 = Vector3.ZERO
 var _boost_strength : float = 0.0
 var _boost_jump_strength : float = 0.0
@@ -45,8 +47,10 @@ func set_max_hp(mhp : float) -> void:
 # Override Methods
 # ------------------------------------------------------------------------------
 func _ready() -> void:
-	if not is_network_master():
-		mode = MODE_KINEMATIC
+	_network_mode = get_tree().has_network_peer()
+	if _network_mode:
+		if not is_network_master():
+			mode = MODE_KINEMATIC
 	
 	_hp = max_hp
 	if ball_node.get_surface_material_count() > 0:
@@ -55,22 +59,29 @@ func _ready() -> void:
 			_base_color = material.get_shader_param("Color")
 
 func _physics_process(delta : float) -> void:
-	if is_network_master():
-		if _boost_strength > 0.0:
-			apply_central_impulse(_boost_direction * _boost_strength * delta)
-		if _boost_jump_strength > 0.0:
-			if groundcast_node.is_colliding():
-				apply_central_impulse(Vector3.UP * _boost_jump_strength)
-			_boost_jump_strength = 0.0
-		hat_node.transform.basis = Basis(transform.basis.get_rotation_quat().inverse())
-		rpc("r_update", transform.origin, transform.basis)
+	if _network_mode:
+		if is_network_master():
+			_ProcessImpulses(delta)
+			rpc("r_update", transform.origin, transform.basis)
+	else:
+		_ProcessImpulses(delta)
+
 
 # ------------------------------------------------------------------------------
 # Private Methods
 # ------------------------------------------------------------------------------
+func _ProcessImpulses(delta : float) -> void:
+	if _boost_strength > 0.0:
+		apply_central_impulse(_boost_direction * _boost_strength * delta)
+	if _boost_jump_strength > 0.0:
+		if groundcast_node.is_colliding():
+			apply_central_impulse(Vector3.UP * _boost_jump_strength)
+		_boost_jump_strength = 0.0
+	hat_node.transform.basis = Basis(transform.basis.get_rotation_quat().inverse())
+
+
 func _UpdateHatRotation() -> void:
 	hat_node.transform.basis = Basis(transform.basis.get_rotation_quat().inverse())
-	print("Rotation: ", rotation, " | Hat Rotation: ", hat_node.rotation)
 
 func _IsBooster(obj : Spatial) -> bool:
 	var signals = obj.get_signal_list()
