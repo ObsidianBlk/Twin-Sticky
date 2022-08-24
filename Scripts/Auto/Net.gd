@@ -229,12 +229,9 @@ func _on_network_peer_connected(id : int) -> void:
 
 func _on_network_peer_disconnected(id : int) -> void:
 	if id != get_tree().get_network_unique_id():
-		if id in _players:
-			if _players[id].local_1:
-				emit_signal("remove_player", 0, id)
-			if _players[id].local_2:
-				emit_signal("remove_player", 1, id)
-			var _res : int = _players.erase(id)
+		emit_signal("remove_player", 0, id)
+		emit_signal("remove_player", 1, id)
+		Lobby.remove_player_group(id)
 		Log.info("Client disconnected: %d"%[id])
 
 func _on_connected_to_server() -> void:

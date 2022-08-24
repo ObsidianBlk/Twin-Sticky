@@ -141,6 +141,14 @@ script = ExtResource( 1 )
 [node name="GroundCast" type="RayCast" parent="Hat"]
 enabled = true
 cast_to = Vector3( 0, -2, 0 )
+debug_shape_custom_color = Color( 1, 0, 0, 1 )
+
+[node name="Label_Name" type="Label3D" parent="Hat"]
+transform = Transform( 1, 0, 0, 0, -4.37114e-08, 1, 0, -1, -4.37114e-08, 0, 2.19049, 0 )
+pixel_size = 0.02
+billboard = 1
+double_sided = false
+text = "Trackbot"
 
 [node name="Ball" type="MeshInstance" parent="."]
 mesh = SubResource( 3 )

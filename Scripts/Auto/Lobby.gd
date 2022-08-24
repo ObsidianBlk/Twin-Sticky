@@ -60,6 +60,15 @@ func add_player_group(pid : int) -> int:
 	_players[pid] = {"local_1":null, "local_2":null}
 	return OK
 
+func remove_player_group(pid : int) -> int:
+	if pid in _players:
+		if _players[pid]["local_1"] != null:
+			emit_signal("player_removed", pid, 0)
+		if _players[pid]["local_2"] != null:
+			emit_signal("player_removed", pid, 1)
+		_players.erase(pid)
+	return OK
+
 func does_player_group_exist(pid : int) -> bool:
 	return pid in _players
 

@@ -92,6 +92,7 @@ func spawn_player(pid : int, remote_pid : int, player_name : String = "") -> voi
 		add_child(tb)
 		tb.transform.origin.y = y + 1.0
 		Lobby.add_local_player(remote_pid, pid, player_name)
+		tb.bot_name = Lobby.get_player_name(remote_pid, pid)
 		
 		var wmount = WEAPONMOUNT.instance()
 		wmount.local_player_id = pid + 1

@@ -9,7 +9,8 @@ signal hp_changed(owner_id, current_hp, max_hp)
 # Export Variables
 # ------------------------------------------------------------------------------
 export var owner_id : int = 0
-export var max_hp : float = 100.0
+export var max_hp : float = 100.0					setget set_max_hp
+export var bot_name : String = ""					setget set_bot_name
 
 # ------------------------------------------------------------------------------
 # Variables
@@ -32,6 +33,7 @@ var _weaponmount_node : Spatial = null
 onready var hat_node : Spatial = $Hat
 onready var groundcast_node : RayCast = $Hat/GroundCast
 onready var ball_node : MeshInstance = $Ball
+onready var label_name_node : Label3D = $Hat/Label_Name
 
 # ------------------------------------------------------------------------------
 # Setters
@@ -43,10 +45,16 @@ func set_max_hp(mhp : float) -> void:
 			_hp = max_hp
 		emit_signal("hp_changed", owner_id, _hp, max_hp)
 
+func set_bot_name(n : String) -> void:
+	bot_name = n
+	if label_name_node:
+		label_name_node.text = bot_name
+
 # ------------------------------------------------------------------------------
 # Override Methods
 # ------------------------------------------------------------------------------
 func _ready() -> void:
+	label_name_node.text = bot_name
 	_network_mode = get_tree().has_network_peer()
 	if _network_mode:
 		if not is_network_master():
@@ -78,6 +86,8 @@ func _ProcessImpulses(delta : float) -> void:
 			apply_central_impulse(Vector3.UP * _boost_jump_strength)
 		_boost_jump_strength = 0.0
 	hat_node.transform.basis = Basis(transform.basis.get_rotation_quat().inverse())
+	#print(hat_node.global_transform.basis.y)
+	#print(hat_node.translation)
 
 
 func _UpdateHatRotation() -> void:
