@@ -69,6 +69,11 @@ func remove_player_group(pid : int) -> int:
 		_players.erase(pid)
 	return OK
 
+func remove_all_players() -> int:
+	for pid in _players.keys():
+		remove_player_group(pid)
+	return OK
+
 func does_player_group_exist(pid : int) -> bool:
 	return pid in _players
 

@@ -23,7 +23,7 @@ period = 40.0
 persistence = 0.8
 size = 10
 max_height = 2.0
-hex_size = 2.0
+hex_size = 20.0
 
 [node name="Game" type="Spatial" groups=["Game"]]
 script = ExtResource( 2 )

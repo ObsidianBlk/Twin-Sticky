@@ -47,6 +47,7 @@ onready var viewport_p2_world : World = $GameView/Viewports/VP2C/Viewport_P2.wor
 func _ready() -> void:
 	Log.connect("entry_logged", self, "_on_entry_logged")
 	Net.connect("add_game_world", self, "_on_add_game_world")
+	Net.connect("remove_game_world", self, "_on_remove_game_world")
 #	viewport_p1.world = viewport_game.world
 #	viewport_p2.world = viewport_game.world
 #	var _res : int = game_node.connect("local_player_2", self, "_on_local_player_2")
@@ -151,6 +152,14 @@ func _CreateGame() -> void:
 		viewport_p1.world = viewport_game.world
 		viewport_p2.world = viewport_game.world
 
+func _RemoveGame() -> void:
+	if _game_node != null:
+		viewport_p1.world = viewport_p1_world
+		viewport_p2.world = viewport_p2_world
+		viewport_game.remove_child(_game_node)
+		_game_node.queue_free()
+		_game_node = null
+
 func _CloseGame() -> void:
 	if _game_node != null:
 		Net.disconnect_network()
@@ -192,6 +201,11 @@ func _on_MainMenu_online_start():
 
 func _on_add_game_world() -> void:
 	_CreateGame()
+
+func _on_remove_game_world() -> void:
+	_RemoveGame()
+	Lobby.remove_all_players()
+	ui.show_menu("MainMenu")
 
 func _on_close_game():
 	_CloseGame()

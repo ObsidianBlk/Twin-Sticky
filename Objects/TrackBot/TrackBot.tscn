@@ -1,6 +1,7 @@
-[gd_scene load_steps=15 format=2]
+[gd_scene load_steps=16 format=2]
 
 [ext_resource path="res://Objects/TrackBot/TrackBot.gd" type="Script" id=1]
+[ext_resource path="res://Assets/Models/Trackballs/Smiley/Smiley.glb" type="PackedScene" id=2]
 
 [sub_resource type="VisualShaderNodeColorUniform" id=12]
 uniform_name = "Color"
@@ -144,13 +145,17 @@ cast_to = Vector3( 0, -2, 0 )
 debug_shape_custom_color = Color( 1, 0, 0, 1 )
 
 [node name="Label_Name" type="Label3D" parent="Hat"]
-transform = Transform( 1, 0, 0, 0, -4.37114e-08, 1, 0, -1, -4.37114e-08, 0, 2.19049, 0 )
+transform = Transform( 1, 0, 0, 0, -4.37114e-08, 1, 0, -1, -4.37114e-08, 0, 1.113, 0 )
 pixel_size = 0.02
 billboard = 1
 double_sided = false
 text = "Trackbot"
 
+[node name="Smiley" parent="." instance=ExtResource( 2 )]
+transform = Transform( 0.34202, 0, -0.939693, 0, 1, 0, 0.939693, 0, 0.34202, 0, 0, 0 )
+
 [node name="Ball" type="MeshInstance" parent="."]
+visible = false
 mesh = SubResource( 3 )
 
 [node name="CollisionShape" type="CollisionShape" parent="."]

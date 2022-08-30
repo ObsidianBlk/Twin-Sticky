@@ -10,6 +10,7 @@ signal network_disconnected()
 signal network_init_failed()
 
 signal add_game_world()
+signal remove_game_world()
 signal add_player(local_pid, remote_pid, player_name)
 signal remove_player(local_pid, remote_pid)
 
@@ -130,15 +131,15 @@ func host_game(max_players : int = 2, port : int = -1) -> int:
 	return res
 
 
-func disconnect_network(unregister : bool = true) -> int:
-	var st : SceneTree = get_tree()
-	if not st.has_network_peer():
-		return ERR_DOES_NOT_EXIST
-	if unregister:
-		rpc("r_unregister_player_profile")
-	st.network_peer = null
-	emit_signal("network_disconnected")
-	return OK
+#func disconnect_network(unregister : bool = true) -> int:
+#	var st : SceneTree = get_tree()
+#	if not st.has_network_peer():
+#		return ERR_DOES_NOT_EXIST
+#	if unregister:
+#		rpc("r_unregister_player_profile")
+#	st.network_peer = null
+#	emit_signal("network_disconnected")
+#	return OK
 
 func send_data(data, to_id : int = -1) -> void:
 	var self_id : int = get_tree().get_network_unique_id()
@@ -236,18 +237,11 @@ func _on_network_peer_disconnected(id : int) -> void:
 
 func _on_connected_to_server() -> void:
 	Log.info("Connected to server")
-	# TODO: Exit active game and kick to main menu
-	var id : int = get_tree().get_network_unique_id()
-	if id != 1:
-		pass
-	else:
-		pass#_pid[id] = Game.get_profile()
 
 func _on_connection_failed() -> void:
 	Log.info("Failed to connect to the server")
-	call_deferred("disconnect_game", false)
 
 func _on_server_disconnected() -> void:
 	Log.info("Server disconnected")
-	call_deferred("disconnect_game", false)
+	emit_signal("remove_game_world")
 
