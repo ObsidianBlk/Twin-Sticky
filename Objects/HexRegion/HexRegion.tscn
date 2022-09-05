@@ -1,8 +1,20 @@
-[gd_scene load_steps=2 format=2]
+[gd_scene load_steps=4 format=2]
 
 [ext_resource path="res://Objects/HexRegion/HexRegion.gd" type="Script" id=1]
+[ext_resource path="res://Scripts/RegionResource.gd" type="Script" id=2]
+
+[sub_resource type="Resource" id=1]
+script = ExtResource( 2 )
+region_seed = 571234
+octaves = 4
+period = 20.0
+persistence = 0.8
+size = 20
+max_height = 4.0
+hex_size = 10.0
 
 [node name="HexRegion" type="Spatial"]
 script = ExtResource( 1 )
+region_resource = SubResource( 1 )
 
 [node name="Hexes" type="Spatial" parent="."]
