@@ -5,6 +5,7 @@ extends Node2D
 # Constants
 # -----------------------------------------------------------------------------
 const GAME = preload("res://Game/Game.tscn")
+const EDITOR = preload("res://ArenaEditor/ArenaEditor.tscn")
 const INPUT_DEVICE_ACTION_BASES = [
 	"booster_forward",
 	"booster_backward",
@@ -29,12 +30,15 @@ const INPUT_DEVICE_ACTION_BASES = [
 var _local_player_info : Array = [null, null]
 
 var _game_node : Spatial = null
+var _editor_node : Spatial = null
 
 # -----------------------------------------------------------------------------
 # Onready Variables
 # -----------------------------------------------------------------------------
 onready var ui : CanvasLayer = $UI
+onready var vp1c : ViewportContainer = $GameView/Viewports/VP1C
 onready var vp2c : ViewportContainer = $GameView/Viewports/VP2C
+onready var vpc : ViewportContainer = $GameView/Viewports/Main
 onready var viewport_game : Viewport = $GameView/Viewports/Main/Viewport
 onready var viewport_p1 : Viewport = $GameView/Viewports/VP1C/Viewport_P1
 onready var viewport_p1_world : World = $GameView/Viewports/VP1C/Viewport_P1.world
@@ -209,3 +213,22 @@ func _on_remove_game_world() -> void:
 
 func _on_close_game():
 	_CloseGame()
+
+func _on_MainMenu_area_editor() -> void:
+	set_process_unhandled_input(false)
+	ui.show_menu("")
+	_editor_node = EDITOR.instance()
+	_editor_node.connect("editor_exited", self, "_on_arena_editor_exited")
+	viewport_game.add_child(_editor_node)
+	vp1c.visible = false
+	vpc.visible = true
+
+func _on_arena_editor_exited() -> void:
+	if _editor_node != null:
+		_editor_node.disconnect("editor_exited", self, "_on_arena_editor_exited")
+		vpc.visible = false
+		vp1c.visible = true
+		viewport_game.remove_child(_editor_node)
+		_editor_node.queue_free()
+		ui.show_menu("MainMenu")
+		set_process_unhandled_input(true)

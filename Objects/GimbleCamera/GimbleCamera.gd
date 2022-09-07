@@ -10,8 +10,10 @@ const ZOOM_MAX : float = 100.0
 # ------------------------------------------------------------------------------
 # Export Variables
 # ------------------------------------------------------------------------------
+export var free_look : bool = false								setget set_free_look
 export var current : bool = false								setget set_current
 export var local_id : int = 0
+export var orbit_dps : float = 360.0
 export (float, 0.0, 1.0) var initial_zoom : float = 1.0			setget set_initial_zoom
 export (float, 0.001, 1.0, 0.001) var zoom_step : float = 0.01	setget set_zoom_step
 export var pitch_degree_min : float = -90.0						setget set_pitch_degree_min
@@ -45,6 +47,11 @@ onready var _camera_node : Camera = $Arm/Camera
 # ------------------------------------------------------------------------------
 # Setters
 # ------------------------------------------------------------------------------
+func set_free_look(f : bool) -> void:
+	free_look = f
+	set_process_unhandled_input(free_look)
+
+
 func set_current(c : bool) -> void:
 	current = c
 	if _camera_node:
@@ -80,37 +87,39 @@ func set_initial_pitch_degree(p : float) -> void:
 func _ready() -> void:
 	set_current(current)
 	set_zoom(initial_zoom)
+	set_process_unhandled_input(free_look)
 	rotation.x = clamp(deg2rad(-initial_pitch_degree), deg2rad(pitch_degree_min), deg2rad(pitch_degree_max))
 
 
-#func _unhandled_input(event) -> void:
-#	if event is InputEventMouseMotion:
-#		if _mouse_orbit_enabled:
-#			orbit(event.relative.x, event.relative.y)
-#	elif event is InputEventMouseButton:
-#		if event.is_action_pressed("orbit_enable"):
-#			_mouse_orbit_enabled = true
-#		elif event.is_action_released("orbit_enable"):
-#			_mouse_orbit_enabled = false
-#		elif event.is_action_pressed("zoom_in"):
-#			zoom_in()
-#		elif event.is_action_pressed("zoom_out"):
-#			zoom_out()
-#	else:
-#		if event.is_action("orbit_left"):
-#			_orbit_x[0] = event.get_action_strength("orbit_left")
-#			_orbit_x[1] = event.get_action_strength("orbit_right")
-#		elif event.is_action("orbit_right"):
-#			_orbit_x[1] = event.get_action_strength("orbit_right")
-#		elif event.is_action("orbit_up"):
-#			_orbit_y[0] = event.get_action_strength("orbit_down")
-#			_orbit_y[1] = event.get_action_strength("orbit_up")
-#		elif event.is_action("orbit_down"):
-#			_orbit_y[0] = event.get_action_strength("orbit_down")
-#		elif event.is_action("zoom_in"):
-#			_zoom_i[0] = event.get_action_strength("zoom_in")
-#		elif event.is_action("zoom_out"):
-#			_zoom_i[1] = event.get_action_strength("zoom_out")
+func _unhandled_input(event) -> void:
+	if event is InputEventMouseMotion:
+		if _mouse_orbit_enabled:
+			orbit(event.relative.x, event.relative.y)
+	elif event is InputEventMouseButton:
+		if event.is_action_pressed("orbit_enable"):
+			print("Mouse Orbit Enabled")
+			_mouse_orbit_enabled = true
+		elif event.is_action_released("orbit_enable"):
+			_mouse_orbit_enabled = false
+		elif event.is_action_pressed("zoom_in"):
+			zoom_in()
+		elif event.is_action_pressed("zoom_out"):
+			zoom_out()
+	else:
+		if event.is_action("orbit_left"):
+			_orbit_x[0] = event.get_action_strength("orbit_left")
+			_orbit_x[1] = event.get_action_strength("orbit_right")
+		elif event.is_action("orbit_right"):
+			_orbit_x[1] = event.get_action_strength("orbit_right")
+		elif event.is_action("orbit_up"):
+			_orbit_y[0] = event.get_action_strength("orbit_down")
+			_orbit_y[1] = event.get_action_strength("orbit_up")
+		elif event.is_action("orbit_down"):
+			_orbit_y[0] = event.get_action_strength("orbit_down")
+		elif event.is_action("zoom_in"):
+			_zoom_i[0] = event.get_action_strength("zoom_in")
+		elif event.is_action("zoom_out"):
+			_zoom_i[1] = event.get_action_strength("zoom_out")
 
 func _physics_process(delta : float) -> void:
 	_UpdateOrbit()
@@ -139,28 +148,28 @@ func _GetTarget() -> void:
 		if nodes.size() > 0:
 			_target = weakref(nodes[0])
 	else:
-		_target = null
+		_target = weakref(null)
 
 func _UpdateOrbit() -> void:
 	var ox : float = _orbit_x[1] - _orbit_x[0]
 	var oy : float = _orbit_y[1] - _orbit_y[0]
 	orbit(ox, oy)
 
-#func _UpdateFacing(delta : float) -> void:
-#	var nvec : Vector2 = -Vector2(_orbit_x[0] + _orbit_x[1], _orbit_y[0] + _orbit_y[1]).normalized()
-#	if nvec.length() > 0.5:
-#		_target_facing = Vector3(
-#			nvec.x,
-#			0.0,
-#			nvec.y
-#		)
-#
-#	var target_angle = Vector3.FORWARD.angle_to(_target_facing)
-#	if rotation.y != target_angle:
-#		var target_position = transform.origin + _target_facing
-#		var new_transform : Transform = transform.looking_at(target_position, Vector3.UP)
-#		transform = transform.interpolate_with(new_transform, deg2rad(orbit_dsp) * delta)
-#	#rotation.y = wrapf(-target_angle, 0.0, TAU)
+func _UpdateFacing(delta : float) -> void:
+	var nvec : Vector2 = -Vector2(_orbit_x[0] + _orbit_x[1], _orbit_y[0] + _orbit_y[1]).normalized()
+	if nvec.length() > 0.5:
+		_target_facing = Vector3(
+			nvec.x,
+			0.0,
+			nvec.y
+		)
+
+	var target_angle = Vector3.FORWARD.angle_to(_target_facing)
+	if rotation.y != target_angle:
+		var target_position = transform.origin + _target_facing
+		var new_transform : Transform = transform.looking_at(target_position, Vector3.UP)
+		transform = transform.interpolate_with(new_transform, deg2rad(orbit_dps) * delta)
+	rotation.y = wrapf(-target_angle, 0.0, TAU)
 
 
 func _UpdateZoom() -> void:
@@ -201,3 +210,12 @@ func zoom_in() -> void:
 func zoom_out() -> void:
 	zoom(zoom_step)
 
+func project_ray_origin(pos : Vector2) -> Vector3:
+	if _camera_node:
+		return _camera_node.project_ray_origin(pos)
+	return Vector3.ZERO
+
+func project_ray_normal(pos : Vector2) -> Vector3:
+	if _camera_node:
+		return _camera_node.project_ray_normal(pos)
+	return Vector3.ZERO

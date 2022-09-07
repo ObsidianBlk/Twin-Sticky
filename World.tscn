@@ -21,14 +21,19 @@ render_target_update_mode = 3
 [node name="Viewports" type="HBoxContainer" parent="GameView"]
 anchor_right = 1.0
 anchor_bottom = 1.0
+mouse_filter = 2
 
 [node name="Main" type="ViewportContainer" parent="GameView/Viewports"]
 visible = false
+margin_right = 510.0
 margin_bottom = 600.0
+mouse_filter = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
 stretch = true
 
 [node name="Viewport" type="Viewport" parent="GameView/Viewports/Main"]
-size = Vector2( 1024, 600 )
+size = Vector2( 510, 600 )
 size_override_stretch = true
 handle_input_locally = false
 render_target_update_mode = 0
@@ -94,6 +99,7 @@ visible = false
 [node name="Terminal" parent="UI" instance=ExtResource( 6 )]
 mouse_filter = 2
 
+[connection signal="area_editor" from="UI/MainMenu" to="." method="_on_MainMenu_area_editor"]
 [connection signal="local_start" from="UI/MainMenu" to="." method="_on_MainMenu_local_start"]
 [connection signal="online_start" from="UI/MainMenu" to="." method="_on_MainMenu_online_start"]
 [connection signal="quit" from="UI/MainMenu" to="." method="_on_MainMenu_quit"]
