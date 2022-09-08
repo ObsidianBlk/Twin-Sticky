@@ -7,6 +7,10 @@ extends Spatial
 const ZOOM_MIN : float = 1.0
 const ZOOM_MAX : float = 100.0
 
+const MAX_SPEED : float = 5.0
+const ACCELERATION : float = 40.0
+const FRICTION : float = 0.7
+
 # ------------------------------------------------------------------------------
 # Export Variables
 # ------------------------------------------------------------------------------
@@ -34,7 +38,11 @@ var _zoom : float = 0.0
 
 var _orbit_x : Array = [0.0, 0.0]
 var _orbit_y : Array = [0.0, 0.0]
+var _move_x : Array = [0.0, 0.0]
+var _move_y : Array = [0.0, 0.0]
 var _zoom_i : Array = [0.0, 0.0]
+
+var _velocity : Vector3 = Vector3.ZERO
 
 var _target_facing : Vector3 = Vector3.FORWARD
 
@@ -96,36 +104,37 @@ func _unhandled_input(event) -> void:
 		if _mouse_orbit_enabled:
 			orbit(event.relative.x, event.relative.y)
 	elif event is InputEventMouseButton:
-		if event.is_action_pressed("orbit_enable"):
-			print("Mouse Orbit Enabled")
-			_mouse_orbit_enabled = true
-		elif event.is_action_released("orbit_enable"):
-			_mouse_orbit_enabled = false
+		if event.is_action("orbit_enable"):
+			_mouse_orbit_enabled = event.is_action_pressed("orbit_enable")
 		elif event.is_action_pressed("zoom_in"):
 			zoom_in()
 		elif event.is_action_pressed("zoom_out"):
 			zoom_out()
 	else:
-		if event.is_action("orbit_left"):
-			_orbit_x[0] = event.get_action_strength("orbit_left")
-			_orbit_x[1] = event.get_action_strength("orbit_right")
-		elif event.is_action("orbit_right"):
-			_orbit_x[1] = event.get_action_strength("orbit_right")
-		elif event.is_action("orbit_up"):
-			_orbit_y[0] = event.get_action_strength("orbit_down")
-			_orbit_y[1] = event.get_action_strength("orbit_up")
-		elif event.is_action("orbit_down"):
-			_orbit_y[0] = event.get_action_strength("orbit_down")
+		if event.is_action("orbit_left") or event.is_action("orbit_right"):
+			_orbit_x[0] = Input.get_action_strength("orbit_left")
+			_orbit_x[1] = Input.get_action_strength("orbit_right")
+		elif event.is_action("orbit_up") or event.is_action("orbit_down"):
+			_orbit_y[0] = Input.get_action_strength("orbit_down")
+			_orbit_y[1] = Input.get_action_strength("orbit_up")
 		elif event.is_action("zoom_in"):
 			_zoom_i[0] = event.get_action_strength("zoom_in")
 		elif event.is_action("zoom_out"):
 			_zoom_i[1] = event.get_action_strength("zoom_out")
+		if _target.get_ref() == null:
+			if event.is_action("booster_left") or event.is_action("booster_right"):
+				_move_x[0] = Input.get_action_strength("booster_left")
+				_move_x[1] = Input.get_action_strength("booster_right")
+			elif event.is_action("booster_forward") or event.is_action("booster_backward"):
+				_move_y[0] = Input.get_action_strength("booster_forward")
+				_move_y[1] = Input.get_action_strength("booster_backward")
 
 func _physics_process(delta : float) -> void:
 	_UpdateOrbit()
 	_UpdateZoom()
 	var target = _target.get_ref()
 	if target == null:
+		_UpdateVelocity(delta)
 		_GetTarget()
 	else:
 		global_translation = target.global_translation
@@ -149,6 +158,21 @@ func _GetTarget() -> void:
 			_target = weakref(nodes[0])
 	else:
 		_target = weakref(null)
+
+func _UpdateVelocity(delta : float) -> void:
+	var xs : float = _move_x[1] - _move_x[0]
+	var ys : float = _move_y[1] - _move_y[0]
+	var dir : Vector3 = Vector3(xs, 0.0, ys).rotated(Vector3.UP, rotation.y)
+	if dir.length() > 0.01:
+		_velocity += dir * ACCELERATION * delta
+		if _velocity.length() > MAX_SPEED:
+			_velocity = _velocity.normalized() * MAX_SPEED
+	else:
+		_velocity = lerp(_velocity, Vector3.ZERO, FRICTION)
+	if _velocity.length() > 0.01:
+		transform.origin += _velocity
+	else:
+		_velocity = Vector3.ZERO
 
 func _UpdateOrbit() -> void:
 	var ox : float = _orbit_x[1] - _orbit_x[0]

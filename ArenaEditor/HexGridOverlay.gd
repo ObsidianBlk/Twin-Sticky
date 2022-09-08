@@ -8,12 +8,16 @@ export var radius : int = 100						setget set_radius
 export var hex_size : float = 1.0					setget set_hex_size
 export var color_normal : Color = Color(0,1,0)
 export var color_focus : Color = Color(1,0,0)
+export var target_path : NodePath = ""
 
 # ------------------------------------------------------------------------------
 # Variables
 # ------------------------------------------------------------------------------
 var _grid_material_normal : SpatialMaterial = null
 var _grid_material_focus : SpatialMaterial = null
+
+var _last_targ_cell : HexCell = HexCell.new()
+var _target : WeakRef = weakref(null)
 
 # ------------------------------------------------------------------------------
 # Onready Variables
@@ -62,6 +66,14 @@ func _ready() -> void:
 	_grid_material_focus.albedo_color = Color(0,0,1)
 	_BuildMesh()
 
+func _physics_process(_delta : float) -> void:
+	var target : Spatial = _target.get_ref()
+	if target != null:
+		_last_targ_cell.from_point(Vector2(target.translation.x, target.translation.z) / hex_size)
+		var pos : Vector2 = _last_targ_cell.to_point() * hex_size
+		translation = Vector3(pos.x, 0.0, pos.y)
+	else:
+		_GetTarget()
 
 # ------------------------------------------------------------------------------
 # Private Methods
@@ -69,7 +81,6 @@ func _ready() -> void:
 func _BuildMesh() -> void:
 	if not _basemesh_node:
 		return
-	print("Building Mesh")
 	
 	var st : SurfaceTool = SurfaceTool.new()
 	if _basemesh_node.mesh != null:
@@ -87,8 +98,7 @@ func _BuildMesh() -> void:
 	
 	if _cursormesh_node.mesh != null:
 		_cursormesh_node.mesh.clear_surfaces()
-	print("Cursor Size: ", hex_size)
-	_BuildHex(st, hc, hex_size)
+	_BuildHex(st, hc, hex_size * 0.95)
 	st.set_material(_grid_material_focus)
 	_cursormesh_node.mesh = st.commit()
 
@@ -108,14 +118,25 @@ func _BuildHex(st : SurfaceTool, cell : HexCell, size : float) -> void:
 		#st.add_color(map_data.color_normal)
 		st.add_vertex(Vector3(p.x, 0, p.y))
 
+func _GetTarget() -> void:
+	if target_path != "":
+		var original = _target.get_ref()
+		var target = get_node_or_null(target_path)
+		if original == null or original != target:
+			if target is Spatial:
+				_target = weakref(target)
+	else:
+		_target = weakref(null)
+
 # ------------------------------------------------------------------------------
 # Public Methods
 # ------------------------------------------------------------------------------
 func set_cursor_from_position(pos : Vector3) -> void:
 	var hc : HexCell = HexCell.new()
+	pos = pos - translation
 	hc.from_point(Vector2(pos.x, pos.z) / hex_size)
 	var npos : Vector2 = hc.to_point() * hex_size
-	_cursormesh_node.transform.origin = Vector3(npos.x, 0.1, npos.y)
+	_cursormesh_node.transform.origin = Vector3(npos.x, 0.0, npos.y)
 
 
 # ------------------------------------------------------------------------------

@@ -31,7 +31,7 @@ func _unhandled_input(event : InputEvent) -> void:
 			_UpdateMouseCursor(event.position)
 	elif event is InputEventMouseButton:
 		if event.is_action("orbit_enable"):
-			_orbit_enabled = event.is_action_pressed("orbit_enabled")
+			_orbit_enabled = event.is_action_pressed("orbit_enable")
 	else:
 		pass
 
