@@ -155,14 +155,14 @@ func clone() -> HexCell:
 
 func eq(v, point_is_spacial : bool = false) -> bool:
 	if typeof(v) == TYPE_OBJECT and v.has_method("is_valid"):
-		return c == v.qrs
+		return c.is_equal_approx(v.qrs)
 	elif typeof(v) == TYPE_VECTOR3:
-		return c == v
+		return c.is_equal_approx(v)
 	elif typeof(v) == TYPE_VECTOR2:
 		if point_is_spacial:
-			return to_point() == v
+			return to_point().is_equal_approx(v)
 		else:
-			return c == Vector3(v.x, -v.x-v.y, v.y)
+			return c.is_equal_approx(Vector3(v.x, -v.x-v.y, v.y))
 	return false
 
 func round_hex() -> void:
@@ -209,6 +209,10 @@ func to_point() -> Vector2:
 				y = ((SQRT3 * 0.5) * c.x) + (SQRT3 * c.z)
 	return Vector2(x,y)
 
+func to_point3D(height : float = 0.0) -> Vector3:
+	var point = to_point()
+	return Vector3(point.x, height, point.y)
+
 func from_point(point : Vector2) -> void:
 	var fq : float = 0.0
 	var fr : float = 0.0
@@ -222,6 +226,9 @@ func from_point(point : Vector2) -> void:
 	var fs : float = -fq -fr
 	c = Vector3(fq, fs, fr)
 	round_hex()
+
+func from_point3D(point : Vector3) -> void:
+	from_point(Vector2(point.x, point.z))
 
 
 
