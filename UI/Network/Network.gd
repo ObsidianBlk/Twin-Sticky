@@ -19,15 +19,15 @@ onready var join_node : Control = $Join
 # ------------------------------------------------------------------------------
 func _ready() -> void:
 	_on_cancel_netop()
-	$"%OpCancel".connect("pressed", self, "_on_option_cancel_pressed")
-	$"%JoinCancel".connect("pressed", self, "_on_cancel_netop")
-	$"%HostCancel".connect("pressed", self, "_on_cancel_netop")
+	var _res : int = $"%OpCancel".connect("pressed", self, "_on_option_cancel_pressed")
+	_res = $"%JoinCancel".connect("pressed", self, "_on_cancel_netop")
+	_res = $"%HostCancel".connect("pressed", self, "_on_cancel_netop")
 	
-	$"%OpHost".connect("pressed", self, "_on_option_host_pressed")
-	$"%OpJoin".connect("pressed", self, "_on_option_join_pressed")
+	_res = $"%OpHost".connect("pressed", self, "_on_option_host_pressed")
+	_res = $"%OpJoin".connect("pressed", self, "_on_option_join_pressed")
 	
-	$"%Host".connect("pressed", self, "_on_host")
-	$"%Join".connect("pressed", self, "_on_join")
+	_res = $"%Host".connect("pressed", self, "_on_host")
+	_res = $"%Join".connect("pressed", self, "_on_join")
 
 # ------------------------------------------------------------------------------
 # Handler Methods

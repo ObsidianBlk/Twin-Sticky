@@ -15,10 +15,10 @@ onready var _board_node : GridContainer = $Board
 # Override Methods
 # ------------------------------------------------------------------------------
 func _ready() -> void:
-	Lobby.connect("player_entered", self, "_on_player_entered")
-	Lobby.connect("player_removed", self, "_on_player_removed")
-	Lobby.connect("player_name_changed", self, "_on_player_entered")
-	Lobby.connect("player_score_changed", self, "_on_player_score_changed")
+	var _res : int = Lobby.connect("player_entered", self, "_on_player_entered")
+	_res = Lobby.connect("player_removed", self, "_on_player_removed")
+	_res = Lobby.connect("player_name_changed", self, "_on_player_entered")
+	_res = Lobby.connect("player_score_changed", self, "_on_player_score_changed")
 
 
 # ------------------------------------------------------------------------------
@@ -34,7 +34,7 @@ func _on_player_removed(pair_id : int, local_id : int) -> void:
 			player.score.queue_free()
 		_players[pair_id].erase(local_id)
 		if _players[pair_id].empty():
-			_players.erase(pair_id)
+			var _res : int = _players.erase(pair_id)
 
 
 func _on_player_entered(pair_id : int, local_id : int, player_name : String) -> void:

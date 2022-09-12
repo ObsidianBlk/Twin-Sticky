@@ -13,10 +13,10 @@ signal quit()
 # ------------------------------------------------------------------------------
 func _ready() -> void:
 	visible = start_visible
-	$"%LocalPlay".connect("pressed", self, "_on_pressed", ["local_start"])
-	$"%Multiplayer".connect("pressed", self, "_on_pressed", ["online_start"])
-	$"%ArenaEditor".connect("pressed", self, "_on_pressed", ["area_editor"])
-	$"%Quit".connect("pressed", self, "_on_pressed", ["quit"])
+	var _res : int = $"%LocalPlay".connect("pressed", self, "_on_pressed", ["local_start"])
+	_res = $"%Multiplayer".connect("pressed", self, "_on_pressed", ["online_start"])
+	_res = $"%ArenaEditor".connect("pressed", self, "_on_pressed", ["area_editor"])
+	_res = $"%Quit".connect("pressed", self, "_on_pressed", ["quit"])
 
 
 # ------------------------------------------------------------------------------

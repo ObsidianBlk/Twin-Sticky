@@ -66,12 +66,12 @@ func remove_player_group(pid : int) -> int:
 			emit_signal("player_removed", pid, 0)
 		if _players[pid]["local_2"] != null:
 			emit_signal("player_removed", pid, 1)
-		_players.erase(pid)
+		var _res : int = _players.erase(pid)
 	return OK
 
 func remove_all_players() -> int:
 	for pid in _players.keys():
-		remove_player_group(pid)
+		var _res : int = remove_player_group(pid)
 	return OK
 
 func does_player_group_exist(pid : int) -> bool:
@@ -84,7 +84,7 @@ func add_local_player(pid : int, lid : int, player_name : String = "") -> int:
 	if not (lid >= 0 and lid < 2):
 		return ERR_PARAMETER_RANGE_ERROR
 	if not pid in _players:
-		add_player_group(pid)
+		var _res : int = add_player_group(pid)
 	if player_name == "":
 		player_name = _Get_Random_Name()
 		if player_name == "":
@@ -112,7 +112,7 @@ func remove_local_player(pid : int, lid : int) -> int:
 			remove_pg = false
 			break
 	if remove_pg:
-		_players.erase(pid)
+		var _res : int = _players.erase(pid)
 	return OK
 
 func does_local_player_exist(pid : int, lid : int) -> bool:

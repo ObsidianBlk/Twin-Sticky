@@ -49,9 +49,9 @@ onready var viewport_p2_world : World = $GameView/Viewports/VP2C/Viewport_P2.wor
 # Override Methods
 # -----------------------------------------------------------------------------
 func _ready() -> void:
-	Log.connect("entry_logged", self, "_on_entry_logged")
-	Net.connect("add_game_world", self, "_on_add_game_world")
-	Net.connect("remove_game_world", self, "_on_remove_game_world")
+	var _res : int = Log.connect("entry_logged", self, "_on_entry_logged")
+	_res = Net.connect("add_game_world", self, "_on_add_game_world")
+	_res = Net.connect("remove_game_world", self, "_on_remove_game_world")
 #	viewport_p1.world = viewport_game.world
 #	viewport_p2.world = viewport_game.world
 #	var _res : int = game_node.connect("local_player_2", self, "_on_local_player_2")
@@ -151,7 +151,7 @@ func _ClearLocalPlayerInputMap(pid : int) -> void:
 func _CreateGame() -> void:
 	if _game_node == null:
 		_game_node = GAME.instance()
-		_game_node.connect("local_player_2", self, "_on_local_player_2")
+		var _res : int = _game_node.connect("local_player_2", self, "_on_local_player_2")
 		viewport_game.add_child(_game_node)
 		viewport_p1.world = viewport_game.world
 		viewport_p2.world = viewport_game.world
@@ -208,7 +208,7 @@ func _on_add_game_world() -> void:
 
 func _on_remove_game_world() -> void:
 	_RemoveGame()
-	Lobby.remove_all_players()
+	var _res : int = Lobby.remove_all_players()
 	ui.show_menu("MainMenu")
 
 func _on_close_game():
@@ -218,7 +218,7 @@ func _on_MainMenu_area_editor() -> void:
 	set_process_unhandled_input(false)
 	ui.show_menu("")
 	_editor_node = EDITOR.instance()
-	_editor_node.connect("editor_exited", self, "_on_arena_editor_exited")
+	var _res : int = _editor_node.connect("editor_exited", self, "_on_arena_editor_exited")
 	viewport_game.add_child(_editor_node)
 	vp1c.visible = false
 	vpc.visible = true

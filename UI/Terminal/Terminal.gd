@@ -42,9 +42,9 @@ func set_slide_duration(d : float) -> void:
 # Override Methods
 # -----------------------------------------------------------------------------
 func _ready() -> void:
-	connect("resized", self, "_on_resized")
-	Log.connect("entry_logged", self, "_on_entry_logged")
-	Log.connect("log_changed", self, "_on_log_changed")
+	var _res : int = connect("resized", self, "_on_resized")
+	_res = Log.connect("entry_logged", self, "_on_entry_logged")
+	_res = Log.connect("log_changed", self, "_on_log_changed")
 	_UpdateSizePosition(OS.window_size)
 
 
@@ -62,22 +62,22 @@ func _UpdateSizePosition(win_size : Vector2) -> void:
 		dest = Vector2.ZERO if _on_screen else Vector2(0, -rect_min_size.y)
 		
 		var dur : float = slide_duration * (1.0 - trans_percent)
-		tween_node.reset_all()
-		tween_node.interpolate_property(
+		var _res : int = tween_node.reset_all()
+		_res = tween_node.interpolate_property(
 			self, "rect_position",
 			rect_position, dest,
 			dur,
 			Tween.TRANS_LINEAR, Tween.EASE_IN_OUT
 		)
-		tween_node.start()
+		_res = tween_node.start()
 	else:
 		rect_min_size = Vector2(win_size.x, win_size.y * 0.5)
 		rect_position = Vector2.ZERO if _on_screen else Vector2(0, -rect_min_size.y)
-		print("Size: ", rect_min_size)
+		#print("Size: ", rect_min_size)
 
 func _ToggleOnScreen(instant : bool = false) -> void:
 	if instant:
-		tween_node.stop_all()
+		var _res : int = tween_node.stop_all()
 		rect_position = Vector2.ZERO if not _on_screen else Vector2(0, -rect_min_size.y)
 		_on_screen = not _on_screen
 	else:
@@ -89,14 +89,14 @@ func _ToggleOnScreen(instant : bool = false) -> void:
 		
 		var dur : float = slide_duration * (1.0 - trans_percent)
 		var dest : Vector2 = Vector2.ZERO if not _on_screen else Vector2(0, -rect_min_size.y)
-		tween_node.reset_all()
-		tween_node.interpolate_property(
+		var _res : int = tween_node.reset_all()
+		_res = tween_node.interpolate_property(
 			self, "rect_position",
 			rect_position, dest,
 			dur,
 			Tween.TRANS_LINEAR, Tween.EASE_IN_OUT
 		)
-		tween_node.start()
+		_res = tween_node.start()
 		_on_screen = not _on_screen
 
 func _GetPriorityColor(p : int) -> Color:
@@ -132,7 +132,7 @@ func _Print(entry : Dictionary) -> void:
 	rtl_node.push_color(text_color)
 	rtl_node.add_text(entry.message)
 	if rtl_node.get_line_count() > Log.get_max_entries():
-		rtl_node.remove_line(0)
+		var _res : int = rtl_node.remove_line(0)
 	
 	
 

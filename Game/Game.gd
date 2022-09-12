@@ -39,8 +39,8 @@ onready var hexregion_node : Spatial = $HexRegion
 # Override Methods
 # -----------------------------------------------------------------------------
 func _ready() -> void:
-	Net.connect("add_player", self, "_on_add_player")
-	Net.connect("remove_player", self, "_on_remove_player")
+	var _res : int = Net.connect("add_player", self, "_on_add_player")
+	_res = Net.connect("remove_player", self, "_on_remove_player")
 
 # -----------------------------------------------------------------------------
 # Private Methods
@@ -91,7 +91,7 @@ func spawn_player(pid : int, remote_pid : int, player_name : String = "") -> voi
 		tb.set_network_master(remote_pid)
 		add_child(tb)
 		tb.transform.origin.y = y + 1.0
-		Lobby.add_local_player(remote_pid, pid, player_name)
+		var _res : int = Lobby.add_local_player(remote_pid, pid, player_name)
 		tb.bot_name = Lobby.get_player_name(remote_pid, pid)
 		
 		var wmount = WEAPONMOUNT.instance()
@@ -126,14 +126,14 @@ func _on_add_player(local_pid : int , remote_pid : int, player_name : String) ->
 	spawn_player(local_pid, remote_pid, player_name)
 
 func _on_remove_player(local_pid, remote_pid) -> void:
-	Lobby.remove_local_player(remote_pid, local_pid)
+	var _res : int = Lobby.remove_local_player(remote_pid, local_pid)
 	var group_name : String = "Player_%s_%s"%[local_pid + 1, remote_pid]
 	var nodes = get_tree().get_nodes_in_group(group_name)
 	if nodes.size() > 0:
 		remove_child(nodes[0])
 		nodes[0].queue_free()
 
-func _on_spawn_projectile(projectile_name : String, position : Vector3, direction : Vector3, trackbot : Spatial) -> void:
+func _on_spawn_projectile(projectile_name : String, position : Vector3, direction : Vector3, _trackbot : Spatial) -> void:
 	if get_tree().has_network_peer():
 		rpc("r_spawn_projectile", projectile_name, position, direction)
 	else:

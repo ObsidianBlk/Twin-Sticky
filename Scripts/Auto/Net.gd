@@ -6,7 +6,7 @@ extends Node
 # Signals
 # -----------------------------------------------------------------------------
 signal network_initialized()
-signal network_disconnected()
+#signal network_disconnected()
 signal network_init_failed()
 
 signal add_game_world()
@@ -61,11 +61,11 @@ var _players : Dictionary = {}
 func _ready() -> void:
 	print(get_path())
 	var st : SceneTree = get_tree()
-	st.connect("network_peer_connected", self, "_on_network_peer_connected")
-	st.connect("network_peer_disconnected", self, "_on_network_peer_disconnected")
-	st.connect("connected_to_server", self, "_on_connected_to_server")
-	st.connect("connection_failed", self, "_on_connection_failed")
-	st.connect("server_disconnected", self, "_on_server_disconnected")
+	var _res : int = st.connect("network_peer_connected", self, "_on_network_peer_connected")
+	_res = st.connect("network_peer_disconnected", self, "_on_network_peer_disconnected")
+	_res = st.connect("connected_to_server", self, "_on_connected_to_server")
+	_res = st.connect("connection_failed", self, "_on_connection_failed")
+	_res = st.connect("server_disconnected", self, "_on_server_disconnected")
 
 
 # -----------------------------------------------------------------------------
@@ -192,7 +192,7 @@ puppet func r_host_announce_local_player(remote_id : int, local_id : int, player
 			Log.info("Host announced player %s:%s \"%s\"."%[remote_id, local_id, player_info.name])
 			emit_signal("add_player", local_id, remote_id, player_info.name)
 			if "score" in player_info:
-				Lobby.set_player_score(remote_id, local_id, player_info.score)
+				var _res : int = Lobby.set_player_score(remote_id, local_id, player_info.score)
 
 #remote func r_register_player_profile(profile : Dictionary) -> void:
 #	var id : int = get_tree().get_rpc_sender_id()
@@ -224,7 +224,7 @@ func _on_network_peer_connected(id : int) -> void:
 	if id in _players:
 		Log.warning("Client ID %d already exists."%[id])
 	Log.info("New client connected, %d"%[id])
-	Lobby.add_player_group(id)
+	var _res : int = Lobby.add_player_group(id)
 	if get_tree().get_network_unique_id() == 1:
 		rpc_id(id, "r_ready_network")
 
@@ -232,7 +232,7 @@ func _on_network_peer_disconnected(id : int) -> void:
 	if id != get_tree().get_network_unique_id():
 		emit_signal("remove_player", 0, id)
 		emit_signal("remove_player", 1, id)
-		Lobby.remove_player_group(id)
+		var _res : int = Lobby.remove_player_group(id)
 		Log.info("Client disconnected: %d"%[id])
 
 func _on_connected_to_server() -> void:

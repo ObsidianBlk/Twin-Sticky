@@ -234,7 +234,7 @@ func _GetTarget() -> void:
 # Public Methods
 # ------------------------------------------------------------------------------
 func set_cursor_radius(r : int) -> void:
-	var nr : int = max(0, r)
+	var nr : int = int(max(0, r))
 	if nr != _cursor_radius:
 		_cursor_radius = nr
 		_BuildCursor()

@@ -12,11 +12,11 @@ signal menu_requested(menu_name)
 func _ready() -> void:
 	for child in get_children():
 		if child.has_method("_on_menu_requested"):
-			connect("menu_requested", child, "_on_menu_requested")
+			var _res : int = connect("menu_requested", child, "_on_menu_requested")
 			if child.has_signal("close_menu"):
-				child.connect("close_menu", self, "_on_close_menu", [child])
+				_res = child.connect("close_menu", self, "_on_close_menu", [child])
 			if child.has_signal("request_menu"):
-				child.connect("request_menu", self, "_on_request_menu")
+				_res = child.connect("request_menu", self, "_on_request_menu")
 
 # ------------------------------------------------------------------------------
 # Public Methods
@@ -27,7 +27,7 @@ func show_menu(menu_name : String) -> void:
 # ------------------------------------------------------------------------------
 # Handler Methods
 # ------------------------------------------------------------------------------
-func _on_close_menu(menu_node : Control) -> void:
+func _on_close_menu(_menu_node : Control) -> void:
 	show_menu("")
 
 func _on_request_menu(menu_name : String) -> void:
