@@ -10,20 +10,21 @@ const MODEL_BASE_SIZE : float = 1.0
 # Export Variables
 # -----------------------------------------------------------------------------
 export var region_resource : Resource = null						setget set_region_resource
+export var hex_id : int = 0
 export var qrs : Vector3 = Vector3.ZERO								setget set_qrs
 export var size : float = 20.0										setget set_size
-export var height : float = 0.0										setget set_height
+export var height : int = 0.0										setget set_height
 
 
 # -----------------------------------------------------------------------------
 # Variables
 # -----------------------------------------------------------------------------
 var _origin : HexCell = HexCell.new()
+var _hexes : Array = []
 
 # -----------------------------------------------------------------------------
 # Onready Variables
 # -----------------------------------------------------------------------------
-onready var hex_node : Spatial = $Default
 
 # -----------------------------------------------------------------------------
 # Setters
@@ -44,8 +45,16 @@ func set_region_resource(r : Resource) -> void:
 			size = region_resource.hex_size
 			height = region_resource.get_height_at(_origin)
 			_UpdatePosition()
+			_UpdateHeight()
 			_UpdateScale()
 
+func set_hex_id(id : int) -> void:
+	if id >= 0 and AssetDB.hex_id_exists(id):
+		hex_id = id
+		for i in range(_hexes.size()):
+			remove_child(_hexes[i])
+			_hexes[i].queue_free()
+		_hexes = AssetDB.get_hexes_by_id(hex_id, 1)
 
 func set_qrs(_qrs : Vector3) -> void:
 	qrs = _qrs
@@ -57,31 +66,67 @@ func set_size(s : float) -> void:
 		size = s
 		_UpdateScale()
 
-func set_height(h : float) -> void:
-	if h >= 0.0:
+func set_height(h : int) -> void:
+	if h >= 0 and h != height:
 		height = h
-		_UpdatePosition()
+		_UpdateHeight()
 
 # -----------------------------------------------------------------------------
 # Override Methods
 # -----------------------------------------------------------------------------
 func _ready() -> void:
-	_UpdateScale()
+	_UpdatePosition()
+	_UpdateHeight()
 
 
 # -----------------------------------------------------------------------------
 # Private Methods
 # -----------------------------------------------------------------------------
+func _UpdateHeight() -> void:
+	if height+1 < _hexes.size():
+		for i in range(_hexes.size() - 1, height, -1):
+			remove_child(_hexes[i])
+			_hexes[i].queue_free()
+			_hexes.pop_back()
+		var top : Spatial = _hexes[_hexes.size() - 1].get_node_or_null("top")
+		if top != null:
+			top.visible = true
+	elif height+1 > _hexes.size():
+		var new_hexes : Array = AssetDB.get_hexes_by_id(hex_id, (height + 1) - _hexes.size())
+		if new_hexes.size() > 0:
+			var top : Spatial = null
+			if _hexes.size() > 0:
+				top = _hexes[_hexes.size() - 1].get_node_or_null("top")
+			if top != null:
+				top.visible = false
+			
+			var s : float = size / MODEL_BASE_SIZE
+			for nhex in new_hexes:
+				var nheight : float  = float(_hexes.size()) * size
+				nhex.scale = Vector3(s,s,s)
+				nhex.translation = Vector3(0, nheight, 0)
+				top = nhex.get_node_or_null("top")
+				if top != null:
+					top.visible = false
+				add_child(nhex)
+				_hexes.append(nhex)
+			top = _hexes[_hexes.size() - 1].get_node_or_null("top")
+			if top != null:
+				top.visible = true
+				
+
 func _UpdatePosition() -> void:
 	var pos : Vector2 = _origin.to_point() * size
-	transform.origin = Vector3(pos.x, height, pos.y)
+	transform.origin = Vector3(pos.x, 0.0, pos.y)
 
 func _UpdateScale() -> void:
 	var s : float = size / MODEL_BASE_SIZE
-	if Engine.editor_hint and not hex_node:
-		hex_node = $Hex_Model
-	if hex_node:
-		hex_node.scale = Vector3(s, 1.0, s)
+	var nscale : Vector3 = Vector3(s,s,s)
+	for i in range(_hexes.size()):
+		_hexes[i].scale = nscale
+		var nheight : float  = float(i) * size
+		_hexes[i].translation = Vector3(0, nheight, 0)
+		
 
 # -----------------------------------------------------------------------------
 # Public Methods
@@ -100,9 +145,7 @@ func _on_region_cleared() -> void:
 	release()
 
 func _on_region_changed() -> void:
-	var nheight : float = region_resource.get_height_at(_origin)
-	if nheight != height:
-		_UpdatePosition()
+	set_height(region_resource.get_height_at(_origin))
 
 func _on_region_hex_removed(hex_cell : HexCell) -> void:
 	if _origin.eq(hex_cell):

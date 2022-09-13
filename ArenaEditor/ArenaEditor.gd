@@ -10,6 +10,7 @@ signal editor_exited()
 # ------------------------------------------------------------------------------
 # Variables
 # ------------------------------------------------------------------------------
+var _region_resource : RegionResource = null
 var _orbit_enabled : bool = false
 
 
@@ -18,10 +19,17 @@ var _orbit_enabled : bool = false
 # ------------------------------------------------------------------------------
 onready var _camera : Spatial = $GimbleCamera
 onready var _hex_grid_overlay : Spatial = $HexGridOverlay
+onready var _hex_region : Spatial = $HexRegion
 
 # ------------------------------------------------------------------------------
 # Override Methods
 # ------------------------------------------------------------------------------
+func _ready() -> void:
+	_region_resource = RegionResource.new()
+	_hex_grid_overlay.connect("grid_clicked", self, "_on_grid_clicked")
+	_hex_grid_overlay.hex_size = _region_resource.hex_size
+	_hex_region.region_resource = _region_resource
+
 
 func _unhandled_input(event : InputEvent) -> void:
 	if event.is_action_pressed("ui_cancel"):
@@ -56,8 +64,30 @@ func _UpdateMouseCursor(mouse_position : Vector2) -> void:
 # ------------------------------------------------------------------------------
 
 
-
 # ------------------------------------------------------------------------------
 # Handler Methods
 # ------------------------------------------------------------------------------
+func _on_grid_clicked(cell : HexCell, radius : int, alt : bool) -> void:
+	if _region_resource == null:
+		return
+	
+	var cells = [cell]
+	if radius > 0:
+		cells = cell.get_region(radius)
+	
+	for ccell in cells:
+		var height : int = 0
+		if alt:
+			if _region_resource.has_cell(ccell):
+				height = _region_resource.get_height_at(ccell) - 1
+				if height >= 0:
+					_region_resource.add_cell(ccell, height)
+				else:
+					_region_resource.remove_cell(ccell)
+		else:
+			if _region_resource.has_cell(ccell):
+				height = _region_resource.get_height_at(ccell) + 1
+			if height >= 0:
+				_region_resource.add_cell(ccell, height)
+
 

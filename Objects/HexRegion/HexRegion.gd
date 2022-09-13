@@ -9,7 +9,7 @@ const HEX : PackedScene = preload("res://Objects/Hex/Hex.tscn")
 # ------------------------------------------------------------------------------
 # Export Variables
 # ------------------------------------------------------------------------------
-export var region_resource : Resource = null
+export var region_resource : Resource = null		setget set_region_resource
 
 # ------------------------------------------------------------------------------
 # Onready Variables

@@ -14,13 +14,11 @@ signal hex_size_changed(size)
 # ------------------------------------------------------------------------------
 # Export Variables
 # ------------------------------------------------------------------------------
-export var region_seed : int = 571234									setget set_region_seed
-export (int, 1, 9) var octaves : int = 4								setget set_octaves
-export var period : float = 20.0										setget set_period
-export (float, 0.0, 1.0, 0.01) var persistence : float = 0.8			setget set_persistence
+#export var region_seed : int = 571234									setget set_region_seed
+#export (int, 1, 9) var octaves : int = 4								setget set_octaves
+#export var period : float = 20.0										setget set_period
+#export (float, 0.0, 1.0, 0.01) var persistence : float = 0.8			setget set_persistence
 
-export var size : int = 20												setget set_size
-export var max_height : float = 4.0										setget set_max_height
 export var hex_size : float = 10.0										setget set_hex_size
 
 
@@ -28,48 +26,14 @@ export var hex_size : float = 10.0										setget set_hex_size
 # Variables
 # ------------------------------------------------------------------------------
 var _region : Dictionary = {}
-var _osn : OpenSimplexNoise = OpenSimplexNoise.new()
-
 
 # ------------------------------------------------------------------------------
 # Setters
 # ------------------------------------------------------------------------------
-func set_region_seed(s : int) -> void:
-	region_seed = s
-	_osn.seed = s
-	_BuildRegion()
-
-func set_octaves(o : int) -> void:
-	if o >= 0 and o < 10:
-		octaves = o
-		_osn.octaves = octaves
-		_BuildRegion()
-
-func set_period(p : float) -> void:
-	period = p
-	_osn.period = period
-	_BuildRegion()
-
-func set_persistence(p : float) -> void:
-	persistence = max(0.0, min(1.0, p))
-	_osn.persistence = persistence
-	_BuildRegion()
-
-func set_size(s : int) -> void:
-	if s > 0:
-		size = s
-		_BuildRegion()
-
-func set_max_height(h : float) -> void:
-	if h > 0.0:
-		max_height = h
-		_BuildRegion()
-
 func set_hex_size(s : float) -> void:
 	if s > 0.0:
 		hex_size = s
 		emit_signal("hex_size_changed", hex_size)
-		_BuildRegion()
 
 # ------------------------------------------------------------------------------
 # Override Methods
@@ -80,33 +44,33 @@ func _init() -> void:
 # ------------------------------------------------------------------------------
 # Private Methods
 # ------------------------------------------------------------------------------
-func _BuildRegion(reset : bool = false) -> void:
-	if size > 0:
-		if reset: # If we're resetting, just empty the board.
-			_region.clear()
-			emit_signal("region_cleared")
-
-		# The center point of the board.
-		var origin : HexCell = HexCell.new()
-
-		# Let's just build the board if it's empty
-		if not _region.empty():
-			# Let's remove cells out of range...
-			for qrs in _region.keys():
-				var hex : HexCell = HexCell.new(qrs)
-				if int(hex.distance_to(origin)) > size:
-					emit_signal("region_hex_removed", hex)
-					var _res : int = _region.erase(qrs)
-					
-		# Now we fill the board up, only adding cells not already there...
-		var cells = origin.get_region(size)
-		for cell in cells:
-			var new_cell : bool = not cell.qrs in _region
-			_region[cell.qrs] = (_osn.get_noise_2dv(cell.to_point() * hex_size) + 1.0) * max_height
-			if new_cell:
-				emit_signal("region_hex_added", cell)
-			
-		emit_signal("region_changed")
+#func _BuildRegion(reset : bool = false) -> void:
+#	if size > 0:
+#		if reset: # If we're resetting, just empty the board.
+#			_region.clear()
+#			emit_signal("region_cleared")
+#
+#		# The center point of the board.
+#		var origin : HexCell = HexCell.new()
+#
+#		# Let's just build the board if it's empty
+#		if not _region.empty():
+#			# Let's remove cells out of range...
+#			for qrs in _region.keys():
+#				var hex : HexCell = HexCell.new(qrs)
+#				if int(hex.distance_to(origin)) > size:
+#					emit_signal("region_hex_removed", hex)
+#					var _res : int = _region.erase(qrs)
+#
+#		# Now we fill the board up, only adding cells not already there...
+#		var cells = origin.get_region(size)
+#		for cell in cells:
+#			var new_cell : bool = not cell.qrs in _region
+#			_region[cell.qrs] = (_osn.get_noise_2dv(cell.to_point() * hex_size) + 1.0) * max_height
+#			if new_cell:
+#				emit_signal("region_hex_added", cell)
+#
+#		emit_signal("region_changed")
 
 func _CellToHexCell(cell) -> HexCell:
 	if typeof(cell) == TYPE_VECTOR3:
@@ -127,10 +91,41 @@ func get_size() -> int:
 func get_cells() -> PoolVector3Array:
 	return PoolVector3Array(_region.keys())
 
-func get_height_at(cell) -> float:
+func get_height_at(cell) -> int:
 	cell = _CellToHexCell(cell)
 	if cell is HexCell:
 		if cell.qrs in _region:
 			return _region[cell.qrs]
-	return 0.0
+	return -1
+
+func has_cell(cell) -> bool:
+	cell = _CellToHexCell(cell)
+	if cell is HexCell:
+		return cell.qrs in _region
+	return false
+
+func add_cell(cell, height : int) -> void:
+	if height < 0:
+		return
+	
+	cell = _CellToHexCell(cell)
+	if cell is HexCell:
+		var isnew : bool = not cell.qrs in _region
+		_region[cell.qrs] = height
+		if isnew:
+			emit_signal("region_hex_added", cell)
+		emit_signal("region_changed")
+
+func remove_cell(cell) -> void:
+	cell = _CellToHexCell(cell)
+	if cell is HexCell:
+		if cell.qrs in _region:
+			_region.erase(cell.qrs)
+			emit_signal("region_hex_removed", cell)
+		if _region.empty():
+			emit_signal("region_cleared")
+
+func clear() -> void:
+	_region.clear()
+	emit_signal("region_cleared")
 

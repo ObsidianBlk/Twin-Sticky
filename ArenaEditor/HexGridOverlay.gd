@@ -4,7 +4,7 @@ extends Spatial
 # ------------------------------------------------------------------------------
 # Signals
 # ------------------------------------------------------------------------------
-signal grid_clicked(cursor_cell, cursor_radius)
+signal grid_clicked(cursor_cell, cursor_radius, alt)
 
 
 # ------------------------------------------------------------------------------
@@ -112,7 +112,10 @@ func _unhandled_input(event : InputEvent) -> void:
 			handled = true
 	else:
 		if event.is_action_pressed("editor_select"):
-			emit_signal("grid_clicked", _cursor_cell, _cursor_radius)
+			emit_signal("grid_clicked", _cursor_cell, _cursor_radius, false)
+			handled = true
+		if event.is_action_pressed("editor_select_alt"):
+			emit_signal("grid_clicked", _cursor_cell, _cursor_radius, true)
 			handled = true
 		elif event.is_action_pressed("editor_grow_cursor"):
 			set_cursor_radius(_cursor_radius + 1)

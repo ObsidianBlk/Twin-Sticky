@@ -1,7 +1,7 @@
 [gd_scene load_steps=7 format=2]
 
 [ext_resource path="res://ArenaEditor/ArenaEditor.gd" type="Script" id=1]
-[ext_resource path="res://Objects/Hex/Hex.tscn" type="PackedScene" id=2]
+[ext_resource path="res://Objects/HexRegion/HexRegion.tscn" type="PackedScene" id=2]
 [ext_resource path="res://ArenaEditor/HexGridOverlay.gd" type="Script" id=3]
 [ext_resource path="res://Objects/GimbleCamera/GimbleCamera.tscn" type="PackedScene" id=4]
 
@@ -34,6 +34,8 @@ pitch_degree_max = -10.0
 initial_pitch_degree = -45.0
 sensitivity = Vector2( 0.02, 0.02 )
 
+[node name="HexRegion" parent="." instance=ExtResource( 2 )]
+
 [node name="HexGridOverlay" type="Spatial" parent="."]
 script = ExtResource( 3 )
 radius = 20
@@ -45,8 +47,6 @@ skeleton = NodePath("../..")
 
 [node name="Cursor" type="MeshInstance" parent="HexGridOverlay"]
 skeleton = NodePath("../..")
-
-[node name="Hex" parent="." instance=ExtResource( 2 )]
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="."]
 environment = SubResource( 2 )

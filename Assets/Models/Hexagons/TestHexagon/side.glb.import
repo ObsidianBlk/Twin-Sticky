@@ -2,12 +2,12 @@
 
 importer="scene"
 type="PackedScene"
-path="res://.import/Test_Hexagon.glb-9435b78a778cca6cf7b336247630db77.scn"
+path="res://.import/side.glb-b1acc1d9c0fae75ac3a6e84c07acdc85.scn"
 
 [deps]
 
-source_file="res://Assets/Models/Test_Hexagon/Test_Hexagon.glb"
-dest_files=[ "res://.import/Test_Hexagon.glb-9435b78a778cca6cf7b336247630db77.scn" ]
+source_file="res://Assets/Models/Hexagons/TestHexagon/side.glb"
+dest_files=[ "res://.import/side.glb-b1acc1d9c0fae75ac3a6e84c07acdc85.scn" ]
 
 [params]
 
