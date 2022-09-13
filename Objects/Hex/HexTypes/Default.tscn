@@ -1,4 +1,4 @@
-[gd_scene load_steps=4 format=2]
+[gd_scene load_steps=6 format=2]
 
 [sub_resource type="ArrayMesh" id=1]
 resource_name = "side_Circle"
@@ -14,6 +14,8 @@ surfaces/0 = {
 "vertex_count": 24
 }
 
+[sub_resource type="SpatialMaterial" id=4]
+
 [sub_resource type="ArrayMesh" id=3]
 resource_name = "top_Circle001"
 surfaces/0 = {
@@ -28,6 +30,8 @@ surfaces/0 = {
 "vertex_count": 6
 }
 
+[sub_resource type="SpatialMaterial" id=5]
+
 [sub_resource type="ConvexPolygonShape" id=2]
 points = PoolVector3Array( 0.866025, 0, 0.499804, 0, 0, 1, 0.866025, -1, 0.499804, 0.866025, 0, -0.5, 0, -1, 1, -0.866025, 0, 0.5, 0.866025, -1, -0.5, 0, 0, -1, -0.866025, -1, 0.5, -0.866025, 0, -0.5, 0, -1, -1, -0.866025, -1, -0.5 )
 
@@ -36,10 +40,12 @@ points = PoolVector3Array( 0.866025, 0, 0.499804, 0, 0, 1, 0.866025, -1, 0.49980
 [node name="Side" type="MeshInstance" parent="."]
 mesh = SubResource( 1 )
 skeleton = NodePath("")
+material/0 = SubResource( 4 )
 
 [node name="Top" type="MeshInstance" parent="."]
 mesh = SubResource( 3 )
 skeleton = NodePath("")
+material/0 = SubResource( 5 )
 
 [node name="CollisionShape" type="CollisionShape" parent="."]
 shape = SubResource( 2 )
