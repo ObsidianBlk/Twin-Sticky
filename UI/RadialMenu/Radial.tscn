@@ -1,0 +1,32 @@
+[gd_scene load_steps=5 format=2]
+
+[ext_resource path="res://UI/RadialMenu/RadialButton.gd" type="Script" id=1]
+[ext_resource path="res://Shaders/Arc.shader" type="Shader" id=2]
+[ext_resource path="res://Assets/Textures/input_joypad.svg" type="Texture" id=3]
+
+[sub_resource type="ShaderMaterial" id=2]
+resource_local_to_scene = true
+shader = ExtResource( 2 )
+shader_param/color_body = Color( 0.192157, 0.392157, 0.513726, 1 )
+shader_param/color_trim = Color( 0.337255, 0.211765, 0.415686, 1 )
+shader_param/trim_width = 1.0
+shader_param/angle_start = 0.0
+shader_param/angle_end = 0.785398
+shader_param/base_size = 40.0
+shader_param/radius_inner = 10.0
+shader_param/radius_outer = 40.0
+shader_param/icon = ExtResource( 3 )
+
+[node name="Radial" type="Popup"]
+visible = true
+margin_right = 40.0
+margin_bottom = 40.0
+
+[node name="RadialButton" type="ColorRect" parent="."]
+material = SubResource( 2 )
+margin_right = 40.0
+margin_bottom = 40.0
+mouse_filter = 1
+size_flags_horizontal = 3
+size_flags_vertical = 3
+script = ExtResource( 1 )
