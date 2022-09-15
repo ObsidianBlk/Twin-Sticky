@@ -13,7 +13,7 @@ uniform float radius_outer = 40.0;
 vec4 test(){return vec4(0,0,0,1);}
 
 vec4 IconColor(vec2 uv){
-	float center_angle = angle_start + ((angle_end - angle_start) * 0.5);
+	float center_angle = radians(angle_start + ((angle_end - angle_start) * 0.5)) + 3.14159;
 	vec2 direction = vec2(cos(center_angle), sin(center_angle));
 	float arc_width = radius_outer - radius_inner;
 	float center_radius = radius_inner + (arc_width * 0.5);
@@ -40,15 +40,27 @@ vec4 IconColor(vec2 uv){
 	return color;
 }
 
+float det(vec2 a, vec2 b){
+	return (a.x*b.y) - (a.y*b.x);
+}
+
+float GetAngleBetween(vec2 a, vec2 b){
+	float pi = 3.14159;
+	return atan(det(a,b), dot(a,b)) + pi;
+}
+
 void fragment(){
 	vec2 origin = vec2(0.5, 0.5);
 	vec4 color = vec4(0,0,0,0);
-	float angle = acos(dot(vec2(1,0), normalize(UV - origin)));
+	float angle = GetAngleBetween(vec2(1,0), normalize(UV - origin));
+	if (angle < 0.0){
+		color = vec4(1,1,0,1);
+	}
 	float _irad = (radius_inner / base_size) * 0.5;
 	float _orad = (radius_outer / base_size) * 0.5;
 	float _tw = (trim_width / base_size) * 0.5;
 	float dist = distance(UV, origin);
-	if (angle >= angle_start && angle <= angle_end){
+	if (angle >= radians(angle_start) && angle <= radians(angle_end)){
 		if (dist <= _orad){
 			if (dist >= _irad){
 				if ((dist <= _orad && dist >= _orad - _tw) || (dist >= _irad && dist <= _irad + _tw)){
