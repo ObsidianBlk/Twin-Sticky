@@ -1,6 +1,7 @@
 shader_type canvas_item;
 
 uniform sampler2D icon;
+uniform bool use_icon = false;
 uniform vec4 color_body : hint_color = vec4(1,1,1,1);
 uniform vec4 color_trim : hint_color = vec4(0,0,0,1);
 uniform float trim_width = 1.0;
@@ -13,6 +14,7 @@ uniform float radius_outer = 40.0;
 vec4 test(){return vec4(0,0,0,1);}
 
 vec4 IconColor(vec2 uv){
+	if (!use_icon){return vec4(0,0,0,0);}
 	float center_angle = radians(angle_start + ((angle_end - angle_start) * 0.5)) + 3.14159;
 	vec2 direction = vec2(cos(center_angle), sin(center_angle));
 	float arc_width = radius_outer - radius_inner;
