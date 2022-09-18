@@ -4,8 +4,8 @@
 [ext_resource path="res://Objects/HexRegion/HexRegion.tscn" type="PackedScene" id=2]
 [ext_resource path="res://ArenaEditor/HexGridOverlay.gd" type="Script" id=3]
 [ext_resource path="res://Objects/GimbleCamera/GimbleCamera.tscn" type="PackedScene" id=4]
-[ext_resource path="res://UI/RadialButton/RadialButton.tscn" type="PackedScene" id=5]
-[ext_resource path="res://Assets/Textures/input_joypad.svg" type="Texture" id=6]
+[ext_resource path="res://UI/RadialMenu/RadialMenu.tscn" type="PackedScene" id=5]
+[ext_resource path="res://UI/RadialButton/RadialButton.tscn" type="PackedScene" id=6]
 
 [sub_resource type="ProceduralSky" id=1]
 sky_top_color = Color( 0, 0, 0, 1 )
@@ -64,11 +64,37 @@ environment = SubResource( 2 )
 [node name="UI" type="CanvasLayer" parent="."]
 layer = 100
 
-[node name="RadialButton" parent="UI" instance=ExtResource( 5 )]
-margin_right = 300.0
-margin_bottom = 300.0
-icon = ExtResource( 6 )
-end_degree = 90.0
-outer_radius = 150.0
-inner_radius = 75.0
-trim_width = 4.0
+[node name="RadialMenu" parent="UI" instance=ExtResource( 5 )]
+visible = true
+margin_right = 500.0
+margin_bottom = 500.0
+outer_radius = 250.0
+inner_radius = 100.0
+gap_degrees = 2.0
+
+[node name="RadialButton" parent="UI/RadialMenu" instance=ExtResource( 6 )]
+margin_right = 500.0
+margin_bottom = 500.0
+mouse_filter = 2
+start_degree = 1.0
+end_degree = 119.0
+outer_radius = 250.0
+inner_radius = 100.0
+
+[node name="RadialButton2" parent="UI/RadialMenu" instance=ExtResource( 6 )]
+margin_right = 500.0
+margin_bottom = 500.0
+mouse_filter = 2
+start_degree = 121.0
+end_degree = 239.0
+outer_radius = 250.0
+inner_radius = 100.0
+
+[node name="RadialButton3" parent="UI/RadialMenu" instance=ExtResource( 6 )]
+margin_right = 500.0
+margin_bottom = 500.0
+mouse_filter = 2
+start_degree = 241.0
+end_degree = 359.0
+outer_radius = 250.0
+inner_radius = 100.0

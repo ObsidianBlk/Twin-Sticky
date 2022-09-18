@@ -29,6 +29,7 @@ func _ready() -> void:
 	_hex_grid_overlay.connect("grid_clicked", self, "_on_grid_clicked")
 	_hex_grid_overlay.hex_size = _region_resource.hex_size
 	_hex_region.region_resource = _region_resource
+	$UI/RadialMenu.popup_centered()
 
 
 func _unhandled_input(event : InputEvent) -> void:

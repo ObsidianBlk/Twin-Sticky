@@ -3,6 +3,10 @@
 [ext_resource path="res://UI/RadialMenu/RadialMenu.gd" type="Script" id=1]
 
 [node name="RadialMenu" type="Popup"]
-margin_right = 40.0
-margin_bottom = 40.0
+visible = true
+anchor_right = 1.0
+anchor_bottom = 1.0
+mouse_filter = 1
+size_flags_horizontal = 3
+size_flags_vertical = 3
 script = ExtResource( 1 )
