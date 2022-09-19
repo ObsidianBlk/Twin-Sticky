@@ -25,6 +25,7 @@ const DEFAULT_ICON : Texture = preload("res://Assets/Textures/black_16x16.png")
 export var icon : Texture = null							setget set_icon
 export var start_degree : float = 0.0						setget set_start_degree
 export var end_degree : float = 45.0						setget set_end_degree
+export (float, 0.0, 360.0) var offset_degree : float = 0.0	setget set_offset_degree
 export var outer_radius : float = 42.0						setget set_outer_radius
 export var inner_radius : float = 20.0						setget set_inner_radius
 export var trim_width : float = 1.0							setget set_trim_width
@@ -80,6 +81,12 @@ func set_inner_radius(r : float) -> void:
 	if r < outer_radius:
 		inner_radius = r
 		_UpdateShaderParams("radius_inner", inner_radius)
+
+func set_offset_degree(d : float) -> void:
+	if d > 360.0:
+		d = fmod(d, 360.0)
+	offset_degree = d
+	_UpdateShaderParams("angle_offset", offset_degree)
 
 func set_trim_width(w : float) -> void:
 	if w >= 0.0:
@@ -143,7 +150,6 @@ func _gui_input(event : InputEvent) -> void:
 # ------------------------------------------------------------------------------
 func _MousePositionOnButton(mpos : Vector2) -> bool:
 	var dist :float = mpos.distance_to(Vector2(outer_radius, outer_radius))
-	var reset : bool = true
 	if dist >= inner_radius and dist <= outer_radius:
 		var angle = rad2deg(mpos.angle_to_point(Vector2(outer_radius, outer_radius)) + PI)
 		if angle >= start_degree and angle <= end_degree:
@@ -171,7 +177,6 @@ func _ProcessGUIInput(event : InputEvent, processed : bool = false) -> bool:
 	if not processed:
 		match _btn_state:
 			BUTTON_STATE.Hover:
-				var pressed : bool = false
 				if event is InputEventMouseButton:
 					if event.button_index == BUTTON_LEFT and event.pressed == true:
 						pressed = true
@@ -196,16 +201,15 @@ func _ProcessGUIInput(event : InputEvent, processed : bool = false) -> bool:
 					processed = true
 					call_deferred("_EmitList", [["button_down"],["pressed"]])
 			BUTTON_STATE.Pressed:
-				var released = false
 				var focused : bool = _in_focus
 				if event is InputEventMouseButton:
 					if event.button_index == BUTTON_LEFT and event.pressed == false:
 						focused = _MousePositionOnButton(event.position)
-						released = true
+						pressed = false
 				if event.is_action_released("ui_select"):
-					released = true
+					pressed = false
 			
-				if released:
+				if not pressed:
 					_btn_state = BUTTON_STATE.Hover if focused else BUTTON_STATE.Normal
 					_UpdateShaderColors()
 					processed = true
@@ -236,6 +240,7 @@ func _FullShaderUpdate() -> void:
 		mat.set_shader_param("base_size", outer_radius)
 		mat.set_shader_param("angle_start", start_degree)
 		mat.set_shader_param("angle_end", end_degree)
+		mat.set_shader_param("angle_offset", offset_degree)
 		mat.set_shader_param("radius_inner", inner_radius)
 		mat.set_shader_param("radius_outer", outer_radius)
 		mat.set_shader_param("trim_width", trim_width)
@@ -263,6 +268,9 @@ func _UpdateShaderParams(param : String, value) -> void:
 				mat.set_shader_param("angle_start", value)
 			"angle_end":
 				mat.set_shader_param("angle_end", value)
+			"angle_offset":
+				print("Setting Angle Offset: ", value)
+				mat.set_shader_param("angle_offset", value)
 			"radius_inner":
 				mat.set_shader_param("radius_inner", value)
 			"radius_outer":

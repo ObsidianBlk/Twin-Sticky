@@ -13,6 +13,7 @@ shader_param/color_trim = Color( 0.301961, 0.286275, 0.341176, 1 )
 shader_param/trim_width = 1.0
 shader_param/angle_start = 0.0
 shader_param/angle_end = 45.0
+shader_param/angle_offset = 0.0
 shader_param/base_size = 42.0
 shader_param/radius_inner = 20.0
 shader_param/radius_outer = 42.0
@@ -25,8 +26,9 @@ script = ExtResource( 3 )
 
 [node name="ColorRect" type="ColorRect" parent="."]
 material = SubResource( 1 )
+margin_top = -2.0
 margin_right = 84.0
-margin_bottom = 84.0
+margin_bottom = 82.0
 mouse_filter = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3

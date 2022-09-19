@@ -5,15 +5,14 @@ class_name RadialMenu
 # ------------------------------------------------------------------------------
 # Signals
 # ------------------------------------------------------------------------------
-signal pressed(btn_name)
-signal button_down(btn_name)
-signal button_up(btn_name)
+
 
 # ------------------------------------------------------------------------------
 # Export Variables
 # ------------------------------------------------------------------------------
 export var outer_radius : float = 42.0							setget set_outer_radius
 export var inner_radius : float = 20.0							setget set_inner_radius
+export (float, 0.0, 360.0) var offset_angle : float = 0.0		setget set_offset_angle
 export (float, 0.0, 10.0, 0.001) var gap_degrees : float = 0.2	setget set_gap_degrees
 export var force_neighboring : bool = true
 
@@ -36,6 +35,12 @@ func set_inner_radius(r : float) -> void:
 		inner_radius = r
 		#_AdjustSize()
 		_AdjustRadialButtons()
+
+func set_offset_angle(a : float) -> void:
+	if a > 360.0:
+		a = fmod(a, 360.0)
+	offset_angle = a
+	_AdjustRadialButtons()
 
 func set_gap_degrees(g : float) -> void:
 	if g >= 0.0 and g <= 10.0 and gap_degrees != g:
@@ -101,6 +106,7 @@ func _AdjustRadialButtons() -> void:
 			if child is RadialButton:
 				child.set_radii(inner_radius, outer_radius)
 				child.set_arc_degrees(start_degree, start_degree + arc)
+				child.offset_degree = offset_angle
 				start_degree += arc + gap_degrees
 				if force_neighboring:
 					if first_child == null:
@@ -165,14 +171,12 @@ func _on_screen_size_changed() -> void:
 
 
 func _on_child_entered(child : Node) -> void:
-	if not Engine.editor_hint:
-		if child is RadialButton and not child.is_connected("pressed", self, "_on_pressed"):
-			var _res : int = child.connect("pressed", self, "_on_pressed", [child])
+	if child is RadialButton:
+		_AdjustRadialButtons()
 
 func _on_child_exited(child : Node) -> void:
-	if not Engine.editor_hint:
-		if child is RadialButton and child.is_connected("pressed", self, "_on_pressed"):
-			child.disconnect("pressed", self, "_on_pressed")
+	if child is RadialButton:
+		_AdjustRadialButtons()
 
 func _on_about_to_show() -> void:
 	if not has_focus():
@@ -182,6 +186,3 @@ func _on_about_to_show() -> void:
 				child.grab_focus()
 				grab_focus()
 				break
-
-func _on_pressed(_btn : RadialButton) -> void:
-	emit_signal("pressed", _btn.name)
