@@ -52,29 +52,29 @@ func set_gap_degrees(g : float) -> void:
 # ------------------------------------------------------------------------------
 func _ready() -> void:
 	set_focus_mode(Control.FOCUS_ALL)
-	get_tree().get_root().connect("size_changed", self, "_on_screen_size_changed")
+	if not Engine.editor_hint:
+		get_tree().get_root().connect("size_changed", self, "_on_screen_size_changed")
 	connect("child_entered_tree", self, "_on_child_entered")
 	connect("child_exiting_tree", self, "_on_child_exited")
 	connect("about_to_show", self, "_on_about_to_show")
 	#_AdjustSize()
+	if not Engine.editor_hint:
+		_RecalcScreenSize()
 	_AdjustRadialButtons()
 
-#func _notification(what : int) -> void:
-#	match what:
-#		NOTIFICATION_POST_POPUP:
-#			grab_focus()
-#			print("Focused Control: ", get_focus_owner())
 
 func _gui_input(event : InputEvent) -> void:
-	var processed : bool = false
-	for child in get_children():
-		if child is RadialButton:
-			if not processed:
-				processed = child._ProcessGUIInput(event)
-			else:
-				child._ProcessGUIInput(event, true)
-	if processed:
-		accept_event()
+	if event.is_action_pressed("ui_cancel"):
+		hide()
+	else:
+		var processed : bool = false
+		for child in get_children():
+			if child is RadialButton:
+				if not processed:
+					processed = child._ProcessGUIInput(event)
+				else:
+					child._ProcessGUIInput(event, true)
+	accept_event()
 
 # ------------------------------------------------------------------------------
 # Private Methods
@@ -108,7 +108,7 @@ func _AdjustRadialButtons() -> void:
 				child.set_arc_degrees(start_degree, start_degree + arc)
 				child.offset_degree = offset_angle
 				start_degree += arc + gap_degrees
-				if force_neighboring:
+				if force_neighboring and not Engine.editor_hint:
 					if first_child == null:
 						first_child = child
 					else:
@@ -118,7 +118,9 @@ func _AdjustRadialButtons() -> void:
 			_SetNeighbors(last_child, first_child)
 
 func _RecalcScreenSize() -> void:
-	rect_size = get_viewport_rect().size
+	# TODO: Why does get_tree().get_root().size return the correct value but
+	# get_viewport_rect() does not?
+	rect_size = get_tree().get_root().size
 	_AdjustRadialButtonPosition()
 
 func _AdjustRadialButtonPosition() -> void:
@@ -126,9 +128,22 @@ func _AdjustRadialButtonPosition() -> void:
 	for child in get_children():
 		if child is RadialButton:
 			child.rect_position = cpos
-#func _AdjustSize() -> void:
-#	rect_size = Vector2(outer_radius * 2, outer_radius * 2)
 
+func _GetFocusedChild() -> RadialButton:
+	for child in get_children():
+		if child is RadialButton:
+			if child.has_focus():
+				return child
+	return null
+
+func _GrabButtonFocus(btn : RadialButton) -> void:
+	if btn != null:
+		if is_a_parent_of(btn):
+			var child : RadialButton = _GetFocusedChild()
+			if child != btn:
+				child.release_focus()
+				btn.grab_focus()
+				grab_focus()
 
 # ------------------------------------------------------------------------------
 # Public Methods
@@ -156,18 +171,15 @@ func add_radial_button(btn_name : float) -> void:
 		add_child(btn)
 
 func has_focus() -> bool:
-	for child in get_children():
-		if child is RadialButton:
-			if child.has_focus():
-				return true
-	return false
+	return _GetFocusedChild() != null
 
 # ------------------------------------------------------------------------------
 # Handler Methods
 # ------------------------------------------------------------------------------
 func _on_screen_size_changed() -> void:
 	# Have to defer the call or the screen doesn't adjust properly.
-	call_deferred("_RecalcScreenSize")
+	if not Engine.editor_hint:
+		call_deferred("_RecalcScreenSize")
 
 
 func _on_child_entered(child : Node) -> void:
@@ -179,10 +191,10 @@ func _on_child_exited(child : Node) -> void:
 		_AdjustRadialButtons()
 
 func _on_about_to_show() -> void:
+	_RecalcScreenSize()
 	if not has_focus():
 		for child in get_children():
 			if child is RadialButton:
-				print("Setting focus")
 				child.grab_focus()
 				grab_focus()
 				break

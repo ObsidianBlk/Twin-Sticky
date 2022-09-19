@@ -26,9 +26,8 @@ script = ExtResource( 3 )
 
 [node name="ColorRect" type="ColorRect" parent="."]
 material = SubResource( 1 )
-margin_top = -2.0
 margin_right = 84.0
-margin_bottom = 82.0
+margin_bottom = 84.0
 mouse_filter = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3

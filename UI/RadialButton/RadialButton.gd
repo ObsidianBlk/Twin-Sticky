@@ -41,6 +41,7 @@ export var trim_color_pressed : Color = Color("#37343e")		setget set_trim_color_
 # Variables
 # ------------------------------------------------------------------------------
 var _in_focus : bool = false
+var _mouse_over : bool = false
 var _btn_state : int = BUTTON_STATE.Normal
 
 # ------------------------------------------------------------------------------
@@ -152,8 +153,12 @@ func _MousePositionOnButton(mpos : Vector2) -> bool:
 	var dist :float = mpos.distance_to(Vector2(outer_radius, outer_radius))
 	if dist >= inner_radius and dist <= outer_radius:
 		var angle = rad2deg(mpos.angle_to_point(Vector2(outer_radius, outer_radius)) + PI)
-		if angle >= start_degree and angle <= end_degree:
-			return true
+		var sd : float = fmod(start_degree + offset_degree, 360.0)
+		var ed : float = fmod(end_degree + offset_degree, 360.0)
+		if ed > sd:
+			return angle >= sd and angle <= ed
+		else:
+			return (angle >= 0 and angle < ed) or (angle >= sd and angle <= 360.0)
 	return false
 
 func _EmitList(emit_list : Array) -> void:
@@ -166,19 +171,26 @@ func _ProcessGUIInput(event : InputEvent, processed : bool = false) -> bool:
 		var reset : bool = true
 		if not processed:
 			if _MousePositionOnButton(event.position - rect_position):
+				_mouse_over = true
 				if _btn_state != BUTTON_STATE.Pressed:
 					_btn_state = BUTTON_STATE.Hover
 					_UpdateShaderColors()
 					processed = true
 				reset = false
+			else:
+				_mouse_over = false
 		if reset and _btn_state != BUTTON_STATE.Normal:
 			_btn_state = BUTTON_STATE.Hover if _in_focus else BUTTON_STATE.Normal
 			_UpdateShaderColors()
 	if not processed:
 		match _btn_state:
 			BUTTON_STATE.Hover:
-				if event is InputEventMouseButton:
+				if event is InputEventMouseButton and _mouse_over:
 					if event.button_index == BUTTON_LEFT and event.pressed == true:
+						var parent = get_parent()
+						if parent:
+							if parent.has_method("_GrabButtonFocus"):
+								parent._GrabButtonFocus(self)
 						pressed = true
 				elif event.is_action_pressed("ui_select"):
 					pressed = true
@@ -202,9 +214,9 @@ func _ProcessGUIInput(event : InputEvent, processed : bool = false) -> bool:
 					call_deferred("_EmitList", [["button_down"],["pressed"]])
 			BUTTON_STATE.Pressed:
 				var focused : bool = _in_focus
-				if event is InputEventMouseButton:
+				if event is InputEventMouseButton and _mouse_over:
 					if event.button_index == BUTTON_LEFT and event.pressed == false:
-						focused = _MousePositionOnButton(event.position)
+						focused = _MousePositionOnButton(event.position - rect_position)
 						pressed = false
 				if event.is_action_released("ui_select"):
 					pressed = false
@@ -269,7 +281,6 @@ func _UpdateShaderParams(param : String, value) -> void:
 			"angle_end":
 				mat.set_shader_param("angle_end", value)
 			"angle_offset":
-				print("Setting Angle Offset: ", value)
 				mat.set_shader_param("angle_offset", value)
 			"radius_inner":
 				mat.set_shader_param("radius_inner", value)

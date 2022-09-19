@@ -1,4 +1,4 @@
-[gd_scene load_steps=9 format=2]
+[gd_scene load_steps=10 format=2]
 
 [ext_resource path="res://ArenaEditor/ArenaEditor.gd" type="Script" id=1]
 [ext_resource path="res://Objects/HexRegion/HexRegion.tscn" type="PackedScene" id=2]
@@ -6,6 +6,7 @@
 [ext_resource path="res://Objects/GimbleCamera/GimbleCamera.tscn" type="PackedScene" id=4]
 [ext_resource path="res://UI/RadialMenu/RadialMenu.tscn" type="PackedScene" id=5]
 [ext_resource path="res://UI/RadialButton/RadialButton.tscn" type="PackedScene" id=6]
+[ext_resource path="res://Assets/Textures/input_joypad.svg" type="Texture" id=7]
 
 [sub_resource type="ProceduralSky" id=1]
 sky_top_color = Color( 0, 0, 0, 1 )
@@ -66,31 +67,31 @@ layer = 100
 
 [node name="RadialMenu" parent="UI" instance=ExtResource( 5 )]
 visible = true
-margin_right = 500.0
-margin_bottom = 500.0
-focus_mode = 2
-outer_radius = 250.0
+outer_radius = 150.0
 inner_radius = 100.0
-gap_degrees = 2.0
+offset_angle = 71.0
+gap_degrees = 5.923
 
 [node name="RadialButton" parent="UI/RadialMenu" instance=ExtResource( 6 )]
-margin_right = 500.0
-margin_bottom = 500.0
-focus_neighbour_left = NodePath("../RadialButton3")
-focus_neighbour_top = NodePath("../RadialButton3")
+margin_right = 300.0
+margin_bottom = 300.0
+focus_neighbour_left = NodePath("../RadialButton4")
+focus_neighbour_top = NodePath("../RadialButton4")
 focus_neighbour_right = NodePath("../RadialButton2")
 focus_neighbour_bottom = NodePath("../RadialButton2")
 focus_next = NodePath("../RadialButton2")
-focus_previous = NodePath("../RadialButton3")
+focus_previous = NodePath("../RadialButton4")
 mouse_filter = 2
-start_degree = 1.0
-end_degree = 119.0
-outer_radius = 250.0
+icon = ExtResource( 7 )
+start_degree = 2.9615
+end_degree = 87.0385
+offset_degree = 71.0
+outer_radius = 150.0
 inner_radius = 100.0
 
 [node name="RadialButton2" parent="UI/RadialMenu" instance=ExtResource( 6 )]
-margin_right = 500.0
-margin_bottom = 500.0
+margin_right = 300.0
+margin_bottom = 300.0
 focus_neighbour_left = NodePath("../RadialButton")
 focus_neighbour_top = NodePath("../RadialButton")
 focus_neighbour_right = NodePath("../RadialButton3")
@@ -98,22 +99,40 @@ focus_neighbour_bottom = NodePath("../RadialButton3")
 focus_next = NodePath("../RadialButton3")
 focus_previous = NodePath("../RadialButton")
 mouse_filter = 2
-start_degree = 121.0
-end_degree = 239.0
-outer_radius = 250.0
+start_degree = 92.9615
+end_degree = 177.038
+offset_degree = 71.0
+outer_radius = 150.0
 inner_radius = 100.0
 
 [node name="RadialButton3" parent="UI/RadialMenu" instance=ExtResource( 6 )]
-margin_right = 500.0
-margin_bottom = 500.0
+margin_right = 300.0
+margin_bottom = 300.0
 focus_neighbour_left = NodePath("../RadialButton2")
 focus_neighbour_top = NodePath("../RadialButton2")
+focus_neighbour_right = NodePath("../RadialButton4")
+focus_neighbour_bottom = NodePath("../RadialButton4")
+focus_next = NodePath("../RadialButton4")
+focus_previous = NodePath("../RadialButton2")
+mouse_filter = 2
+start_degree = 182.962
+end_degree = 267.039
+offset_degree = 71.0
+outer_radius = 150.0
+inner_radius = 100.0
+
+[node name="RadialButton4" parent="UI/RadialMenu" instance=ExtResource( 6 )]
+margin_right = 300.0
+margin_bottom = 300.0
+focus_neighbour_left = NodePath("../RadialButton3")
+focus_neighbour_top = NodePath("../RadialButton3")
 focus_neighbour_right = NodePath("../RadialButton")
 focus_neighbour_bottom = NodePath("../RadialButton")
 focus_next = NodePath("../RadialButton")
-focus_previous = NodePath("../RadialButton2")
+focus_previous = NodePath("../RadialButton3")
 mouse_filter = 2
-start_degree = 241.0
-end_degree = 359.0
-outer_radius = 250.0
+start_degree = 272.961
+end_degree = 357.039
+offset_degree = 71.0
+outer_radius = 150.0
 inner_radius = 100.0

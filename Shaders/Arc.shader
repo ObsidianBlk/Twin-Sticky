@@ -15,6 +15,7 @@ uniform float radius_outer = 40.0;
 vec4 IconColor(vec2 uv){
 	if (!use_icon){return vec4(0,0,0,0);}
 	float center_angle = radians(angle_start + ((angle_end - angle_start) * 0.5)) + 3.14159;
+	center_angle = mod(center_angle + radians(angle_offset), radians(360.0));
 	vec2 direction = vec2(cos(center_angle), sin(center_angle));
 	float arc_width = radius_outer - radius_inner;
 	float center_radius = radius_inner + (arc_width * 0.5);
