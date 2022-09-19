@@ -8,11 +8,25 @@ signal editor_exited()
 
 
 # ------------------------------------------------------------------------------
+# Constants
+# ------------------------------------------------------------------------------
+const NON_MOUSE_MOVEMENT_ACTIONS : Array = [
+	"orbit_up",
+	"orbit_down",
+	"orbit_left",
+	"orbit_right",
+	"booster_forward",
+	"booster_backward",
+	"booster_left",
+	"booster_right"
+]
+
+# ------------------------------------------------------------------------------
 # Variables
 # ------------------------------------------------------------------------------
 var _region_resource : RegionResource = null
 var _orbit_enabled : bool = false
-
+var _non_mouse_move : bool = false
 
 # ------------------------------------------------------------------------------
 # Onready Variables
@@ -42,12 +56,23 @@ func _unhandled_input(event : InputEvent) -> void:
 		if event.is_action("orbit_enable"):
 			_orbit_enabled = event.is_action_pressed("orbit_enable")
 	else:
-		pass
+		_non_mouse_move = _IsEventNonMouseMovement()
 
+func _physics_process(_delta : float) -> void:
+	if _non_mouse_move:
+		_UpdateJoypadCursor()
 
 # ------------------------------------------------------------------------------
 # Private Methods
 # ------------------------------------------------------------------------------
+func _IsEventNonMouseMovement() -> bool:
+	for action_name in NON_MOUSE_MOVEMENT_ACTIONS:
+		var strength : float = Input.get_action_strength(action_name)
+		if strength != 0.0:
+			return true
+	return false
+
+
 func _UpdateMouseCursor(mouse_position : Vector2) -> void:
 	if not _camera:
 		return
@@ -58,6 +83,13 @@ func _UpdateMouseCursor(mouse_position : Vector2) -> void:
 	var intersect = p.intersects_ray(from, dir)
 	if intersect != null:
 		_hex_grid_overlay.set_cursor_from_position(intersect)
+
+
+func _UpdateJoypadCursor() -> void:
+	if not _camera:
+		return
+	_UpdateMouseCursor(get_tree().get_root().size * 0.5)
+	
 
 
 # ------------------------------------------------------------------------------
@@ -92,3 +124,7 @@ func _on_grid_clicked(cell : HexCell, radius : int, alt : bool) -> void:
 				_region_resource.add_cell(ccell, height)
 
 
+
+
+func _on_Test_pressed():
+	print("Test Radial Button Pressed")

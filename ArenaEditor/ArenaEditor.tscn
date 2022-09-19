@@ -72,7 +72,7 @@ inner_radius = 100.0
 offset_angle = 71.0
 gap_degrees = 5.923
 
-[node name="RadialButton" parent="UI/RadialMenu" instance=ExtResource( 6 )]
+[node name="Test" parent="UI/RadialMenu" instance=ExtResource( 6 )]
 margin_right = 300.0
 margin_bottom = 300.0
 focus_neighbour_left = NodePath("../RadialButton4")
@@ -92,12 +92,12 @@ inner_radius = 100.0
 [node name="RadialButton2" parent="UI/RadialMenu" instance=ExtResource( 6 )]
 margin_right = 300.0
 margin_bottom = 300.0
-focus_neighbour_left = NodePath("../RadialButton")
-focus_neighbour_top = NodePath("../RadialButton")
+focus_neighbour_left = NodePath("../Test")
+focus_neighbour_top = NodePath("../Test")
 focus_neighbour_right = NodePath("../RadialButton3")
 focus_neighbour_bottom = NodePath("../RadialButton3")
 focus_next = NodePath("../RadialButton3")
-focus_previous = NodePath("../RadialButton")
+focus_previous = NodePath("../Test")
 mouse_filter = 2
 start_degree = 92.9615
 end_degree = 177.038
@@ -126,9 +126,9 @@ margin_right = 300.0
 margin_bottom = 300.0
 focus_neighbour_left = NodePath("../RadialButton3")
 focus_neighbour_top = NodePath("../RadialButton3")
-focus_neighbour_right = NodePath("../RadialButton")
-focus_neighbour_bottom = NodePath("../RadialButton")
-focus_next = NodePath("../RadialButton")
+focus_neighbour_right = NodePath("../Test")
+focus_neighbour_bottom = NodePath("../Test")
+focus_next = NodePath("../Test")
 focus_previous = NodePath("../RadialButton3")
 mouse_filter = 2
 start_degree = 272.961
@@ -136,3 +136,5 @@ end_degree = 357.039
 offset_degree = 71.0
 outer_radius = 150.0
 inner_radius = 100.0
+
+[connection signal="pressed" from="UI/RadialMenu/Test" to="." method="_on_Test_pressed"]
