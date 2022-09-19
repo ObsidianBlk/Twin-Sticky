@@ -122,10 +122,6 @@ func set_trim_color_pressed(c : Color) -> void:
 # Override Methods
 # ------------------------------------------------------------------------------
 func _ready() -> void:
-	#mouse_filter = Control.MOUSE_FILTER_IGNORE
-	if not Engine.editor_hint:
-		connect("focus_entered", self, "_on_focus_entered")
-		connect("focus_exited", self, "_on_focus_exited")
 	_UpdateRectSize()
 	_FullShaderUpdate()
 
@@ -170,7 +166,7 @@ func _ProcessGUIInput(event : InputEvent, processed : bool = false) -> bool:
 					processed = true
 				reset = false
 		if reset and _btn_state != BUTTON_STATE.Normal:
-			_btn_state = BUTTON_STATE.Normal
+			_btn_state = BUTTON_STATE.Hover if _in_focus else BUTTON_STATE.Normal
 			_UpdateShaderColors()
 	if not processed:
 		match _btn_state:
@@ -182,16 +178,16 @@ func _ProcessGUIInput(event : InputEvent, processed : bool = false) -> bool:
 				elif event.is_action_pressed("ui_select"):
 					pressed = true
 				elif event.is_action_pressed("ui_up"):
-					_GiveFocusTo(Control.MARGIN_UP)
+					_GiveFocusTo(MARGIN_TOP)
 					processed = true
 				elif event.is_action_pressed("ui_down"):
-					_GiveFocusTo(Control.MARGIN_DOWN)
+					_GiveFocusTo(MARGIN_BOTTOM)
 					processed = true
 				elif event.is_action_pressed("ui_left"):
-					_GiveFocusTo(Control.MARGIN_LEFT)
+					_GiveFocusTo(MARGIN_LEFT)
 					processed = true
 				elif event.is_action_pressed("ui_right"):
-					_GiveFocusTo(Control.MARGIN_RIGHT)
+					_GiveFocusTo(MARGIN_RIGHT)
 					processed = true
 					
 				if pressed:
@@ -292,6 +288,17 @@ func _UpdateShaderColors() -> void:
 				mat.set_shader_param("color_body", color_pressed)
 				mat.set_shader_param("color_trim", trim_color_pressed)
 
+func _SetFocusMode(enable : bool = true, emit : bool = false) -> void:
+	if _in_focus == enable:
+		return # Nothing to do.
+	
+	_in_focus = enable
+	if _btn_state != BUTTON_STATE.Pressed:
+		_btn_state = BUTTON_STATE.Hover if _in_focus else BUTTON_STATE.Normal
+	_UpdateShaderColors()
+	if emit:
+		emit_signal("focus_entered" if _in_focus else "focus_exited")
+
 func _GiveFocusTo(dir : int) -> void:
 	var np : NodePath = get_focus_neighbour(dir)
 	var ctrl : Control = get_node_or_null(np)
@@ -325,26 +332,18 @@ func set_radii(radius_inner : float, radius_outer : float) -> void:
 		_UpdateShaderParams("radius_inner", inner_radius)
 		call_deferred("_UpdateRectSize")
 
+func has_focus() -> bool:
+	return _in_focus
+
 func grab_focus() -> void:
 	.grab_focus()
-	_on_focus_entered()
+	_SetFocusMode(true)
 
 func release_focus() -> void:
 	.release_focus()
-	_on_focus_exited()
+	_SetFocusMode(false)
 
 # ------------------------------------------------------------------------------
 # Override Methods
 # ------------------------------------------------------------------------------
 
-func _on_focus_entered() -> void:
-	_in_focus = true
-	if _btn_state != BUTTON_STATE.Pressed:
-		_btn_state = BUTTON_STATE.Hover
-	_UpdateShaderColors()
-
-func _on_focus_exited() -> void:
-	_in_focus = false
-	if _btn_state != BUTTON_STATE.Pressed:
-		_btn_state = BUTTON_STATE.Normal
-	_UpdateShaderColors()

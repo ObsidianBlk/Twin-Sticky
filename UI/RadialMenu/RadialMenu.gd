@@ -15,6 +15,7 @@ signal button_up(btn_name)
 export var outer_radius : float = 42.0							setget set_outer_radius
 export var inner_radius : float = 20.0							setget set_inner_radius
 export (float, 0.0, 10.0, 0.001) var gap_degrees : float = 0.2	setget set_gap_degrees
+export var force_neighboring : bool = true
 
 # ------------------------------------------------------------------------------
 # Variables
@@ -45,12 +46,19 @@ func set_gap_degrees(g : float) -> void:
 # Override Methods
 # ------------------------------------------------------------------------------
 func _ready() -> void:
+	set_focus_mode(Control.FOCUS_ALL)
 	get_tree().get_root().connect("size_changed", self, "_on_screen_size_changed")
 	connect("child_entered_tree", self, "_on_child_entered")
 	connect("child_exiting_tree", self, "_on_child_exited")
 	connect("about_to_show", self, "_on_about_to_show")
 	#_AdjustSize()
 	_AdjustRadialButtons()
+
+#func _notification(what : int) -> void:
+#	match what:
+#		NOTIFICATION_POST_POPUP:
+#			grab_focus()
+#			print("Focused Control: ", get_focus_owner())
 
 func _gui_input(event : InputEvent) -> void:
 	var processed : bool = false
@@ -66,6 +74,16 @@ func _gui_input(event : InputEvent) -> void:
 # ------------------------------------------------------------------------------
 # Private Methods
 # ------------------------------------------------------------------------------
+func _SetNeighbors(from_neighbour : RadialButton, to_neighbour : RadialButton) -> void:
+	var path : NodePath = to_neighbour.get_path_to(from_neighbour)
+	to_neighbour.focus_neighbour_left = path
+	to_neighbour.focus_neighbour_top = path
+	to_neighbour.focus_previous = path
+	path = from_neighbour.get_path_to(to_neighbour)
+	from_neighbour.focus_neighbour_right = path
+	from_neighbour.focus_neighbour_bottom = path
+	from_neighbour.focus_next = path
+
 func _AdjustRadialButtons() -> void:
 	var count : int = 0
 	for child in get_children():
@@ -77,11 +95,21 @@ func _AdjustRadialButtons() -> void:
 		var hgap : float = 0 if count <= 1 else gap_degrees * 0.5
 		
 		var start_degree : float = hgap
+		var first_child = null
+		var last_child = null
 		for child in get_children():
 			if child is RadialButton:
 				child.set_radii(inner_radius, outer_radius)
 				child.set_arc_degrees(start_degree, start_degree + arc)
 				start_degree += arc + gap_degrees
+				if force_neighboring:
+					if first_child == null:
+						first_child = child
+					else:
+						_SetNeighbors(last_child, child)
+					last_child = child
+		if first_child != null and last_child != null:
+			_SetNeighbors(last_child, first_child)
 
 func _RecalcScreenSize() -> void:
 	rect_size = get_viewport_rect().size
@@ -150,7 +178,9 @@ func _on_about_to_show() -> void:
 	if not has_focus():
 		for child in get_children():
 			if child is RadialButton:
+				print("Setting focus")
 				child.grab_focus()
+				grab_focus()
 				break
 
 func _on_pressed(_btn : RadialButton) -> void:
