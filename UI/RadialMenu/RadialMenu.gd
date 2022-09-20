@@ -61,6 +61,7 @@ func _ready() -> void:
 	if not Engine.editor_hint:
 		_RecalcScreenSize()
 	_AdjustRadialButtons()
+	_AdjustRadialButtonPosition()
 
 
 func _gui_input(event : InputEvent) -> void:
@@ -105,8 +106,8 @@ func _AdjustRadialButtons() -> void:
 		for child in get_children():
 			if child is RadialButton:
 				child.set_radii(inner_radius, outer_radius)
-				child.set_arc_degrees(start_degree, start_degree + arc)
-				child.offset_degree = offset_angle
+				child.set_arc_degrees(start_degree, start_degree + arc, offset_angle)
+				#child.offset_degree = offset_angle
 				start_degree += arc + gap_degrees
 				if force_neighboring and not Engine.editor_hint:
 					if first_child == null:
@@ -124,7 +125,7 @@ func _RecalcScreenSize() -> void:
 	_AdjustRadialButtonPosition()
 
 func _AdjustRadialButtonPosition() -> void:
-	var cpos : Vector2 = (rect_size * _relative_coords) - Vector2(outer_radius, outer_radius)
+	var cpos : Vector2 = (rect_size * _relative_coords) #+ Vector2(outer_radius, outer_radius)
 	for child in get_children():
 		if child is RadialButton:
 			child.rect_position = cpos

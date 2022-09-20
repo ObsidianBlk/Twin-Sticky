@@ -53,8 +53,8 @@ var _override_colors : Dictionary = {
 # Variables
 # ------------------------------------------------------------------------------
 var _in_focus : bool = false
-var _mouse_over : bool = false
 var _btn_state : int = BUTTON_STATE.Normal
+var _last_mouse_pos : Vector2 = Vector2.ZERO
 
 # ------------------------------------------------------------------------------
 # Onready Variables
@@ -89,7 +89,7 @@ func set_arc_offset_degree(d : float) -> void:
 func set_trim_width(w : float) -> void:
 	w = max(0.0, min(1.0, w))
 	_trim_width = w
-	_UpdateShaderParams("trim_width", _trim_width)
+	_UpdateShaderRadii()
 
 func set_inner_radius(r : float) -> void:
 	r = max(0.0, min(1.0, r))
@@ -98,10 +98,42 @@ func set_inner_radius(r : float) -> void:
 
 func set_pressed(p : bool) -> void:
 	_pressed = p
+	if _pressed:
+		_btn_state = BUTTON_STATE.Pressed
+	else:
+		if _MousePositionOver(_last_mouse_pos):
+			_btn_state = BUTTON_STATE.Hover
+		else:
+			_btn_state = BUTTON_STATE.Focused if _in_focus else BUTTON_STATE.Normal
+	_UpdateShaderColors()
 
 # ------------------------------------------------------------------------------
 # Override Methods
 # ------------------------------------------------------------------------------
+func _ready() -> void:
+	connect("resized", self, "_on_resized")
+	if not Engine.editor_hint:
+		set_focus_mode(Control.FOCUS_ALL)
+		connect("focus_entered", self, "_SetFocusMode", [true])
+		connect("focus_exited", self, "_SetFocusMode", [false])
+
+func _enter_tree():
+	var parent = get_parent()
+	if parent != null:
+		if parent.has_method("add_radial_button"): # My Cheat to see if we're under the RadialMenu class.
+			mouse_filter = Control.MOUSE_FILTER_IGNORE
+		else:
+			mouse_filter = Control.MOUSE_FILTER_STOP
+
+func _gui_input(event : InputEvent) -> void:
+	if _ProcessGUIInput(event):
+		accept_event()
+
+func _draw() -> void:
+	draw_rect(Rect2(0.0, 0.0, rect_size.x, rect_size.y), Color.red, false, 4.0)
+
+func _process(delta):
+	update()
 
 func _get(property : String):
 	match property:
@@ -222,6 +254,21 @@ func _get_property_list() -> Array:
 # ------------------------------------------------------------------------------
 # Private Methods
 # ------------------------------------------------------------------------------
+func _MousePositionOver(mpos : Vector2) -> bool:
+	var outer : float = min(rect_size.x, rect_size.y) * 0.5
+	var inner : float = outer * _inner_radius
+	var center : Vector2 = mpos - rect_position # +  Vector2(outer, outer))
+	var dist :float = center.distance_to(Vector2(outer, outer))
+	if dist >= inner and dist <= outer:
+		var angle = rad2deg(center.angle_to_point(Vector2(outer, outer)) + PI)
+		var sd : float = fmod(_arc_start_degree + _arc_offset_degree, 360.0)
+		var ed : float = fmod(_arc_end_degree + _arc_offset_degree, 360.0)
+		if ed > sd:
+			return angle >= sd and angle <= ed
+		else:
+			return (angle >= 0 and angle < ed) or (angle >= sd and angle <= 360.0)
+	return false
+
 func _FullShaderUpdate() -> void:
 	if not _crect_node:
 		return
@@ -249,9 +296,11 @@ func _UpdateShaderRadii() -> void:
 	if mat != null:
 		var outer : float = min(rect_size.x, rect_size.y) * 0.5
 		var inner : float = outer * _inner_radius
+		var trim_width : float = ((outer - inner) * 0.5) * _trim_width
 		mat.set_shader_param("base_size", outer)
 		mat.set_shader_param("radius_outer", outer)
 		mat.set_shader_param("radius_inner", inner)
+		mat.set_shader_param("trim_width", _trim_width)
 
 func _UpdateShaderParams(param : String, value) -> void:
 	if Engine.editor_hint and not _crect_node:
@@ -294,12 +343,111 @@ func _UpdateShaderColors() -> void:
 			BUTTON_STATE.Normal:
 				mat.set_shader_param("color_body", get_color("normal"))
 				mat.set_shader_param("color_trim", get_color("trim_normal"))
+			BUTTON_STATE.Focused:
+				mat.set_shader_param("color_body", get_color("focused"))
+				mat.set_shader_param("color_trim", get_color("trim_focused"))
 			BUTTON_STATE.Hover:
 				mat.set_shader_param("color_body", get_color("hover"))
 				mat.set_shader_param("color_trim", get_color("trim_hover"))
 			BUTTON_STATE.Pressed:
 				mat.set_shader_param("color_body", get_color("pressed"))
 				mat.set_shader_param("color_trim", get_color("trim_pressed"))
+
+func _SetFocusMode(enable : bool = true, emit : bool = false) -> void:
+	if _in_focus == enable:
+		return # Nothing to do.
+	
+	_in_focus = enable
+	if _btn_state != BUTTON_STATE.Pressed:
+		if _MousePositionOver(_last_mouse_pos):
+			_btn_state = BUTTON_STATE.Hover
+		else:
+			_btn_state = BUTTON_STATE.Focused if _in_focus else BUTTON_STATE.Normal
+	_UpdateShaderColors()
+	if emit:
+		emit_signal("focus_entered" if _in_focus else "focus_exited")
+
+func _GiveFocusTo(dir : int) -> void:
+	var np : NodePath = get_focus_neighbour(dir)
+	var ctrl : Control = get_node_or_null(np)
+	if ctrl != null:
+		release_focus()
+		ctrl.grab_focus()
+
+func _EmitList(emit_list : Array) -> void:
+	for item in emit_list:
+		if item is Array:
+			callv("emit_signal", item)
+
+
+func _UpdateMouseOut() -> void:
+	if _btn_state in [BUTTON_STATE.Hover, BUTTON_STATE.Pressed]:
+		_btn_state = BUTTON_STATE.Focused if _in_focus else BUTTON_STATE.Normal
+		_UpdateShaderColors()
+
+func _ProcessGUIInput(event : InputEvent, processed : bool = false, notify_immediate : bool = false) -> bool:
+	if processed:
+		_UpdateMouseOut()
+		return processed
+	
+	if event is InputEventMouseMotion:
+		if _MousePositionOver(event.position):
+			_last_mouse_pos = event.position
+			if _btn_state != BUTTON_STATE.Pressed and _btn_state != BUTTON_STATE.Hover:
+				_btn_state = BUTTON_STATE.Hover
+				_UpdateShaderColors()
+				processed = true
+		else:
+			_UpdateMouseOut()
+	
+	if not processed:
+		match _btn_state:
+			BUTTON_STATE.Focused:
+				if event.is_action_pressed("ui_select"):
+					set_pressed(true)
+					processed = true
+					if notify_immediate:
+						_EmitList([["button_down"], ["pressed"]])
+					else:
+						call_deferred("_EmitList", [["button_down"], ["pressed"]])
+				elif event.is_action_pressed("ui_up"):
+					_GiveFocusTo(MARGIN_TOP)
+					processed = true
+				elif event.is_action_pressed("ui_down"):
+					_GiveFocusTo(MARGIN_BOTTOM)
+					processed = true
+				elif event.is_action_pressed("ui_left"):
+					_GiveFocusTo(MARGIN_LEFT)
+					processed = true
+				elif event.is_action_pressed("ui_right"):
+					_GiveFocusTo(MARGIN_RIGHT)
+					processed = true
+			BUTTON_STATE.Hover:
+				if event is InputEventMouseButton and _MousePositionOver(event.position):
+					if event.button_index == BUTTON_LEFT and event.pressed == true:
+#						var parent = get_parent()
+#						if parent:
+#							if parent.has_method("_GrabButtonFocus"):
+#								parent._GrabButtonFocus(self)
+						grab_focus()
+						set_pressed(true)
+						processed = true
+						if notify_immediate:
+							_EmitList([["button_down"], ["pressed"]])
+						else:
+							call_deferred("_EmitList", [["button_down"], ["pressed"]])
+			BUTTON_STATE.Pressed:
+				if event is InputEventMouseButton and _MousePositionOver(event.position):
+					if event.button_index == BUTTON_LEFT and event.pressed == false:
+						set_pressed(false)
+				if event.is_action_released("ui_select"):
+					set_pressed(false)
+			
+				if not _pressed:
+					processed = true
+					call_deferred("emit_signal", "button_up")
+	
+	return processed
 
 # ------------------------------------------------------------------------------
 # Public Override Methods
@@ -339,5 +487,50 @@ func get_color(color_name : String, type_name : String = "") -> Color:
 			return Color.black
 	return .get_color(color_name, type_name)
 
+func has_focus() -> bool:
+	return _in_focus
 
+func grab_focus() -> void:
+	.grab_focus()
+	_SetFocusMode(true)
+
+func release_focus() -> void:
+	.release_focus()
+	_SetFocusMode(false)
+
+
+# ------------------------------------------------------------------------------
+# Public Methods
+# ------------------------------------------------------------------------------
+func set_arc(start_angle : float, end_angle : float) -> void:
+	set_arc_degrees(rad2deg(start_angle), rad2deg(end_angle))
+
+func set_arc_degrees(start_angle_degree : float, end_angle_degree : float, offset_degrees : float = -1.0) -> void:
+	if start_angle_degree > 360.0:
+		start_angle_degree = fmod(start_angle_degree, 360.0)
+	if end_angle_degree > 360.0:
+		end_angle_degree = fmod(end_angle_degree, 360.0)
+	if end_angle_degree > start_angle_degree:
+		set_arc_start_degree(start_angle_degree)
+		set_arc_end_degree(end_angle_degree)
+	if offset_degrees >= 0.0:
+		set_arc_offset_degree(offset_degrees)
+
+func set_radii(radius_inner : float, radius_outer : float) -> void:
+	if radius_inner < radius_outer:
+		rect_size = Vector2(radius_outer * 2, radius_outer * 2)
+		if _crect_node:
+			_crect_node.rect_size = rect_size
+		set_inner_radius(radius_inner / radius_outer)
+		_UpdateShaderRadii()
+
+
+
+# ------------------------------------------------------------------------------
+# Handler Methods
+# ------------------------------------------------------------------------------
+func _on_resized() -> void:
+	_UpdateShaderRadii()
+	if _crect_node:
+		_crect_node.rect_size = rect_size
 
