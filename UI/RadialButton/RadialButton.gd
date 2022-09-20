@@ -2,9 +2,7 @@ tool
 extends Control
 class_name RadialButton
 
-# TODO: MAJOR
-# Add variables for scaling the icon (if defined) relative to the thickness of the arc
-# This will require adjustments to the Arc.shader code as well!
+# TODO: This redo of the origin RadialButton node is far from complete!! Must be finished!!
 
 # ------------------------------------------------------------------------------
 # Signals
@@ -16,26 +14,40 @@ signal button_up()
 # ------------------------------------------------------------------------------
 # Constants and ENUMs
 # ------------------------------------------------------------------------------
-enum BUTTON_STATE {Normal=0, Hover=1, Pressed=2}
+enum BUTTON_STATE {Normal=0, Focused=1, Hover=2, Pressed=3}
+const THEME_TYPE_NAME = "RadialButton"
 const DEFAULT_ICON : Texture = preload("res://Assets/Textures/black_16x16.png")
+const DEFAULT_COLORS : Dictionary = {
+	"normal" : Color("#37343e"),
+	"hover" : Color("#4d4057"),
+	"focused" : Color("#37343e"),
+	"pressed" : Color("#141317"),
+	"trim_normal" : Color("#4d4957"),
+	"trim_hover" : Color("#37343e"),
+	"trim_focused" : Color("#141317"),
+	"trim_pressed" : Color("#37343e")
+}
 
 # ------------------------------------------------------------------------------
-# Export Variables
+# "Export" Variables
 # ------------------------------------------------------------------------------
-export var icon : Texture = null							setget set_icon
-export var start_degree : float = 0.0						setget set_start_degree
-export var end_degree : float = 45.0						setget set_end_degree
-export (float, 0.0, 360.0) var offset_degree : float = 0.0	setget set_offset_degree
-export var outer_radius : float = 42.0						setget set_outer_radius
-export var inner_radius : float = 20.0						setget set_inner_radius
-export var trim_width : float = 1.0							setget set_trim_width
-export var pressed : bool = false							setget set_pressed
-export var color_normal : Color = Color("#37343e")			setget set_color_normal
-export var color_hover : Color = Color("#4d4057")			setget set_color_hover
-export var color_pressed : Color = Color("#141317")			setget set_color_pressed
-export var trim_color_normal : Color = Color("#4d4957")		setget set_trim_color_normal
-export var trim_color_hover : Color = Color("#37343e")		setget set_trim_color_hover
-export var trim_color_pressed : Color = Color("#37343e")		setget set_trim_color_pressed
+var _icon : Texture = null
+var _arc_start_degree : float = 0.0
+var _arc_end_degree : float = 45.0
+var _arc_offset_degree : float = 0.0
+var _inner_radius : float = 0.25
+var _trim_width : float = 1.0
+var _pressed : bool = false
+var _override_colors : Dictionary = {
+	"normal" : null,
+	"hover" : null,
+	"focused" : null,
+	"pressed" : null,
+	"trim_normal" : null,
+	"trim_hover" : null,
+	"trim_focused" : null,
+	"trim_pressed" : null
+}
 
 # ------------------------------------------------------------------------------
 # Variables
@@ -52,212 +64,194 @@ onready var _crect_node : ColorRect = $ColorRect
 # ------------------------------------------------------------------------------
 # Setters
 # ------------------------------------------------------------------------------
-func set_icon(ico : Texture) -> void:
-	icon = ico
-	_UpdateShaderParams("icon", icon)
+func set_icon(i : Texture) -> void:
+	_icon = i
+	_UpdateShaderParams("icon", _icon)
 
-func set_start_degree(d : float) -> void:
+func set_arc_start_degree(d : float) -> void:
 	if d > 360.0:
 		d = fmod(d, 360.0)
-	if d < end_degree:
-		start_degree = d
-		_UpdateShaderParams("angle_start", start_degree)
+	_arc_start_degree = d
+	_UpdateShaderParams("angle_start", _arc_start_degree)
 
-func set_end_degree(d : float) -> void:
+func set_arc_end_degree(d : float) -> void:
 	if d > 360.0:
 		d = fmod(d, 360.0)
-	if d > start_degree:
-		end_degree = d
-		_UpdateShaderParams("angle_end", end_degree)
+	_arc_end_degree = d
+	_UpdateShaderParams("angle_end", _arc_end_degree)
 
-func set_outer_radius(r : float) -> void:
-	if r > inner_radius:
-		outer_radius = r
-		#set_size(Vector2(outer_radius * 2, outer_radius * 2))
-		_UpdateShaderParams("base_size", outer_radius)
-		_UpdateShaderParams("radius_outer", outer_radius)
-		call_deferred("_UpdateRectSize")
-
-func set_inner_radius(r : float) -> void:
-	if r < outer_radius:
-		inner_radius = r
-		_UpdateShaderParams("radius_inner", inner_radius)
-
-func set_offset_degree(d : float) -> void:
+func set_arc_offset_degree(d : float) -> void:
 	if d > 360.0:
 		d = fmod(d, 360.0)
-	offset_degree = d
-	_UpdateShaderParams("angle_offset", offset_degree)
+	_arc_offset_degree = d
+	_UpdateShaderParams("angle_offset", _arc_offset_degree)
 
 func set_trim_width(w : float) -> void:
-	if w >= 0.0:
-		trim_width = w
-		_UpdateShaderParams("trim_width", trim_width)
+	w = max(0.0, min(1.0, w))
+	_trim_width = w
+	_UpdateShaderParams("trim_width", _trim_width)
+
+func set_inner_radius(r : float) -> void:
+	r = max(0.0, min(1.0, r))
+	_inner_radius = r
+	_UpdateShaderRadii()
 
 func set_pressed(p : bool) -> void:
-	pressed = p
-	if pressed:
-		_btn_state = BUTTON_STATE.Pressed
-	else:
-		_btn_state = BUTTON_STATE.Hover if _in_focus else BUTTON_STATE.Normal
-	_UpdateShaderColors()
-
-func set_color_normal(c : Color) -> void:
-	color_normal = c
-	_UpdateShaderColors()
-
-func set_color_hover(c : Color) -> void:
-	color_hover = c
-	_UpdateShaderColors()
-
-func set_color_pressed(c : Color) -> void:
-	color_pressed = c
-	_UpdateShaderColors()
-
-func set_trim_color_normal(c : Color) -> void:
-	trim_color_normal = c
-	_UpdateShaderColors()
-
-func set_trim_color_hover(c : Color) -> void:
-	trim_color_hover = c
-	_UpdateShaderColors()
-
-func set_trim_color_pressed(c : Color) -> void:
-	trim_color_pressed = c
-	_UpdateShaderColors()
+	_pressed = p
 
 # ------------------------------------------------------------------------------
 # Override Methods
 # ------------------------------------------------------------------------------
-func _ready() -> void:
-	_UpdateRectSize()
-	_FullShaderUpdate()
 
-func _enter_tree():
-	var parent = get_parent()
-	if parent != null:
-		if parent.has_method("add_radial_button"): # My Cheat to see if we're under the RadialMenu class.
-			mouse_filter = Control.MOUSE_FILTER_IGNORE
-		else:
-			mouse_filter = Control.MOUSE_FILTER_STOP
+func _get(property : String):
+	match property:
+		"icon":
+			return _icon
+		"arc_start_degree":
+			return _arc_start_degree
+		"arc_end_degree":
+			return _arc_end_degree
+		"arc_offset_degree":
+			return _arc_offset_degree
+		"inner_radius":
+			return _inner_radius
+		"trim_width":
+			return _trim_width
+		"pressed":
+			return _pressed
+	return null
 
-func _gui_input(event : InputEvent) -> void:
-	if _ProcessGUIInput(event):
-		accept_event()
 
+func _set(property : String, value) -> bool:
+	var success : bool = true
+	
+	match property:
+		"icon":
+			if value is Texture:
+				set_icon(value)
+			else : success = false
+		"arc_start_degree":
+			if typeof(value) == TYPE_REAL:
+				set_arc_start_degree(value)
+			else : success = false
+		"arc_end_degree":
+			if typeof(value) == TYPE_REAL:
+				set_arc_end_degree(value)
+			else : success = false
+		"arc_offset_degree":
+			if typeof(value) == TYPE_REAL:
+				set_arc_offset_degree(value)
+			else : success = false
+		"inner_radius":
+			if typeof(value) == TYPE_REAL:
+				set_inner_radius(value)
+			else : success = false
+		"trim_width":
+			if typeof(value) == TYPE_REAL:
+				set_trim_width(value)
+			else : success = false
+		"pressed":
+			if typeof(value) == TYPE_BOOL:
+				set_pressed(value)
+			else : success = false
+		_:
+			success = false
+	
+	if success:
+		property_list_changed_notify()
+	return success
+
+func _get_property_list() -> Array:
+	var arr : Array = [
+		{
+			name = "icon",
+			type = TYPE_OBJECT,
+			hint = PROPERTY_HINT_RESOURCE_TYPE,
+			hint_string = "Texture",
+			usage = PROPERTY_USAGE_DEFAULT
+		},
+		{
+			name = "arc_start_degree",
+			type = TYPE_REAL,
+			hint = PROPERTY_HINT_RANGE,
+			hint_string = "0.0, 360.0",
+			usage = PROPERTY_USAGE_DEFAULT
+		},
+		{
+			name = "arc_end_degree",
+			type = TYPE_REAL,
+			hint = PROPERTY_HINT_RANGE,
+			hint_string = "0.0, 360.0",
+			usage = PROPERTY_USAGE_DEFAULT
+		},
+		{
+			name = "arc_offset_degree",
+			type = TYPE_REAL,
+			hint = PROPERTY_HINT_RANGE,
+			hint_string = "0.0, 360.0",
+			usage = PROPERTY_USAGE_DEFAULT
+		},
+		{
+			name = "inner_radius",
+			type = TYPE_REAL,
+			hint = PROPERTY_HINT_RANGE,
+			hint_string = "0.0, 1.0",
+			usage = PROPERTY_USAGE_DEFAULT
+		},
+		{
+			name = "trim_width",
+			type = TYPE_REAL,
+			hint = PROPERTY_HINT_RANGE,
+			hint_string = "0.0, 1.0",
+			usage = PROPERTY_USAGE_DEFAULT
+		},
+		{
+			name = "pressed",
+			type = TYPE_BOOL,
+			usage = PROPERTY_USAGE_DEFAULT
+		},
+	]
+	for key in _override_colors.keys():
+		arr.append({
+			name = "custom_colors/%s"%key,
+			type = TYPE_COLOR,
+			usage = 51 if _override_colors[key] != null else 18
+		})
+	return arr
 
 # ------------------------------------------------------------------------------
 # Private Methods
 # ------------------------------------------------------------------------------
-func _MousePositionOnButton(mpos : Vector2) -> bool:
-	var dist :float = mpos.distance_to(Vector2(outer_radius, outer_radius))
-	if dist >= inner_radius and dist <= outer_radius:
-		var angle = rad2deg(mpos.angle_to_point(Vector2(outer_radius, outer_radius)) + PI)
-		var sd : float = fmod(start_degree + offset_degree, 360.0)
-		var ed : float = fmod(end_degree + offset_degree, 360.0)
-		if ed > sd:
-			return angle >= sd and angle <= ed
-		else:
-			return (angle >= 0 and angle < ed) or (angle >= sd and angle <= 360.0)
-	return false
-
-func _EmitList(emit_list : Array) -> void:
-	for item in emit_list:
-		if item is Array:
-			callv("emit_signal", item)
-
-func _ProcessGUIInput(event : InputEvent, processed : bool = false) -> bool:
-	if event is InputEventMouseMotion:
-		var reset : bool = true
-		if not processed:
-			if _MousePositionOnButton(event.position - rect_position):
-				_mouse_over = true
-				if _btn_state != BUTTON_STATE.Pressed:
-					_btn_state = BUTTON_STATE.Hover
-					_UpdateShaderColors()
-					processed = true
-				reset = false
-			else:
-				_mouse_over = false
-		if reset and _btn_state != BUTTON_STATE.Normal:
-			_btn_state = BUTTON_STATE.Hover if _in_focus else BUTTON_STATE.Normal
-			_UpdateShaderColors()
-	if not processed:
-		match _btn_state:
-			BUTTON_STATE.Hover:
-				if event is InputEventMouseButton and _mouse_over:
-					if event.button_index == BUTTON_LEFT and event.pressed == true:
-						var parent = get_parent()
-						if parent:
-							if parent.has_method("_GrabButtonFocus"):
-								parent._GrabButtonFocus(self)
-						pressed = true
-				elif event.is_action_pressed("ui_select"):
-					pressed = true
-				elif event.is_action_pressed("ui_up"):
-					_GiveFocusTo(MARGIN_TOP)
-					processed = true
-				elif event.is_action_pressed("ui_down"):
-					_GiveFocusTo(MARGIN_BOTTOM)
-					processed = true
-				elif event.is_action_pressed("ui_left"):
-					_GiveFocusTo(MARGIN_LEFT)
-					processed = true
-				elif event.is_action_pressed("ui_right"):
-					_GiveFocusTo(MARGIN_RIGHT)
-					processed = true
-					
-				if pressed:
-					_btn_state = BUTTON_STATE.Pressed
-					_UpdateShaderColors()
-					processed = true
-					call_deferred("_EmitList", [["button_down"],["pressed"]])
-			BUTTON_STATE.Pressed:
-				var focused : bool = _in_focus
-				if event is InputEventMouseButton and _mouse_over:
-					if event.button_index == BUTTON_LEFT and event.pressed == false:
-						focused = _MousePositionOnButton(event.position - rect_position)
-						pressed = false
-				if event.is_action_released("ui_select"):
-					pressed = false
-			
-				if not pressed:
-					_btn_state = BUTTON_STATE.Hover if focused else BUTTON_STATE.Normal
-					_UpdateShaderColors()
-					processed = true
-					call_deferred("emit_signal", "button_up")
-	return processed
-
-
-func _UpdateRectSize() -> void:
-	rect_size = Vector2(outer_radius * 2, outer_radius * 2)
-	if Engine.editor_hint and not _crect_node:
-		_crect_node = get_node_or_null("ColorRect")
-	if _crect_node:
-		_crect_node.rect_size = Vector2(outer_radius * 2, outer_radius * 2)
-		_crect_node.update()
-
 func _FullShaderUpdate() -> void:
 	if not _crect_node:
 		return
 	
 	var mat : ShaderMaterial = _crect_node.get_material()
 	if mat != null:
-		if icon != null:
-			mat.set_shader_param("icon", icon)
+		if _icon != null:
+			mat.set_shader_param("icon", _icon)
 			mat.set_shader_param("use_icon", true)
 		else:
 			mat.set_shader_param("icon", DEFAULT_ICON)
 			mat.set_shader_param("use_icon", false)
-		mat.set_shader_param("base_size", outer_radius)
-		mat.set_shader_param("angle_start", start_degree)
-		mat.set_shader_param("angle_end", end_degree)
-		mat.set_shader_param("angle_offset", offset_degree)
-		mat.set_shader_param("radius_inner", inner_radius)
-		mat.set_shader_param("radius_outer", outer_radius)
-		mat.set_shader_param("trim_width", trim_width)
+		mat.set_shader_param("angle_start", _arc_start_degree)
+		mat.set_shader_param("angle_end", _arc_end_degree)
+		mat.set_shader_param("angle_offset", _arc_offset_degree)
+		mat.set_shader_param("trim_width", _trim_width)
+		_UpdateShaderRadii()
 		_UpdateShaderColors()
 
+func _UpdateShaderRadii() -> void:
+	if not _crect_node:
+		return
+	
+	var mat : ShaderMaterial = _crect_node.get_material()
+	if mat != null:
+		var outer : float = min(rect_size.x, rect_size.y) * 0.5
+		var inner : float = outer * _inner_radius
+		mat.set_shader_param("base_size", outer)
+		mat.set_shader_param("radius_outer", outer)
+		mat.set_shader_param("radius_inner", inner)
 
 func _UpdateShaderParams(param : String, value) -> void:
 	if Engine.editor_hint and not _crect_node:
@@ -298,71 +292,52 @@ func _UpdateShaderColors() -> void:
 	if mat != null:
 		match (_btn_state):
 			BUTTON_STATE.Normal:
-				mat.set_shader_param("color_body", color_normal)
-				mat.set_shader_param("color_trim", trim_color_normal)
+				mat.set_shader_param("color_body", get_color("normal"))
+				mat.set_shader_param("color_trim", get_color("trim_normal"))
 			BUTTON_STATE.Hover:
-				mat.set_shader_param("color_body", color_hover)
-				mat.set_shader_param("color_trim", trim_color_hover)
+				mat.set_shader_param("color_body", get_color("hover"))
+				mat.set_shader_param("color_trim", get_color("trim_hover"))
 			BUTTON_STATE.Pressed:
-				mat.set_shader_param("color_body", color_pressed)
-				mat.set_shader_param("color_trim", trim_color_pressed)
-
-func _SetFocusMode(enable : bool = true, emit : bool = false) -> void:
-	if _in_focus == enable:
-		return # Nothing to do.
-	
-	_in_focus = enable
-	if _btn_state != BUTTON_STATE.Pressed:
-		_btn_state = BUTTON_STATE.Hover if _in_focus else BUTTON_STATE.Normal
-	_UpdateShaderColors()
-	if emit:
-		emit_signal("focus_entered" if _in_focus else "focus_exited")
-
-func _GiveFocusTo(dir : int) -> void:
-	var np : NodePath = get_focus_neighbour(dir)
-	var ctrl : Control = get_node_or_null(np)
-	if ctrl != null:
-		release_focus()
-		ctrl.grab_focus()
+				mat.set_shader_param("color_body", get_color("pressed"))
+				mat.set_shader_param("color_trim", get_color("trim_pressed"))
 
 # ------------------------------------------------------------------------------
-# Public Methods
+# Public Override Methods
 # ------------------------------------------------------------------------------
-func set_arc(start_angle : float, end_angle : float) -> void:
-	set_arc_degrees(rad2deg(start_angle), rad2deg(end_angle))
+func add_color_override(color_name : String, color : Color) -> void:
+	if color_name in _override_colors:
+		_override_colors[color_name] = color
+		_UpdateShaderColors()
 
-func set_arc_degrees(start_angle_degree : float, end_angle_degree : float) -> void:
-	if start_angle_degree > 360.0:
-		start_angle_degree = fmod(start_angle_degree, 360.0)
-	if end_angle_degree > 360.0:
-		end_angle_degree = fmod(end_angle_degree, 360.0)
-	if end_angle_degree > start_angle_degree:
-		start_degree = start_angle_degree
-		end_degree = end_angle_degree
-		_UpdateShaderParams("angle_start", start_degree)
-		_UpdateShaderParams("angle_end", end_degree)
+func remove_color_override(color_name : String) -> void:
+	if color_name in _override_colors:
+		_override_colors[color_name] = null
+		_UpdateShaderColors()
 
-func set_radii(radius_inner : float, radius_outer : float) -> void:
-	if radius_inner < radius_outer:
-		inner_radius = radius_inner
-		outer_radius = radius_outer
-		_UpdateShaderParams("base_size", outer_radius)
-		_UpdateShaderParams("radius_outer", outer_radius)
-		_UpdateShaderParams("radius_inner", inner_radius)
-		call_deferred("_UpdateRectSize")
+func has_color_override(color_name : String) -> bool:
+	if color_name in _override_colors:
+		return _override_colors[color_name] != null
+	return false
 
-func has_focus() -> bool:
-	return _in_focus
+func has_color(color_name : String, type_name : String = "") -> bool:
+	if type_name == "":
+		type_name = THEME_TYPE_NAME
+		if color_name in _override_colors:
+			if _override_colors[color_name] != null:
+				return true
+	return .has_color(color_name, type_name)
 
-func grab_focus() -> void:
-	.grab_focus()
-	_SetFocusMode(true)
+func get_color(color_name : String, type_name : String = "") -> Color:
+	if type_name == "":
+		if color_name in _override_colors:
+			if _override_colors[color_name] != null:
+				return _override_colors[color_name]
+		type_name = THEME_TYPE_NAME
+		if not .has_color(color_name, type_name):
+			if color_name in DEFAULT_COLORS:
+				return DEFAULT_COLORS[color_name]
+			return Color.black
+	return .get_color(color_name, type_name)
 
-func release_focus() -> void:
-	.release_focus()
-	_SetFocusMode(false)
 
-# ------------------------------------------------------------------------------
-# Override Methods
-# ------------------------------------------------------------------------------
 

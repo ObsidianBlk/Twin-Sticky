@@ -15,7 +15,7 @@ shader_param/angle_start = 0.0
 shader_param/angle_end = 45.0
 shader_param/angle_offset = 0.0
 shader_param/base_size = 42.0
-shader_param/radius_inner = 20.0
+shader_param/radius_inner = 10.5
 shader_param/radius_outer = 42.0
 shader_param/icon = ExtResource( 1 )
 
@@ -23,6 +23,13 @@ shader_param/icon = ExtResource( 1 )
 margin_right = 84.0
 margin_bottom = 84.0
 script = ExtResource( 3 )
+icon = null
+arc_start_degree = 0.0
+arc_end_degree = 45.0
+arc_offset_degree = 0.0
+inner_radius = 0.25
+trim_width = 1.0
+pressed = false
 
 [node name="ColorRect" type="ColorRect" parent="."]
 material = SubResource( 1 )
