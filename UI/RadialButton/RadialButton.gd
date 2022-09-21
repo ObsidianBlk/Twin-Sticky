@@ -27,6 +27,9 @@ const DEFAULT_COLORS : Dictionary = {
 	"trim_focused" : Color("#141317"),
 	"trim_pressed" : Color("#37343e")
 }
+const DEFAULT_CONSTANTS : Dictionary = {
+	"trim_width" : 0.1
+}
 
 # ------------------------------------------------------------------------------
 # "Export" Variables
@@ -36,7 +39,6 @@ var _arc_start_degree : float = 0.0
 var _arc_end_degree : float = 45.0
 var _arc_offset_degree : float = 0.0
 var _inner_radius : float = 0.25
-var _trim_width : float = 0.1
 var _pressed : bool = false
 var _override_colors : Dictionary = {
 	"normal" : null,
@@ -48,10 +50,14 @@ var _override_colors : Dictionary = {
 	"trim_focused" : null,
 	"trim_pressed" : null
 }
+var _override_constants : Dictionary = {
+	"trim_width" : null
+}
 
 # ------------------------------------------------------------------------------
 # Variables
 # ------------------------------------------------------------------------------
+var _property_updated : bool = false
 var _in_focus : bool = false
 var _btn_state : int = BUTTON_STATE.Normal
 var _last_mouse_pos : Vector2 = Vector2.ZERO
@@ -85,11 +91,6 @@ func set_arc_offset_degree(d : float) -> void:
 		d = fmod(d, 360.0)
 	_arc_offset_degree = d
 	_UpdateShaderParams("angle_offset", _arc_offset_degree)
-
-func set_trim_width(w : float) -> void:
-	w = max(0.0, min(1.0, w))
-	_trim_width = w
-	_UpdateShaderRadii()
 
 func set_inner_radius(r : float) -> void:
 	r = max(0.0, min(1.0, r))
@@ -141,10 +142,17 @@ func _get(property : String):
 			return _arc_offset_degree
 		"inner_radius":
 			return _inner_radius
-		"trim_width":
-			return _trim_width
 		"pressed":
 			return _pressed
+		_:
+			var prop_split : Array = property.split("/")
+			match prop_split[0]:
+				"custom_constants":
+					if prop_split[1] in _override_constants:
+						return get_constant(prop_split[1])
+				"custom_colors":
+					if prop_split[1] in _override_colors:
+						return get_color(prop_split[1])
 	return null
 
 
@@ -172,23 +180,34 @@ func _set(property : String, value) -> bool:
 			if typeof(value) == TYPE_REAL:
 				set_inner_radius(value)
 			else : success = false
-		"trim_width":
-			if typeof(value) == TYPE_REAL:
-				set_trim_width(value)
-			else : success = false
 		"pressed":
 			if typeof(value) == TYPE_BOOL:
 				set_pressed(value)
 			else : success = false
 		_:
-			success = false
+			var prop_split : Array = property.split("/")
+			match prop_split[0]:
+				"custom_constants":
+					success = _SetCheckCustomConstant(prop_split[1], value)
+				"custom_colors":
+					success = _SetCheckCustomColor(prop_split[1], value)
+				_:
+					success = false
 	
-	if success:
-		property_list_changed_notify()
+	# TODO: Do I NEED to called property_list_changed_notify? Seems unneeded
+	#if success:
+	#	pass
+		#call_deferred("property_list_changed_notify")
+		#property_list_changed_notify()
 	return success
 
 func _get_property_list() -> Array:
 	var arr : Array = [
+		{
+			name = "RadialButton",
+			type = TYPE_NIL,
+			usage = PROPERTY_USAGE_CATEGORY
+		},
 		{
 			name = "icon",
 			type = TYPE_OBJECT,
@@ -225,17 +244,23 @@ func _get_property_list() -> Array:
 			usage = PROPERTY_USAGE_DEFAULT
 		},
 		{
-			name = "trim_width",
-			type = TYPE_REAL,
-			hint = PROPERTY_HINT_RANGE,
-			hint_string = "0.0, 1.0",
-			usage = PROPERTY_USAGE_DEFAULT
-		},
-		{
 			name = "pressed",
 			type = TYPE_BOOL,
 			usage = PROPERTY_USAGE_DEFAULT
 		},
+		{
+			name = "Theme Overrides",
+			type = TYPE_NIL,
+			hint_string="custom_",
+			usage = PROPERTY_USAGE_GROUP
+		},
+		{
+			name = "custom_constants/trim_width",
+			type = TYPE_REAL,
+			hint = PROPERTY_HINT_RANGE,
+			hint_string = "0.0, 1.0",
+			usage = 51 if _override_constants["trim_width"] else 18
+		}
 	]
 	for key in _override_colors.keys():
 		arr.append({
@@ -248,6 +273,46 @@ func _get_property_list() -> Array:
 # ------------------------------------------------------------------------------
 # Private Methods
 # ------------------------------------------------------------------------------
+func _SetCheckCustomConstant(property : String, value) -> bool:
+	var success : bool = false
+	
+	if property in _override_constants:
+		match property:
+			"trim_width":
+				if typeof(value) == TYPE_REAL:
+					value = max(0.0, min(1.0, value))
+		
+		if typeof(value) == typeof(DEFAULT_CONSTANTS[property]):
+			success = true
+			_override_constants[property] = value
+		elif value == null:
+			success = true
+			_override_constants[property] = null
+
+	if success:
+		match property:
+			"trim_width": # NOTE: This will only work if the we get past the first 2 if statements above.
+				_UpdateShaderRadii()
+
+	return success
+
+func _SetCheckCustomColor(property : String, value) -> bool:
+	var success : bool = false
+	
+	if property in _override_colors:
+		if typeof(value) == TYPE_COLOR:
+			_override_colors[property] = value
+			success = true
+		elif value == null:
+			_override_colors[property] = null
+			success = true
+	
+	if success:
+		_UpdateShaderColors()
+	
+	return success
+
+
 func _MousePositionOver(mpos : Vector2) -> bool:
 	var outer : float = min(rect_size.x, rect_size.y) * 0.5
 	var inner : float = outer * _inner_radius
@@ -278,7 +343,7 @@ func _FullShaderUpdate() -> void:
 		mat.set_shader_param("angle_start", _arc_start_degree)
 		mat.set_shader_param("angle_end", _arc_end_degree)
 		mat.set_shader_param("angle_offset", _arc_offset_degree)
-		mat.set_shader_param("trim_width", _trim_width)
+		mat.set_shader_param("trim_width", get_constant("trim_width"))
 		_UpdateShaderRadii()
 		_UpdateShaderColors()
 
@@ -290,11 +355,10 @@ func _UpdateShaderRadii() -> void:
 	if mat != null:
 		var outer : float = min(rect_size.x, rect_size.y) * 0.5
 		var inner : float = outer * _inner_radius
-		var trim_width : float = ((outer - inner) * 0.5) * _trim_width
 		mat.set_shader_param("base_size", outer)
 		mat.set_shader_param("radius_outer", outer)
 		mat.set_shader_param("radius_inner", inner)
-		mat.set_shader_param("trim_width", _trim_width)
+		mat.set_shader_param("trim_width", get_constant("trim_width"))
 
 func _UpdateShaderParams(param : String, value) -> void:
 	if Engine.editor_hint and not _crect_node:
@@ -453,14 +517,34 @@ func add_color_override(color_name : String, color : Color) -> void:
 		_override_colors[color_name] = color
 		_UpdateShaderColors()
 
+func add_constant_override(const_name : String, value) -> void:
+	if const_name in _override_constants:
+		if typeof(value) == typeof(DEFAULT_CONSTANTS[const_name]):
+			_override_constants[const_name] = value
+			match const_name:
+				"trim_width":
+					_UpdateShaderRadii()
+
 func remove_color_override(color_name : String) -> void:
 	if color_name in _override_colors:
 		_override_colors[color_name] = null
 		_UpdateShaderColors()
 
+func remove_constant_override(const_name : String) -> void:
+	if const_name in _override_constants:
+		_override_constants[const_name] = null
+		match const_name:
+			"trim_width":
+				_UpdateShaderRadii()
+
 func has_color_override(color_name : String) -> bool:
 	if color_name in _override_colors:
 		return _override_colors[color_name] != null
+	return false
+
+func has_constant_overrise(const_name : String) -> bool:
+	if const_name in _override_constants:
+		return _override_constants[const_name] != null
 	return false
 
 func has_color(color_name : String, type_name : String = "") -> bool:
@@ -470,6 +554,14 @@ func has_color(color_name : String, type_name : String = "") -> bool:
 			if _override_colors[color_name] != null:
 				return true
 	return .has_color(color_name, type_name)
+
+func has_constant(const_name : String, type_name : String = "") -> bool:
+	if type_name == "":
+		type_name = THEME_TYPE_NAME
+		if const_name in _override_constants:
+			if _override_constants[const_name] != null:
+				return true
+	return .has_constant(const_name, type_name)
 
 func get_color(color_name : String, type_name : String = "") -> Color:
 	if type_name == "":
@@ -482,6 +574,18 @@ func get_color(color_name : String, type_name : String = "") -> Color:
 				return DEFAULT_COLORS[color_name]
 			return Color.black
 	return .get_color(color_name, type_name)
+
+func get_constant(const_name : String, type_name : String = ""):
+	if type_name == "":
+		if const_name in _override_constants:
+			if _override_constants[const_name] != null:
+				return _override_constants[const_name]
+		type_name = THEME_TYPE_NAME
+		if not .has_constant(const_name, type_name):
+			if const_name in DEFAULT_CONSTANTS:
+				return DEFAULT_CONSTANTS[const_name]
+			return null
+	return .get_constant(const_name, type_name)
 
 func has_focus() -> bool:
 	return _in_focus
@@ -511,6 +615,7 @@ func set_arc_degrees(start_angle_degree : float, end_angle_degree : float, offse
 		set_arc_end_degree(end_angle_degree)
 	if offset_degrees >= 0.0:
 		set_arc_offset_degree(offset_degrees)
+	property_list_changed_notify()
 
 func set_radii(radius_inner : float, radius_outer : float) -> void:
 	if radius_inner < radius_outer:
@@ -519,6 +624,7 @@ func set_radii(radius_inner : float, radius_outer : float) -> void:
 			_crect_node.rect_size = rect_size
 		set_inner_radius(radius_inner / radius_outer)
 		_UpdateShaderRadii()
+		property_list_changed_notify()
 
 
 

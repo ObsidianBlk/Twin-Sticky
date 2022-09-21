@@ -28,7 +28,6 @@ arc_start_degree = 0.0
 arc_end_degree = 45.0
 arc_offset_degree = 0.0
 inner_radius = 0.25
-trim_width = 0.1
 pressed = false
 
 [node name="ColorRect" type="ColorRect" parent="."]
