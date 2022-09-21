@@ -35,6 +35,9 @@ onready var _camera : Spatial = $GimbleCamera
 onready var _hex_grid_overlay : Spatial = $HexGridOverlay
 onready var _hex_region : Spatial = $HexRegion
 
+onready var _ui : CanvasLayer = $UI
+onready var _radialmenu : Popup = $UI/RadialMenu
+
 # ------------------------------------------------------------------------------
 # Override Methods
 # ------------------------------------------------------------------------------
@@ -43,19 +46,17 @@ func _ready() -> void:
 	_hex_grid_overlay.connect("grid_clicked", self, "_on_grid_clicked")
 	_hex_grid_overlay.hex_size = _region_resource.hex_size
 	_hex_region.region_resource = _region_resource
-	$UI/RadialMenu.popup_centered()
 
 
 func _unhandled_input(event : InputEvent) -> void:
-	if event.is_action_pressed("ui_cancel"):
-		emit_signal("editor_exited")
 	if event is InputEventMouseMotion:
 		if not _orbit_enabled:
 			_UpdateMouseCursor(event.position)
-	elif event is InputEventMouseButton:
-		if event.is_action("orbit_enable"):
-			_orbit_enabled = event.is_action_pressed("orbit_enable")
 	else:
+		if event.is_action_pressed("ui_cancel"):
+			emit_signal("editor_exited")
+		if event.is_action_pressed("editor_menu"):
+			_radialmenu.popup_centered()
 		_non_mouse_move = _IsEventNonMouseMovement()
 
 func _physics_process(_delta : float) -> void:
@@ -124,7 +125,31 @@ func _on_grid_clicked(cell : HexCell, radius : int, alt : bool) -> void:
 				_region_resource.add_cell(ccell, height)
 
 
+func _on_save_file_selected(path : String) -> void:
+	print("Would save to ", path, " ... if I was implemented.")
+
+func _on_New_Arena_pressed():
+	_region_resource = RegionResource.new()
+	_hex_grid_overlay.hex_size = _region_resource.hex_size
+	_hex_region.region_resource = _region_resource
+	_radialmenu.hide()
 
 
-func _on_Test_pressed():
-	print("Test Radial Button Pressed")
+func _on_Save_Arena_pressed():
+	if _region_resource == null:
+		return
+	if _region_resource.empty():
+		return
+	_radialmenu.hide()
+	var fd : FileDialog = FileDialog.new()
+	_ui.add_child(fd)
+	fd.connect("file_selected", self, "_on_save_file_selected")
+	fd.connect("popup_hide", self, "_on_close_file_dialog", [fd])
+	fd.access = FileDialog.ACCESS_USERDATA
+	fd.popup_centered(Vector2(640,480))
+
+func _on_close_file_dialog(fd : FileDialog) -> void:
+	if fd != null:
+		print("Removing file dialog")
+		_ui.remove_child(fd)
+		fd.queue_free()

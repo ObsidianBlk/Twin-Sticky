@@ -1,4 +1,4 @@
-[gd_scene load_steps=9 format=2]
+[gd_scene load_steps=12 format=2]
 
 [ext_resource path="res://ArenaEditor/ArenaEditor.gd" type="Script" id=1]
 [ext_resource path="res://Objects/HexRegion/HexRegion.tscn" type="PackedScene" id=2]
@@ -6,6 +6,9 @@
 [ext_resource path="res://Objects/GimbleCamera/GimbleCamera.tscn" type="PackedScene" id=4]
 [ext_resource path="res://UI/RadialMenu/RadialMenu.tscn" type="PackedScene" id=5]
 [ext_resource path="res://UI/RadialButton/RadialButton.tscn" type="PackedScene" id=6]
+[ext_resource path="res://Assets/Textures/ArenaEditor/icons/icon_new_arena.svg" type="Texture" id=7]
+[ext_resource path="res://Assets/Textures/ArenaEditor/icons/icon_load.svg" type="Texture" id=8]
+[ext_resource path="res://Assets/Textures/ArenaEditor/icons/icon_save.svg" type="Texture" id=9]
 
 [sub_resource type="ProceduralSky" id=1]
 sky_top_color = Color( 0, 0, 0, 1 )
@@ -67,51 +70,66 @@ layer = 100
 [node name="RadialMenu" parent="UI" instance=ExtResource( 5 )]
 outer_radius = 150.0
 inner_radius = 100.0
-offset_angle = 71.0
-gap_degrees = 5.923
+gap_degrees = 4.0
 
-[node name="Test" parent="UI/RadialMenu" instance=ExtResource( 6 )]
-margin_right = 300.0
-margin_bottom = 300.0
+[node name="New_Arena" parent="UI/RadialMenu" instance=ExtResource( 6 )]
+margin_left = -150.0
+margin_top = -150.0
 focus_neighbour_left = NodePath("../RadialButton4")
 focus_neighbour_top = NodePath("../RadialButton4")
-focus_neighbour_right = NodePath("../RadialButton2")
-focus_neighbour_bottom = NodePath("../RadialButton2")
-focus_next = NodePath("../RadialButton2")
+focus_neighbour_right = NodePath("../Load_Arena")
+focus_neighbour_bottom = NodePath("../Load_Arena")
+focus_next = NodePath("../Load_Arena")
 focus_previous = NodePath("../RadialButton4")
-mouse_filter = 2
+mouse_filter = 1
+icon = ExtResource( 7 )
+arc_start_degree = 2.0
+arc_end_degree = 88.0
+inner_radius = 0.666667
 
-[node name="RadialButton2" parent="UI/RadialMenu" instance=ExtResource( 6 )]
-margin_right = 300.0
-margin_bottom = 300.0
-focus_neighbour_left = NodePath("../Test")
-focus_neighbour_top = NodePath("../Test")
-focus_neighbour_right = NodePath("../RadialButton3")
-focus_neighbour_bottom = NodePath("../RadialButton3")
-focus_next = NodePath("../RadialButton3")
-focus_previous = NodePath("../Test")
-mouse_filter = 2
+[node name="Load_Arena" parent="UI/RadialMenu" instance=ExtResource( 6 )]
+margin_left = -150.0
+margin_top = -150.0
+focus_neighbour_left = NodePath("../New_Arena")
+focus_neighbour_top = NodePath("../New_Arena")
+focus_neighbour_right = NodePath("../Save_Arena")
+focus_neighbour_bottom = NodePath("../Save_Arena")
+focus_next = NodePath("../Save_Arena")
+focus_previous = NodePath("../New_Arena")
+mouse_filter = 1
+icon = ExtResource( 8 )
+arc_start_degree = 92.0
+arc_end_degree = 178.0
+inner_radius = 0.666667
 
-[node name="RadialButton3" parent="UI/RadialMenu" instance=ExtResource( 6 )]
-margin_right = 300.0
-margin_bottom = 300.0
-focus_neighbour_left = NodePath("../RadialButton2")
-focus_neighbour_top = NodePath("../RadialButton2")
+[node name="Save_Arena" parent="UI/RadialMenu" instance=ExtResource( 6 )]
+margin_left = -150.0
+margin_top = -150.0
+focus_neighbour_left = NodePath("../Load_Arena")
+focus_neighbour_top = NodePath("../Load_Arena")
 focus_neighbour_right = NodePath("../RadialButton4")
 focus_neighbour_bottom = NodePath("../RadialButton4")
 focus_next = NodePath("../RadialButton4")
-focus_previous = NodePath("../RadialButton2")
-mouse_filter = 2
+focus_previous = NodePath("../Load_Arena")
+mouse_filter = 1
+icon = ExtResource( 9 )
+arc_start_degree = 182.0
+arc_end_degree = 268.0
+inner_radius = 0.666667
 
 [node name="RadialButton4" parent="UI/RadialMenu" instance=ExtResource( 6 )]
-margin_right = 300.0
-margin_bottom = 300.0
-focus_neighbour_left = NodePath("../RadialButton3")
-focus_neighbour_top = NodePath("../RadialButton3")
-focus_neighbour_right = NodePath("../Test")
-focus_neighbour_bottom = NodePath("../Test")
-focus_next = NodePath("../Test")
-focus_previous = NodePath("../RadialButton3")
-mouse_filter = 2
+margin_left = -150.0
+margin_top = -150.0
+focus_neighbour_left = NodePath("../Save_Arena")
+focus_neighbour_top = NodePath("../Save_Arena")
+focus_neighbour_right = NodePath("../New_Arena")
+focus_neighbour_bottom = NodePath("../New_Arena")
+focus_next = NodePath("../New_Arena")
+focus_previous = NodePath("../Save_Arena")
+mouse_filter = 1
+arc_start_degree = 272.0
+arc_end_degree = 358.0
+inner_radius = 0.666667
 
-[connection signal="pressed" from="UI/RadialMenu/Test" to="." method="_on_Test_pressed"]
+[connection signal="pressed" from="UI/RadialMenu/New_Arena" to="." method="_on_New_Arena_pressed"]
+[connection signal="pressed" from="UI/RadialMenu/Save_Arena" to="." method="_on_Save_Arena_pressed"]

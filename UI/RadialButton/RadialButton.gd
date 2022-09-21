@@ -114,16 +114,19 @@ func set_pressed(p : bool) -> void:
 func _ready() -> void:
 	connect("resized", self, "_on_resized")
 	if not Engine.editor_hint:
-		set_focus_mode(Control.FOCUS_ALL)
+		#set_focus_mode(Control.FOCUS_ALL)
 		connect("focus_entered", self, "_SetFocusMode", [true])
 		connect("focus_exited", self, "_SetFocusMode", [false])
+	_FullShaderUpdate()
 
 func _enter_tree():
 	var parent = get_parent()
 	if parent != null:
 		if parent.has_method("add_radial_button"): # My Cheat to see if we're under the RadialMenu class.
-			mouse_filter = Control.MOUSE_FILTER_IGNORE
+			set_focus_mode(Control.FOCUS_NONE)
+			mouse_filter = Control.MOUSE_FILTER_PASS
 		else:
+			set_focus_mode(Control.FOCUS_ALL)
 			mouse_filter = Control.MOUSE_FILTER_STOP
 
 func _gui_input(event : InputEvent) -> void:
@@ -542,7 +545,7 @@ func has_color_override(color_name : String) -> bool:
 		return _override_colors[color_name] != null
 	return false
 
-func has_constant_overrise(const_name : String) -> bool:
+func has_constant_override(const_name : String) -> bool:
 	if const_name in _override_constants:
 		return _override_constants[const_name] != null
 	return false

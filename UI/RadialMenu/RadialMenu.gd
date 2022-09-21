@@ -182,14 +182,23 @@ func _on_screen_size_changed() -> void:
 	if not Engine.editor_hint:
 		call_deferred("_RecalcScreenSize")
 
-
 func _on_child_entered(child : Node) -> void:
 	if child is RadialButton:
+		if not Engine.editor_hint:
+			if not child.is_connected("focus_entered", self, "_on_child_focus_entered"):
+				child.connect("focus_entered", self, "_on_child_focus_entered")
 		_AdjustRadialButtons()
 
 func _on_child_exited(child : Node) -> void:
 	if child is RadialButton:
+		if not Engine.editor_hint:
+			if child.is_connected("focus_entered", self, "_on_child_focus_entered"):
+				child.disconnect("focus_entered", self, "_on_child_focus_entered")
 		_AdjustRadialButtons()
+
+func _on_child_focus_entered() -> void:
+	print("Child in control")
+	grab_focus()
 
 func _on_about_to_show() -> void:
 	_RecalcScreenSize()

@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   width="24"
+   height="24"
+   viewBox="0 0 6.3499999 6.35"
+   version="1.1"
+   id="svg5"
+   inkscape:version="1.2 (dc2aedaf03, 2022-05-15)"
+   sodipodi:docname="icon_new_arena.svg"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <sodipodi:namedview
+     id="namedview7"
+     pagecolor="#505050"
+     bordercolor="#eeeeee"
+     borderopacity="1"
+     inkscape:showpageshadow="0"
+     inkscape:pageopacity="0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#505050"
+     inkscape:document-units="mm"
+     showgrid="false"
+     inkscape:zoom="9.0407292"
+     inkscape:cx="16.14914"
+     inkscape:cy="37.939418"
+     inkscape:window-width="1916"
+     inkscape:window-height="1033"
+     inkscape:window-x="0"
+     inkscape:window-y="18"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="layer1" />
+  <defs
+     id="defs2">
+    <inkscape:path-effect
+       effect="perspective-envelope"
+       up_left_point="0.86526024,1.8001985"
+       up_right_point="5.4776968,1.8001985"
+       down_left_point="-1.9372329,6.3433589"
+       down_right_point="8.2801899,6.3433589"
+       id="path-effect7195"
+       is_visible="true"
+       lpeversion="1"
+       deform_type="perspective"
+       horizontal_mirror="false"
+       vertical_mirror="false"
+       overflow_perspective="false" />
+    <inkscape:path-effect
+       effect="perspective-envelope"
+       up_left_point="1.4339784,1.6354578"
+       up_right_point="5.4510998,1.9133977"
+       down_left_point="-1.1656931,5.9471614"
+       down_right_point="7.4187371,6.5411079"
+       id="path-effect7193"
+       is_visible="true"
+       lpeversion="1"
+       deform_type="envelope_deformation"
+       horizontal_mirror="false"
+       vertical_mirror="false"
+       overflow_perspective="false" />
+    <inkscape:path-effect
+       effect="perspective-envelope"
+       up_left_point="-2.0159859,1.257671"
+       up_right_point="5.2282088,1.257671"
+       down_left_point="-2.0159859,6.3747789"
+       down_right_point="5.2282088,6.3747789"
+       id="path-effect7095"
+       is_visible="true"
+       lpeversion="1"
+       deform_type="envelope_deformation"
+       horizontal_mirror="false"
+       vertical_mirror="false"
+       overflow_perspective="false" />
+  </defs>
+  <g
+     inkscape:label="Layer 1"
+     inkscape:groupmode="layer"
+     id="layer1">
+    <path
+       id="path7088"
+       style="fill:#ffffff;stroke-width:0.508101;stroke-linecap:round;stroke-linejoin:round;paint-order:stroke markers fill"
+       inkscape:transform-center-x="0.18489634"
+       inkscape:transform-center-y="-0.053452491"
+       d="M 2.7181803,0.74207353 2.1218343,1.3311848 2.5564331,2.1357869 3.4933268,2.1332069 V 1.9771402 H 2.8478882 V 0.74207353 Z M 2.0825602,1.3327351 1.0247437,1.3348022 0,2.1445719 0.04909261,3.3212442 1.5916341,3.3160766 2.5094076,2.1378539 Z M 5.593457,1.5621785 V 1.9771402 H 4.9480184 V 2.6225789 H 4.1976766 L 4.7676676,3.3486327 6.3133097,3.3434651 6.35,2.1559407 Z M 3.4933268,2.1729939 2.5331787,2.1755777 1.6123047,3.3734374 2.1605916,5.2844319 4.1806234,5.2849487 4.7180583,3.3631021 4.1439331,2.6225789 H 3.4933268 Z" />
+    <path
+       id="rect7197"
+       style="fill:#ffffff;stroke-width:0.529167;stroke-linecap:round;stroke-linejoin:round;paint-order:stroke markers fill"
+       d="M 3.8669044,0.27078446 V 0.91622313 H 3.2214658 V 1.6200562 h 0.6454386 v 0.6454386 h 0.703833 V 1.6200562 H 5.2161761 V 0.91622313 H 4.5707374 V 0.27078446 Z" />
+  </g>
+</svg>
