@@ -128,7 +128,7 @@ func _AdjustRadialButtonPosition() -> void:
 	var cpos : Vector2 = (rect_size * _relative_coords) #+ Vector2(outer_radius, outer_radius)
 	for child in get_children():
 		if child is RadialButton:
-			child.rect_position = cpos
+			child.rect_position = cpos - Vector2(outer_radius, outer_radius)
 
 func _GetFocusedChild() -> RadialButton:
 	for child in get_children():
@@ -162,7 +162,7 @@ func popup(rect : Rect2 = Rect2(0,0,0,0)) -> void:
 
 func popup_centered(size : Vector2 = Vector2.ZERO) -> void:
 	.popup_centered(Vector2.ZERO)
-	_relative_coords = Vector2(0.5, 0.5)
+	_relative_coords = Vector2.ONE * 0.5
 	_AdjustRadialButtonPosition()
 
 func add_radial_button(btn_name : float) -> void:

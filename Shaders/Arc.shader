@@ -66,20 +66,19 @@ void fragment(){
 	float angle = GetAngleBetween(vec2(1,0), normalize(UV - origin));
 	float _irad = (radius_inner / base_size) * 0.5;
 	float _orad = (radius_outer / base_size) * 0.5;
-	float _tw = (trim_width / base_size) * 0.5;
+	//float _tw = (trim_width / base_size) * 0.5;
+	float _tw = ((_orad - _irad) * 0.5) * trim_width;
 	float dist = distance(UV, origin);
 	if (IsAngleWithinArc(angle)){
-		if (dist <= _orad){
-			if (dist >= _irad){
-				if ((dist <= _orad && dist >= _orad - _tw) || (dist >= _irad && dist <= _irad + _tw)){
-					color = color_trim;
-				} else { 
-					vec4 icolor = IconColor(UV);
-					if (icolor.a <= 0.0){
-						color = color_body;
-					} else {
-						color = vec4(mix(color_body.rgb, icolor.rgb, icolor.a), 1);
-					}
+		if (dist <= _orad && dist >= _irad){
+			if ((dist <= _orad && dist >= _orad - _tw) || (dist >= _irad && dist <= _irad + _tw)){
+				color = color_trim;
+			} else { 
+				vec4 icolor = IconColor(UV);
+				if (icolor.a <= 0.0){
+					color = color_body;
+				} else {
+					color = vec4(mix(color_body.rgb, icolor.rgb, icolor.a), 1);
 				}
 			}
 		}

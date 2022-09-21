@@ -36,7 +36,7 @@ var _arc_start_degree : float = 0.0
 var _arc_end_degree : float = 45.0
 var _arc_offset_degree : float = 0.0
 var _inner_radius : float = 0.25
-var _trim_width : float = 1.0
+var _trim_width : float = 0.1
 var _pressed : bool = false
 var _override_colors : Dictionary = {
 	"normal" : null,
@@ -128,12 +128,6 @@ func _enter_tree():
 func _gui_input(event : InputEvent) -> void:
 	if _ProcessGUIInput(event):
 		accept_event()
-
-func _draw() -> void:
-	draw_rect(Rect2(0.0, 0.0, rect_size.x, rect_size.y), Color.red, false, 4.0)
-
-func _process(delta):
-	update()
 
 func _get(property : String):
 	match property:
@@ -386,13 +380,15 @@ func _UpdateMouseOut() -> void:
 		_UpdateShaderColors()
 
 func _ProcessGUIInput(event : InputEvent, processed : bool = false, notify_immediate : bool = false) -> bool:
+	if event is InputEventMouseMotion:
+		_last_mouse_pos = event.position
+	
 	if processed:
 		_UpdateMouseOut()
 		return processed
 	
 	if event is InputEventMouseMotion:
 		if _MousePositionOver(event.position):
-			_last_mouse_pos = event.position
 			if _btn_state != BUTTON_STATE.Pressed and _btn_state != BUTTON_STATE.Hover:
 				_btn_state = BUTTON_STATE.Hover
 				_UpdateShaderColors()
