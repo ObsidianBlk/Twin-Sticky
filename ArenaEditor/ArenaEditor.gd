@@ -43,7 +43,7 @@ onready var _radialmenu : Popup = $UI/RadialMenu
 # ------------------------------------------------------------------------------
 func _ready() -> void:
 	_region_resource = RegionResource.new()
-	_hex_grid_overlay.connect("grid_clicked", self, "_on_grid_clicked")
+	var _res : int = _hex_grid_overlay.connect("grid_clicked", self, "_on_grid_clicked")
 	_hex_grid_overlay.hex_size = _region_resource.hex_size
 	_hex_region.region_resource = _region_resource
 
@@ -143,8 +143,8 @@ func _on_Save_Arena_pressed():
 	_radialmenu.hide()
 	var fd : FileDialog = FileDialog.new()
 	_ui.add_child(fd)
-	fd.connect("file_selected", self, "_on_save_file_selected")
-	fd.connect("popup_hide", self, "_on_close_file_dialog", [fd])
+	var _res : int = fd.connect("file_selected", self, "_on_save_file_selected")
+	_res = fd.connect("popup_hide", self, "_on_close_file_dialog", [fd])
 	fd.access = FileDialog.ACCESS_USERDATA
 	fd.popup_centered(Vector2(640,480))
 

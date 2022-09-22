@@ -112,11 +112,11 @@ func set_pressed(p : bool) -> void:
 # Override Methods
 # ------------------------------------------------------------------------------
 func _ready() -> void:
-	connect("resized", self, "_on_resized")
+	var _res : int = connect("resized", self, "_on_resized")
 	if not Engine.editor_hint:
 		#set_focus_mode(Control.FOCUS_ALL)
-		connect("focus_entered", self, "_SetFocusMode", [true])
-		connect("focus_exited", self, "_SetFocusMode", [false])
+		_res = connect("focus_entered", self, "_SetFocusMode", [true])
+		_res = connect("focus_exited", self, "_SetFocusMode", [false])
 	_FullShaderUpdate()
 
 func _enter_tree():
@@ -594,11 +594,13 @@ func has_focus() -> bool:
 	return _in_focus
 
 func grab_focus() -> void:
-	.grab_focus()
+	if focus_mode != Control.FOCUS_NONE:
+		.grab_focus()
 	_SetFocusMode(true)
 
 func release_focus() -> void:
-	.release_focus()
+	if focus_mode != Control.FOCUS_NONE:
+		.release_focus()
 	_SetFocusMode(false)
 
 

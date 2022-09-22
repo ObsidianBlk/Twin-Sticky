@@ -68,9 +68,12 @@ environment = SubResource( 2 )
 layer = 100
 
 [node name="RadialMenu" parent="UI" instance=ExtResource( 5 )]
+visible = true
 outer_radius = 150.0
 inner_radius = 100.0
+offset_angle = 45.0
 gap_degrees = 4.0
+force_neighboring = true
 
 [node name="New_Arena" parent="UI/RadialMenu" instance=ExtResource( 6 )]
 margin_left = -150.0
@@ -85,6 +88,7 @@ mouse_filter = 1
 icon = ExtResource( 7 )
 arc_start_degree = 2.0
 arc_end_degree = 88.0
+arc_offset_degree = 45.0
 inner_radius = 0.666667
 
 [node name="Load_Arena" parent="UI/RadialMenu" instance=ExtResource( 6 )]
@@ -100,6 +104,7 @@ mouse_filter = 1
 icon = ExtResource( 8 )
 arc_start_degree = 92.0
 arc_end_degree = 178.0
+arc_offset_degree = 45.0
 inner_radius = 0.666667
 
 [node name="Save_Arena" parent="UI/RadialMenu" instance=ExtResource( 6 )]
@@ -115,6 +120,7 @@ mouse_filter = 1
 icon = ExtResource( 9 )
 arc_start_degree = 182.0
 arc_end_degree = 268.0
+arc_offset_degree = 45.0
 inner_radius = 0.666667
 
 [node name="RadialButton4" parent="UI/RadialMenu" instance=ExtResource( 6 )]
@@ -129,6 +135,7 @@ focus_previous = NodePath("../Save_Arena")
 mouse_filter = 1
 arc_start_degree = 272.0
 arc_end_degree = 358.0
+arc_offset_degree = 45.0
 inner_radius = 0.666667
 
 [connection signal="pressed" from="UI/RadialMenu/New_Arena" to="." method="_on_New_Arena_pressed"]
