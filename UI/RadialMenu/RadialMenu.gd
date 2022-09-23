@@ -3,15 +3,16 @@ extends Popup
 class_name RadialMenu
 
 # ------------------------------------------------------------------------------
-# Signals
+# Constants
 # ------------------------------------------------------------------------------
-
+const PROP_CHANGE_NOTE_DEBOUNCE : float = 0.25
 
 # ------------------------------------------------------------------------------
 # "Export" Variables
 # ------------------------------------------------------------------------------
-var _outer_radius : float = 42.0
-var _inner_radius : float = 20.0
+var _max_arc_degrees : float = 360.0
+var _outer_radius : float = 1.0
+var _inner_radius : float = 0.25
 var _offset_angle : float = 0.0
 var _gap_degrees : float = 0.2
 var _force_neighboring : bool = true
@@ -19,19 +20,21 @@ var _force_neighboring : bool = true
 # ------------------------------------------------------------------------------
 # Variables
 # ------------------------------------------------------------------------------
+var _prop_debounce_timer : SceneTreeTimer = null
 var _relative_coords : Vector2 = Vector2.ZERO
+var _radius_override : Vector2 = Vector2.ZERO
 
 # ------------------------------------------------------------------------------
 # Setters
 # ------------------------------------------------------------------------------
 func set_outer_radius(r : float) -> void:
-	if r > _inner_radius and _outer_radius != r:
+	if r >= 0.0 and r <= 1.0 and _outer_radius != r:
 		_outer_radius = r
 		#_AdjustSize()
 		_AdjustRadialButtons()
 
 func set_inner_radius(r : float) -> void:
-	if r < _outer_radius and _inner_radius != r:
+	if r >= 0.0 and r <= 1.0 and _inner_radius != r:
 		_inner_radius = r
 		#_AdjustSize()
 		_AdjustRadialButtons()
@@ -62,7 +65,7 @@ func _ready() -> void:
 	if not Engine.editor_hint:
 		_RecalcScreenSize()
 	_AdjustRadialButtons()
-	_AdjustRadialButtonPosition()
+	_AdjustRadialButtonSizeAndPos()
 
 
 func _gui_input(event : InputEvent) -> void:
@@ -80,10 +83,19 @@ func _gui_input(event : InputEvent) -> void:
 
 func _get(property : String):
 	match property:
+		"max_arc_degrees":
+			return _max_arc_degrees
 		"outer_radius":
 			return _outer_radius
+		"outer_radius_pixels":
+			var base_size : float = min(rect_size.x, rect_size.y) * 0.5
+			return base_size * _outer_radius
 		"inner_radius":
 			return _inner_radius
+		"inner_radius_pixels":
+			var base_size : float = min(rect_size.x, rect_size.y) * 0.5
+			var outer : float = base_size * _outer_radius
+			return outer * _inner_radius
 		"offset_angle":
 			return _offset_angle
 		"gap_degrees":
@@ -96,18 +108,48 @@ func _set(property : String, value) -> bool:
 	var success : bool = true
 	
 	match property:
+		"max_arc_degrees":
+			if typeof(value) == TYPE_REAL:
+				if value >= 0.0 and value <= 360.0:
+					_max_arc_degrees = value
+					_AdjustRadialButtons()
+				else : success = false
+			else : success = false
 		"outer_radius":
 			if typeof(value) == TYPE_REAL:
-				if value > _inner_radius and _outer_radius != value:
+				value = max(0.0, min(1.0, value))
+				if _outer_radius != value:
 					_outer_radius = value
-					_AdjustRadialButtons()
+					_AdjustRadialButtonSizeAndPos()
+				else : success = false
+			else : success = false
+		"outer_radius_pixels":
+			if typeof(value) == TYPE_REAL:
+				var base_size : float = min(rect_size.x, rect_size.y) * 0.5
+				if base_size > 0.0:
+					value = max(0.0, min(1.0, value / base_size))
+					if _outer_radius != value:
+						_outer_radius = value
+						_AdjustRadialButtonSizeAndPos()
 				else : success = false
 			else : success = false
 		"inner_radius":
 			if typeof(value) == TYPE_REAL:
-				if value < _outer_radius and _inner_radius != value:
+				value = max(0.0, min(1.0, value))
+				if _inner_radius != value:
 					_inner_radius = value
-					_AdjustRadialButtons()
+					_AdjustRadialButtonSizeAndPos()
+				else : success = false
+			else : success = false
+		"inner_radius_pixels":
+			if typeof(value) == TYPE_REAL:
+				var base_size : float = min(rect_size.x, rect_size.y) * 0.5
+				if base_size > 0.0:
+					var outer : float = base_size * _outer_radius
+					value = max(0.0, min(1.0, value / outer))
+					if _inner_radius != value:
+						_inner_radius = value
+						_AdjustRadialButtonSizeAndPos()
 				else : success = false
 			else : success = false
 		"offset_angle":
@@ -128,6 +170,9 @@ func _set(property : String, value) -> bool:
 		_:
 			success = false
 	
+	if success:
+		_PropertyChangedNotify()
+	
 	return success
 
 func _get_property_list() -> Array:
@@ -138,12 +183,33 @@ func _get_property_list() -> Array:
 			usage = PROPERTY_USAGE_CATEGORY
 		},
 		{
+			name = "max_arc_degrees",
+			type = TYPE_REAL,
+			hint = PROPERTY_HINT_RANGE,
+			hint_string = "0.0, 360.0",
+			usage = PROPERTY_USAGE_DEFAULT
+		},
+		{
 			name = "outer_radius",
+			type = TYPE_REAL,
+			hint = PROPERTY_HINT_RANGE,
+			hint_string = "0.0, 1.0",
+			usage = PROPERTY_USAGE_DEFAULT
+		},
+		{
+			name = "outer_radius_pixels",
 			type = TYPE_REAL,
 			usage = PROPERTY_USAGE_DEFAULT
 		},
 		{
 			name = "inner_radius",
+			type = TYPE_REAL,
+			hint = PROPERTY_HINT_RANGE,
+			hint_string = "0.0, 1.0",
+			usage = PROPERTY_USAGE_DEFAULT
+		},
+		{
+			name = "inner_radius_pixels",
 			type = TYPE_REAL,
 			usage = PROPERTY_USAGE_DEFAULT
 		},
@@ -173,6 +239,16 @@ func _get_property_list() -> Array:
 # ------------------------------------------------------------------------------
 # Private Methods
 # ------------------------------------------------------------------------------
+func _PropertyChangedNotify() -> void:
+	if not is_inside_tree() or not Engine.editor_hint:
+		return # Don't bother doing anything if we're not in the tree or in the Godot Editor
+	
+	if _prop_debounce_timer == null:
+		_prop_debounce_timer = get_tree().create_timer(PROP_CHANGE_NOTE_DEBOUNCE)
+		var _res : int = _prop_debounce_timer.connect("timeout", self, "_on_property_changed_notify")
+	else:
+		_prop_debounce_timer.time_left = PROP_CHANGE_NOTE_DEBOUNCE
+
 func _SetNeighbors(from_neighbour : RadialButton, to_neighbour : RadialButton) -> void:
 	var path : NodePath = to_neighbour.get_path_to(from_neighbour)
 	to_neighbour.focus_neighbour_left = path
@@ -190,7 +266,7 @@ func _AdjustRadialButtons() -> void:
 			count += 1
 	
 	if count > 0:
-		var arc : float = (360.0 - (_gap_degrees * float(count))) / float(count)
+		var arc : float = (_max_arc_degrees - (_gap_degrees * float(count))) / float(count)
 		var hgap : float = 0.0 if count <= 1 else _gap_degrees * 0.5
 		
 		var start_degree : float = hgap
@@ -198,7 +274,6 @@ func _AdjustRadialButtons() -> void:
 		var last_child = null
 		for child in get_children():
 			if child is RadialButton:
-				child.set_radii(_inner_radius, _outer_radius)
 				child.set_arc_degrees(start_degree, start_degree + arc, _offset_angle)
 				#child.offset_degree = _offset_angle
 				start_degree += arc + _gap_degrees
@@ -215,13 +290,24 @@ func _RecalcScreenSize() -> void:
 	# TODO: Why does get_tree().get_root().size return the correct value but
 	# get_viewport_rect() does not?
 	rect_size = get_tree().get_root().size
-	_AdjustRadialButtonPosition()
+	_AdjustRadialButtonSizeAndPos()
 
-func _AdjustRadialButtonPosition() -> void:
+func _AdjustRadialButtonSizeAndPos() -> void:
+	var outer_rad : float = _outer_radius
+	var inner_rad : float = _inner_radius
+	if _radius_override.x > 0.0 and _radius_override.x <= 1.0:
+		outer_rad = _radius_override.x
+	if _radius_override.y > 0.0 and _radius_override.y <= 1.0:
+		inner_rad = _radius_override.y
+	
 	var cpos : Vector2 = (rect_size * _relative_coords) #+ Vector2(_outer_radius, _outer_radius)
 	for child in get_children():
 		if child is RadialButton:
-			child.rect_position = cpos - Vector2(_outer_radius, _outer_radius)
+			var base_size : float = min(rect_size.x, rect_size.y) * 0.5
+			var outer : float = base_size * outer_rad
+			var inner : float = outer * inner_rad
+			child.set_radii(inner, outer)
+			child.rect_position = cpos - Vector2(outer, outer)
 
 func _GetFocusedChild() -> RadialButton:
 	for child in get_children():
@@ -245,24 +331,38 @@ func _GrabButtonFocus(btn : RadialButton) -> void:
 func popup(rect : Rect2 = Rect2(0,0,0,0)) -> void:
 	.popup(Rect2(0,0,0,0))
 	if rect_size.x > 0.0 and rect_size.y > 0.0:
+		var base_size : float = min(rect_size.x, rect_size.y) * 0.5
+		if rect.size.x > 0.0:
+			_radius_override.x = rect.size.x / base_size
+		if rect.size.y > 0.0:
+			_radius_override.y = rect.size.y / base_size
 		_relative_coords = Vector2(
 			rect.position.x / rect_size.x,
 			rect.position.y / rect_size.y
 		)
 	else:
 		_relative_coords = Vector2.ZERO
-	_AdjustRadialButtonPosition()
+	_AdjustRadialButtonSizeAndPos()
 
-func popup_centered(_size : Vector2 = Vector2.ZERO) -> void:
+func popup_centered(size : Vector2 = Vector2.ZERO) -> void:
 	.popup_centered(Vector2.ZERO)
+	var base_size : float = min(rect_size.x, rect_size.y) * 0.5
+	if base_size > 0.0:
+		if size.x > 0.0:
+			_radius_override.x = size.x / base_size
+		if size.y > 0.0:
+			_radius_override.y = size.y / base_size
 	_relative_coords = Vector2.ONE * 0.5
-	_AdjustRadialButtonPosition()
+	_AdjustRadialButtonSizeAndPos()
 
-func add_radial_button(btn_name : float) -> void:
-	if not Engine.editor_hint:
-		var btn = RadialButton.new()
-		btn.name = btn_name
-		add_child(btn)
+func popup_centered_ratio(ratio : float = 0.75) -> void:
+	# This custom vector will only ratio the outer radius leaving the inner radius to it's
+	# original relative size.
+	popup_centered(Vector2((rect_size.x * 0.5) * ratio, 0.0))
+
+func hide() -> void:
+	.hide()
+	_radius_override = Vector2.ZERO
 
 func has_focus() -> bool:
 	return _GetFocusedChild() != null
@@ -270,6 +370,11 @@ func has_focus() -> bool:
 # ------------------------------------------------------------------------------
 # Handler Methods
 # ------------------------------------------------------------------------------
+func _on_property_changed_notify() -> void:
+	_prop_debounce_timer = null
+	property_list_changed_notify()
+
+
 func _on_screen_size_changed() -> void:
 	# Have to defer the call or the screen doesn't adjust properly.
 	if not Engine.editor_hint:
@@ -281,6 +386,7 @@ func _on_child_entered(child : Node) -> void:
 			if not child.is_connected("focus_entered", self, "_on_child_focus_entered"):
 				var _res : int = child.connect("focus_entered", self, "_on_child_focus_entered")
 		_AdjustRadialButtons()
+		_AdjustRadialButtonSizeAndPos()
 
 func _on_child_exited(child : Node) -> void:
 	if child is RadialButton:
@@ -288,9 +394,9 @@ func _on_child_exited(child : Node) -> void:
 			if child.is_connected("focus_entered", self, "_on_child_focus_entered"):
 				child.disconnect("focus_entered", self, "_on_child_focus_entered")
 		_AdjustRadialButtons()
+		_AdjustRadialButtonSizeAndPos()
 
 func _on_child_focus_entered() -> void:
-	print("Child in control")
 	grab_focus()
 
 func _on_about_to_show() -> void:
