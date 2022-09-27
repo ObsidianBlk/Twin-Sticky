@@ -1,0 +1,19 @@
+[gd_scene load_steps=2 format=2]
+
+[ext_resource path="res://addons/obs_radial_menu/nodes/OBSRadialMenu/OBSRadialMenu.gd" type="Script" id=1]
+
+[node name="OBSRadialMenu" type="Popup"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+focus_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+script = ExtResource( 1 )
+max_arc_degrees = 360.0
+outer_radius = 1.0
+outer_radius_pixels = 300.0
+inner_radius = 0.25
+inner_radius_pixels = 75.0
+offset_angle = 0.0
+gap_degrees = 0.2
+force_neighboring = true

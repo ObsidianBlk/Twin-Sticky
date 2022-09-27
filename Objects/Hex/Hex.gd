@@ -113,7 +113,21 @@ func _UpdateHeight() -> void:
 			top = _hexes[_hexes.size() - 1].get_node_or_null("top")
 			if top != null:
 				top.visible = true
-				
+			_UpdateHighlight()
+
+func _UpdateHighlight() -> void:
+	if _hexes.size() <= 1:
+		return
+	var top = _hexes[0].get_node_or_null("Top")
+	if top is MeshInstance:
+		var mat : Material = top.material_overlay
+		for i in range(1, _hexes.size()):
+			top = _hexes[i].get_node_or_null("Top")
+			if top is MeshInstance:
+				top.material_overlay = mat
+			var side = _hexes[i].get_node_or_null("Side")
+			if side is MeshInstance:
+				side.material_overlay = mat
 
 func _UpdatePosition() -> void:
 	var pos : Vector2 = _origin.to_point() * size
@@ -137,6 +151,25 @@ func release() -> void:
 		parent.remove_child(self)
 	queue_free()
 
+func is_highlighted() -> bool:
+	if _hexes.size() > 0:
+		var top = _hexes[0].get_node_or_null("Top")
+		if top is MeshInstance:
+			return top.material_overlay != null
+	return false
+
+func highlight(mat : Material) -> void:
+	if _hexes.size() <= 0:
+		return
+	var cur_enabled : bool = is_highlighted()
+	if cur_enabled != (mat != null): # I know this looks weird... go with it!
+		for hex in _hexes:
+			var top = hex.get_node_or_null("Top")
+			if top is MeshInstance:
+				top.material_overlay = mat
+			var side = hex.get_node_or_null("Side")
+			if side is MeshInstance:
+				side.material_overlay = mat
 
 # -----------------------------------------------------------------------------
 # Handler Methods

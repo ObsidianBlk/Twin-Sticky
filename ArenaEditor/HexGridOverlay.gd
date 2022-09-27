@@ -15,7 +15,7 @@ export var radius_major : int = 5					setget set_radius_major
 export var hex_size : float = 1.0					setget set_hex_size
 export var color_normal : Color = Color.darkgreen	setget set_color_normal
 export var color_major : Color = Color.chartreuse	setget set_color_major
-export var color_focus : Color = Color.cornflower	setget get_color_focus
+export var color_focus : Color = Color.cornflower	setget set_color_focus
 export var target_path : NodePath = ""
 
 # ------------------------------------------------------------------------------
@@ -73,7 +73,7 @@ func set_color_major(c : Color) -> void:
 		_grid_material_major.flags_unshaded = true
 	_grid_material_major.albedo_color = color_major
 
-func get_color_focus(c : Color) -> void:
+func set_color_focus(c : Color) -> void:
 	color_focus = c
 	if _grid_material_focus == null:
 		_grid_material_focus = SpatialMaterial.new()
@@ -258,6 +258,11 @@ func set_cursor_from_position(pos : Vector3) -> void:
 func get_cursor_world_position() -> Vector3:
 	var cpos : Vector2 = _cursor_cell.to_point() * hex_size
 	return Vector3(cpos.x, 0.0, cpos.y) + translation
+
+func get_cursor_region() -> Array:
+	if _cursor_radius == 0:
+		return [_cursor_cell.clone()]
+	return _cursor_cell.get_region(_cursor_radius)
 
 func is_point_in_cursor(pos : Vector3) -> bool:
 	var pcell : HexCell = HexCell.new()

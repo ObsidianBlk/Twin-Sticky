@@ -15,14 +15,14 @@ _global_script_classes=[ {
 "path": "res://Scripts/HexCell.gd"
 }, {
 "base": "Control",
-"class": "RadialButton",
+"class": "OBSRadialButton",
 "language": "GDScript",
-"path": "res://UI/RadialButton/RadialButton.gd"
+"path": "res://addons/obs_radial_menu/nodes/OBSRadialButton/OBSRadialButton.gd"
 }, {
 "base": "Popup",
-"class": "RadialMenu",
+"class": "OBSRadialMenu",
 "language": "GDScript",
-"path": "res://UI/RadialMenu/RadialMenu.gd"
+"path": "res://addons/obs_radial_menu/nodes/OBSRadialMenu/OBSRadialMenu.gd"
 }, {
 "base": "Resource",
 "class": "RegionResource",
@@ -31,8 +31,8 @@ _global_script_classes=[ {
 } ]
 _global_script_class_icons={
 "HexCell": "",
-"RadialButton": "",
-"RadialMenu": "",
+"OBSRadialButton": "res://addons/obs_radial_menu/assets/icons/icon_obsradialbutton.svg",
+"OBSRadialMenu": "res://addons/obs_radial_menu/assets/icons/icon_obsradialmenu.svg",
 "RegionResource": ""
 }
 
@@ -52,7 +52,7 @@ Net="*res://Scripts/Auto/Net.gd"
 
 [editor_plugins]
 
-enabled=PoolStringArray( "res://addons/imrp/plugin.cfg" )
+enabled=PoolStringArray( "res://addons/imrp/plugin.cfg", "res://addons/obs_radial_menu/plugin.cfg" )
 
 [input]
 

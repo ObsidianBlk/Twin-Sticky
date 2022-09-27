@@ -84,6 +84,8 @@ func _UpdateMouseCursor(mouse_position : Vector2) -> void:
 	var intersect = p.intersects_ray(from, dir)
 	if intersect != null:
 		_hex_grid_overlay.set_cursor_from_position(intersect)
+		_hex_region.set_highlight_color(_hex_grid_overlay.color_focus)
+		_hex_region.highlight_cells(_hex_grid_overlay.get_cursor_region())
 
 
 func _UpdateJoypadCursor() -> void:
@@ -115,38 +117,62 @@ func _on_grid_clicked(cell : HexCell, radius : int, alt : bool) -> void:
 			if _region_resource.has_cell(ccell):
 				height = _region_resource.get_height_at(ccell) - 1
 				if height >= 0:
-					_region_resource.add_cell(ccell, height)
+					_region_resource.add_cell(ccell, 0, height)
 				else:
 					_region_resource.remove_cell(ccell)
 		else:
 			if _region_resource.has_cell(ccell):
 				height = _region_resource.get_height_at(ccell) + 1
 			if height >= 0:
-				_region_resource.add_cell(ccell, height)
+				_region_resource.add_cell(ccell, 0, height)
 
 
 func _on_save_file_selected(path : String) -> void:
-	print("Would save to ", path, " ... if I was implemented.")
+	var res : int = ResourceSaver.save(path, _region_resource)
+	if res != OK:
+		Log.error("Failed to save arena map to \"%s\". Error code %s"%[path, res])
 
-func _on_New_Arena_pressed():
+func _on_load_file_selected(path : String) -> void:
+	var new_resource = ResourceLoader.load(path)
+	if new_resource is RegionResource:
+		_region_resource = new_resource
+		_hex_grid_overlay.hex_size = _region_resource._hex_size
+		_hex_region.region_resource = _region_resource
+	else:
+		Log.error("Failed to load arena map \"%s\"."%[path]) 
+
+func _on_NewArena_pressed():
 	_region_resource = RegionResource.new()
 	_hex_grid_overlay.hex_size = _region_resource.hex_size
 	_hex_region.region_resource = _region_resource
 	_radialmenu.hide()
 
 
-func _on_Save_Arena_pressed():
+func _on_SaveArena_pressed():
 	if _region_resource == null:
 		return
 	if _region_resource.empty():
 		return
 	_radialmenu.hide()
 	var fd : FileDialog = FileDialog.new()
+	fd.add_filter("*.tres ; Map Resource")
+	fd.access = FileDialog.ACCESS_USERDATA
 	_ui.add_child(fd)
 	var _res : int = fd.connect("file_selected", self, "_on_save_file_selected")
 	_res = fd.connect("popup_hide", self, "_on_close_file_dialog", [fd])
-	fd.access = FileDialog.ACCESS_USERDATA
 	fd.popup_centered(Vector2(640,480))
+
+func _on_LoadArena_pressed():
+	_radialmenu.hide()
+	var fd : FileDialog = FileDialog.new()
+	fd.mode = FileDialog.MODE_OPEN_FILE
+	fd.add_filter("*.tres ; Map Resource")
+	fd.access =FileDialog.ACCESS_USERDATA
+	_ui.add_child(fd)
+	var _res : int = fd.connect("file_selected", self, "_on_load_file_selected")
+	_res = fd.connect("popup_hide", self, "_on_close_file_dialog", [fd])
+	fd.popup_centered(Vector2(640, 480))
+	
 
 func _on_close_file_dialog(fd : FileDialog) -> void:
 	if fd != null:

@@ -1,8 +1,6 @@
 tool
 extends Control
-class_name RadialButton
-
-# TODO: This redo of the origin RadialButton node is far from complete!! Must be finished!!
+class_name OBSRadialButton, "res://addons/obs_radial_menu/assets/icons/icon_obsradialbutton.svg"
 
 # ------------------------------------------------------------------------------
 # Signals
@@ -15,8 +13,8 @@ signal button_up()
 # Constants and ENUMs
 # ------------------------------------------------------------------------------
 enum BUTTON_STATE {Normal=0, Focused=1, Hover=2, Pressed=3}
-const THEME_TYPE_NAME = "RadialButton"
-const DEFAULT_ICON : Texture = preload("res://Assets/Textures/black_16x16.png")
+const THEME_TYPE_NAME = "OBSRadialButton"
+const DEFAULT_ICON : Texture = preload("res://addons/obs_radial_menu/assets/misc/black_16x16.png")
 const DEFAULT_COLORS : Dictionary = {
 	"normal" : Color("#37343e"),
 	"hover" : Color("#4d4057"),
@@ -28,7 +26,7 @@ const DEFAULT_COLORS : Dictionary = {
 	"trim_pressed" : Color("#37343e")
 }
 const DEFAULT_CONSTANTS : Dictionary = {
-	"trim_width" : 0.1
+	"trim_width" : 100
 }
 
 # ------------------------------------------------------------------------------
@@ -62,10 +60,8 @@ var _in_focus : bool = false
 var _btn_state : int = BUTTON_STATE.Normal
 var _last_mouse_pos : Vector2 = Vector2.ZERO
 
-# ------------------------------------------------------------------------------
-# Onready Variables
-# ------------------------------------------------------------------------------
-onready var _crect_node : ColorRect = $ColorRect
+var _crect_node : ColorRect = null
+
 
 # ------------------------------------------------------------------------------
 # Setters
@@ -112,6 +108,17 @@ func set_pressed(p : bool) -> void:
 # Override Methods
 # ------------------------------------------------------------------------------
 func _ready() -> void:
+	var crect = get_node_or_null("ColorRect")
+	if crect == null:
+		var mat : ShaderMaterial = ShaderMaterial.new()
+		mat.shader = preload("res://addons/obs_radial_menu/shaders/Arc.shader")
+		mat.resource_local_to_scene = true
+		crect = ColorRect.new()
+		crect.material = mat
+		crect.mouse_filter = MOUSE_FILTER_IGNORE
+		add_child(crect)
+	_crect_node = crect
+
 	var _res : int = connect("resized", self, "_on_resized")
 	if not Engine.editor_hint:
 		#set_focus_mode(Control.FOCUS_ALL)
@@ -122,7 +129,7 @@ func _ready() -> void:
 func _enter_tree():
 	var parent = get_parent()
 	if parent != null:
-		if parent.has_method("add_radial_button"): # My Cheat to see if we're under the RadialMenu class.
+		if parent.get_class() == "OBSRadialMenu": # My Cheat to see if we're under the RadialMenu class.
 			set_focus_mode(Control.FOCUS_NONE)
 			mouse_filter = Control.MOUSE_FILTER_PASS
 		else:
@@ -187,6 +194,9 @@ func _set(property : String, value) -> bool:
 			if typeof(value) == TYPE_BOOL:
 				set_pressed(value)
 			else : success = false
+		"theme":
+			call_deferred("_UpdateThemeChanges")
+			success = false
 		_:
 			var prop_split : Array = property.split("/")
 			match prop_split[0]:
@@ -207,7 +217,7 @@ func _set(property : String, value) -> bool:
 func _get_property_list() -> Array:
 	var arr : Array = [
 		{
-			name = "RadialButton",
+			name = THEME_TYPE_NAME,
 			type = TYPE_NIL,
 			usage = PROPERTY_USAGE_CATEGORY
 		},
@@ -259,9 +269,9 @@ func _get_property_list() -> Array:
 		},
 		{
 			name = "custom_constants/trim_width",
-			type = TYPE_REAL,
+			type = TYPE_INT,
 			hint = PROPERTY_HINT_RANGE,
-			hint_string = "0.0, 1.0",
+			hint_string = "0, 1000",
 			usage = 51 if _override_constants["trim_width"] else 18
 		}
 	]
@@ -282,8 +292,8 @@ func _SetCheckCustomConstant(property : String, value) -> bool:
 	if property in _override_constants:
 		match property:
 			"trim_width":
-				if typeof(value) == TYPE_REAL:
-					value = max(0.0, min(1.0, value))
+				if typeof(value) == TYPE_INT:
+					value = max(0, min(1000, value))
 		
 		if typeof(value) == typeof(DEFAULT_CONSTANTS[property]):
 			success = true
@@ -350,6 +360,10 @@ func _FullShaderUpdate() -> void:
 		_UpdateShaderRadii()
 		_UpdateShaderColors()
 
+func _UpdateThemeChanges() -> void:
+	_UpdateShaderRadii()
+	_UpdateShaderColors()
+
 func _UpdateShaderRadii() -> void:
 	if not _crect_node:
 		return
@@ -361,7 +375,7 @@ func _UpdateShaderRadii() -> void:
 		mat.set_shader_param("base_size", outer)
 		mat.set_shader_param("radius_outer", outer)
 		mat.set_shader_param("radius_inner", inner)
-		mat.set_shader_param("trim_width", get_constant("trim_width"))
+		mat.set_shader_param("trim_width", float(get_constant("trim_width")) / 1000.0)
 
 func _UpdateShaderParams(param : String, value) -> void:
 	if Engine.editor_hint and not _crect_node:
@@ -603,6 +617,8 @@ func release_focus() -> void:
 		.release_focus()
 	_SetFocusMode(false)
 
+func get_class() -> String:
+	return "OBSRadialButton"
 
 # ------------------------------------------------------------------------------
 # Public Methods

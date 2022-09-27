@@ -4,6 +4,7 @@ extends Spatial
 # ------------------------------------------------------------------------------
 # Constants
 # ------------------------------------------------------------------------------
+const HIGHLIGHT_MATERIAL : SpatialMaterial = preload("res://Objects/Hex/highlight.material")
 const HEX : PackedScene = preload("res://Objects/Hex/Hex.tscn")
 
 # ------------------------------------------------------------------------------
@@ -51,6 +52,21 @@ func clear() -> void:
 	for child in hex_container_node.get_children():
 		hex_container_node.remove_child(child)
 		child.queue_free()
+
+func set_highlight_color(c : Color) -> void:
+	HIGHLIGHT_MATERIAL.albedo_color = Color(c.r, c.g, c.b, 0.5)
+
+func highlight(qrs : Vector3) -> void:
+	for child in hex_container_node.get_children():
+		child.highlight(HIGHLIGHT_MATERIAL if child.qrs.eq(qrs) else null)
+
+func highlight_cells(cells : Array) -> void:
+	for child in hex_container_node.get_children():
+		var enable : bool = false
+		for cell in cells:
+			if cell.eq(child.qrs):
+				enable = true
+		child.highlight(HIGHLIGHT_MATERIAL if enable else null)
 
 # ------------------------------------------------------------------------------
 # Handler Methods

@@ -1,11 +1,12 @@
 tool
 extends Popup
-class_name RadialMenu
+class_name OBSRadialMenu, "res://addons/obs_radial_menu/assets/icons/icon_obsradialmenu.svg"
 
 # ------------------------------------------------------------------------------
 # Constants
 # ------------------------------------------------------------------------------
-const PROP_CHANGE_NOTE_DEBOUNCE : float = 0.25
+const CLASS_NAME : String = "OBSRadialMenu"
+const PROP_CHANGE_NOTE_DEBOUNCE : float = 0.5
 
 # ------------------------------------------------------------------------------
 # "Export" Variables
@@ -16,11 +17,16 @@ var _inner_radius : float = 0.25
 var _offset_angle : float = 0.0
 var _gap_degrees : float = 0.2
 var _force_neighboring : bool = true
+var _clamp_to_parent : bool = true
+var _expand_with_parent : bool = true
 
 # ------------------------------------------------------------------------------
 # Variables
 # ------------------------------------------------------------------------------
 var _prop_debounce_timer : SceneTreeTimer = null
+
+var _is_subradial : bool = false
+
 var _relative_coords : Vector2 = Vector2.ZERO
 var _radius_override : Vector2 = Vector2.ZERO
 
@@ -28,16 +34,31 @@ var _radius_override : Vector2 = Vector2.ZERO
 # Setters
 # ------------------------------------------------------------------------------
 func set_outer_radius(r : float) -> void:
-	if r >= 0.0 and r <= 1.0 and _outer_radius != r:
+	r = _ClampOuterRadii(r)
+	if _outer_radius != r:
 		_outer_radius = r
-		#_AdjustSize()
-		_AdjustRadialButtons()
+		if _is_subradial:
+			_inner_radius = _ClampInnerRadii(_inner_radius)
+			_NotifySubmenuRadialUpdate()
+		_AdjustRadialButtonSizeAndPos()
+
+func set_outer_radius_pixels(r : float) -> void:
+	var base_size : float = min(rect_size.x, rect_size.y) * 0.5
+	if base_size > 0.0:
+		set_outer_radius(r / base_size)
 
 func set_inner_radius(r : float) -> void:
-	if r >= 0.0 and r <= 1.0 and _inner_radius != r:
+	r = _ClampInnerRadii(r)
+	if _inner_radius != r:
 		_inner_radius = r
-		#_AdjustSize()
-		_AdjustRadialButtons()
+		_AdjustRadialButtonSizeAndPos()
+
+func set_inner_radius_pixels(r : float) -> void:
+	var base_size : float = min(rect_size.x, rect_size.y) * 0.5
+	if base_size > 0.0:
+		var outer : float = base_size * _outer_radius
+		if outer > 0.0:
+			set_inner_radius(r / outer)
 
 func set_offset_angle(a : float) -> void:
 	if a > 360.0:
@@ -61,12 +82,21 @@ func _ready() -> void:
 	_res = connect("child_entered_tree", self, "_on_child_entered")
 	_res = connect("child_exiting_tree", self, "_on_child_exited")
 	_res = connect("about_to_show", self, "_on_about_to_show")
-	#_AdjustSize()
-	if not Engine.editor_hint:
-		_RecalcScreenSize()
+	
+	_relative_coords = Vector2(0.5, 0.5)
+	_RecalcScreenSize()
 	_AdjustRadialButtons()
-	_AdjustRadialButtonSizeAndPos()
+#	if not Engine.editor_hint:
+#		_RecalcScreenSize()
+#	else:
+#		_relative_coords = Vector2(0.5, 0.5)
+#	_AdjustRadialButtons()
+#	_AdjustRadialButtonSizeAndPos()
 
+func _enter_tree() -> void:
+	var parent = get_parent()
+	if parent.get_class() == CLASS_NAME:
+		_is_subradial = true
 
 func _gui_input(event : InputEvent) -> void:
 	if event.is_action_pressed("ui_cancel"):
@@ -74,7 +104,7 @@ func _gui_input(event : InputEvent) -> void:
 	else:
 		var processed : bool = false
 		for child in get_children():
-			if child is RadialButton:
+			if child is OBSRadialButton:
 				if not processed:
 					processed = child._ProcessGUIInput(event)
 				else:
@@ -88,20 +118,21 @@ func _get(property : String):
 		"outer_radius":
 			return _outer_radius
 		"outer_radius_pixels":
-			var base_size : float = min(rect_size.x, rect_size.y) * 0.5
-			return base_size * _outer_radius
+			return _CalcOuterRadiusPixels()
 		"inner_radius":
 			return _inner_radius
 		"inner_radius_pixels":
-			var base_size : float = min(rect_size.x, rect_size.y) * 0.5
-			var outer : float = base_size * _outer_radius
-			return outer * _inner_radius
+			return _CalcInnerRadiusPixels()
 		"offset_angle":
 			return _offset_angle
 		"gap_degrees":
 			return _gap_degrees
 		"force_neighboring":
 			return _force_neighboring
+		"clamp_to_parent":
+			return _clamp_to_parent
+		"expand_with_parent":
+			return _expand_with_parent
 	return null
 
 func _set(property : String, value) -> bool:
@@ -117,40 +148,19 @@ func _set(property : String, value) -> bool:
 			else : success = false
 		"outer_radius":
 			if typeof(value) == TYPE_REAL:
-				value = max(0.0, min(1.0, value))
-				if _outer_radius != value:
-					_outer_radius = value
-					_AdjustRadialButtonSizeAndPos()
-				else : success = false
+				set_outer_radius(value)
 			else : success = false
 		"outer_radius_pixels":
 			if typeof(value) == TYPE_REAL:
-				var base_size : float = min(rect_size.x, rect_size.y) * 0.5
-				if base_size > 0.0:
-					value = max(0.0, min(1.0, value / base_size))
-					if _outer_radius != value:
-						_outer_radius = value
-						_AdjustRadialButtonSizeAndPos()
-				else : success = false
+				set_outer_radius_pixels(value)
 			else : success = false
 		"inner_radius":
 			if typeof(value) == TYPE_REAL:
-				value = max(0.0, min(1.0, value))
-				if _inner_radius != value:
-					_inner_radius = value
-					_AdjustRadialButtonSizeAndPos()
-				else : success = false
+				set_inner_radius(value)
 			else : success = false
 		"inner_radius_pixels":
 			if typeof(value) == TYPE_REAL:
-				var base_size : float = min(rect_size.x, rect_size.y) * 0.5
-				if base_size > 0.0:
-					var outer : float = base_size * _outer_radius
-					value = max(0.0, min(1.0, value / outer))
-					if _inner_radius != value:
-						_inner_radius = value
-						_AdjustRadialButtonSizeAndPos()
-				else : success = false
+				set_inner_radius_pixels(value)
 			else : success = false
 		"offset_angle":
 			if typeof(value) == TYPE_REAL:
@@ -167,6 +177,19 @@ func _set(property : String, value) -> bool:
 			if typeof(value) == TYPE_BOOL:
 				_force_neighboring = value
 			else : success = false
+		"clamp_to_parent":
+			if typeof(value) == TYPE_BOOL:
+				_clamp_to_parent = value
+			else : success = false
+		"expand_with_parent":
+			if typeof(value) == TYPE_BOOL:
+				_expand_with_parent = value
+			else : success = false
+		"theme":
+			call_deferred("_NotifyButtonsThemeChanged")
+			# The assignment of this value doesn't happen here, we just need to notify that it's
+			# coming.
+			success = false 
 		_:
 			success = false
 	
@@ -178,7 +201,7 @@ func _set(property : String, value) -> bool:
 func _get_property_list() -> Array:
 	var arr : Array = [
 		{
-			name = "RadialMenu",
+			name = CLASS_NAME,
 			type = TYPE_NIL,
 			usage = PROPERTY_USAGE_CATEGORY
 		},
@@ -234,6 +257,19 @@ func _get_property_list() -> Array:
 		}
 	]
 	
+	if _is_subradial:
+		arr.append({
+			name = "clamp_to_parent",
+			type = TYPE_BOOL,
+			usage = PROPERTY_USAGE_DEFAULT
+		})
+		if _clamp_to_parent:
+			arr.append({
+				name = "expand_with_parent",
+				type = TYPE_BOOL,
+				usage = PROPERTY_USAGE_DEFAULT
+			})
+	
 	return arr
 
 # ------------------------------------------------------------------------------
@@ -249,7 +285,72 @@ func _PropertyChangedNotify() -> void:
 	else:
 		_prop_debounce_timer.time_left = PROP_CHANGE_NOTE_DEBOUNCE
 
-func _SetNeighbors(from_neighbour : RadialButton, to_neighbour : RadialButton) -> void:
+func _NotifySubmenuRadialUpdate() -> void:
+	for child in get_children():
+		if child.get_class() == CLASS_NAME:
+			if child.expand_with_parent:
+				child._AdjustToParent()
+
+func _NotifyButtonsThemeChanged() -> void:
+	for child in get_children():
+		if child is OBSRadialButton:
+			child._UpdateThemeChanges()
+
+func _GetBaseSize() -> float:
+	return min(rect_size.x, rect_size.y) * 0.5
+
+func _GetOuterRadius() -> float:
+	if _radius_override.x > 0.0 and _radius_override.x < 1.0:
+		return _radius_override.x
+	return _outer_radius
+
+func _GetInnerRadius() -> float:
+	if _radius_override.y > 0.0 and _radius_override.y < 1.0:
+		return _radius_override.y
+	return _inner_radius
+
+func _CalcOuterRadiusPixels() -> float:
+	return _GetBaseSize() * _GetOuterRadius()
+
+func _CalcInnerRadiusPixels() -> float:
+	return _CalcOuterRadiusPixels() * _GetInnerRadius()
+
+func _ClampOuterRadii(value : float) -> float:
+	value = max(0.0, min(1.0, value))
+	if _is_subradial and _clamp_to_parent:
+		var parent = get_parent()
+		if parent.get_class() == CLASS_NAME:
+			var base_size : float = _GetBaseSize()
+			var parent_outer_pixels = parent.get("outer_radius_pixels")
+			var radius : float = base_size * value
+			if radius < parent_outer_pixels:
+				value = max(0.0, min(1.0, parent_outer_pixels / base_size))
+	return value
+
+func _ClampInnerRadii(value : float) -> float:
+	value = max(0.0, min(1.0, value))
+	if _is_subradial and _clamp_to_parent:
+		var parent = get_parent()
+		if parent.get_class() == CLASS_NAME:
+			var parent_outer_pixels = parent._CalcOuterRadiusPixels()
+			var outer_pixels = _CalcOuterRadiusPixels()
+			var inner_pixels  = outer_pixels * value
+			if inner_pixels < parent_outer_pixels:
+				inner_pixels = parent_outer_pixels
+				return inner_pixels / outer_pixels
+	return value
+
+func _RecalcScreenSize() -> void:
+	# TODO: Why does get_tree().get_root().size return the correct value but
+	# get_viewport_rect() does not?
+	#rect_size = get_viewport_rect().size
+	rect_size = get_tree().get_root().size
+	if _is_subradial and _clamp_to_parent:
+		_AdjustToParent()
+	else:
+		_AdjustRadialButtonSizeAndPos()
+
+func _SetNeighbors(from_neighbour : OBSRadialButton, to_neighbour : OBSRadialButton) -> void:
 	var path : NodePath = to_neighbour.get_path_to(from_neighbour)
 	to_neighbour.focus_neighbour_left = path
 	to_neighbour.focus_neighbour_top = path
@@ -259,10 +360,26 @@ func _SetNeighbors(from_neighbour : RadialButton, to_neighbour : RadialButton) -
 	from_neighbour.focus_neighbour_bottom = path
 	from_neighbour.focus_next = path
 
+func _AdjustToParent() -> void:
+	var parent = get_parent()
+	if parent.get_class() == CLASS_NAME:
+		var parent_outer_pixels : float = parent.get("outer_radius_pixels")
+		var inner_pixels : float = get("inner_radius_pixels")
+		if inner_pixels < parent_outer_pixels:
+			var base_size : float = _GetBaseSize()
+			var outer_pixels : float = get("outer_radius_pixels")
+			var thickness : float = outer_pixels - inner_pixels
+			inner_pixels = parent_outer_pixels
+			outer_pixels = inner_pixels + thickness
+			if outer_pixels > base_size:
+				outer_pixels = base_size
+			set_outer_radius_pixels(outer_pixels)
+			set_inner_radius_pixels(inner_pixels)
+
 func _AdjustRadialButtons() -> void:
 	var count : int = 0
 	for child in get_children():
-		if child is RadialButton:
+		if child is OBSRadialButton:
 			count += 1
 	
 	if count > 0:
@@ -273,7 +390,7 @@ func _AdjustRadialButtons() -> void:
 		var first_child = null
 		var last_child = null
 		for child in get_children():
-			if child is RadialButton:
+			if child is OBSRadialButton:
 				child.set_arc_degrees(start_degree, start_degree + arc, _offset_angle)
 				#child.offset_degree = _offset_angle
 				start_degree += arc + _gap_degrees
@@ -286,40 +403,26 @@ func _AdjustRadialButtons() -> void:
 		if first_child != null and last_child != null:
 			_SetNeighbors(last_child, first_child)
 
-func _RecalcScreenSize() -> void:
-	# TODO: Why does get_tree().get_root().size return the correct value but
-	# get_viewport_rect() does not?
-	rect_size = get_tree().get_root().size
-	_AdjustRadialButtonSizeAndPos()
-
 func _AdjustRadialButtonSizeAndPos() -> void:
-	var outer_rad : float = _outer_radius
-	var inner_rad : float = _inner_radius
-	if _radius_override.x > 0.0 and _radius_override.x <= 1.0:
-		outer_rad = _radius_override.x
-	if _radius_override.y > 0.0 and _radius_override.y <= 1.0:
-		inner_rad = _radius_override.y
-	
 	var cpos : Vector2 = (rect_size * _relative_coords) #+ Vector2(_outer_radius, _outer_radius)
 	for child in get_children():
-		if child is RadialButton:
-			var base_size : float = min(rect_size.x, rect_size.y) * 0.5
-			var outer : float = base_size * outer_rad
-			var inner : float = outer * inner_rad
+		if child is OBSRadialButton:
+			var outer : float = _CalcOuterRadiusPixels()
+			var inner : float = _CalcInnerRadiusPixels()
 			child.set_radii(inner, outer)
 			child.rect_position = cpos - Vector2(outer, outer)
 
-func _GetFocusedChild() -> RadialButton:
+func _GetFocusedChild() -> OBSRadialButton:
 	for child in get_children():
-		if child is RadialButton:
+		if child is OBSRadialButton:
 			if child.has_focus():
 				return child
 	return null
 
-func _GrabButtonFocus(btn : RadialButton) -> void:
+func _GrabButtonFocus(btn : OBSRadialButton) -> void:
 	if btn != null:
 		if is_a_parent_of(btn):
-			var child : RadialButton = _GetFocusedChild()
+			var child : OBSRadialButton = _GetFocusedChild()
 			if child != btn:
 				child.release_focus()
 				btn.grab_focus()
@@ -331,14 +434,21 @@ func _GrabButtonFocus(btn : RadialButton) -> void:
 func popup(rect : Rect2 = Rect2(0,0,0,0)) -> void:
 	.popup(Rect2(0,0,0,0))
 	if rect_size.x > 0.0 and rect_size.y > 0.0:
-		var base_size : float = min(rect_size.x, rect_size.y) * 0.5
+		var base_size : float = _GetBaseSize()
 		if rect.size.x > 0.0:
 			_radius_override.x = rect.size.x / base_size
 		if rect.size.y > 0.0:
 			_radius_override.y = rect.size.y / base_size
+		
+		var outer : float = _CalcOuterRadiusPixels()
+		var pos : Vector2 = Vector2(
+			clamp(rect.position.x, outer, rect_size.x - outer),
+			clamp(rect.position.y, outer, rect_size.y - outer)
+		)
+		
 		_relative_coords = Vector2(
-			rect.position.x / rect_size.x,
-			rect.position.y / rect_size.y
+			pos.x / rect_size.x,
+			pos.y / rect_size.y
 		)
 	else:
 		_relative_coords = Vector2.ZERO
@@ -346,7 +456,7 @@ func popup(rect : Rect2 = Rect2(0,0,0,0)) -> void:
 
 func popup_centered(size : Vector2 = Vector2.ZERO) -> void:
 	.popup_centered(Vector2.ZERO)
-	var base_size : float = min(rect_size.x, rect_size.y) * 0.5
+	var base_size : float = _GetBaseSize()
 	if base_size > 0.0:
 		if size.x > 0.0:
 			_radius_override.x = size.x / base_size
@@ -367,6 +477,9 @@ func hide() -> void:
 func has_focus() -> bool:
 	return _GetFocusedChild() != null
 
+func get_class() -> String:
+	return CLASS_NAME
+
 # ------------------------------------------------------------------------------
 # Handler Methods
 # ------------------------------------------------------------------------------
@@ -381,20 +494,20 @@ func _on_screen_size_changed() -> void:
 		call_deferred("_RecalcScreenSize")
 
 func _on_child_entered(child : Node) -> void:
-	if child is RadialButton:
+	if child is OBSRadialButton:
 		if not Engine.editor_hint:
 			if not child.is_connected("focus_entered", self, "_on_child_focus_entered"):
 				var _res : int = child.connect("focus_entered", self, "_on_child_focus_entered")
-		_AdjustRadialButtons()
-		_AdjustRadialButtonSizeAndPos()
+		call_deferred("_AdjustRadialButtons")
+		call_deferred("_AdjustRadialButtonSizeAndPos")
 
 func _on_child_exited(child : Node) -> void:
-	if child is RadialButton:
+	if child is OBSRadialButton:
 		if not Engine.editor_hint:
 			if child.is_connected("focus_entered", self, "_on_child_focus_entered"):
 				child.disconnect("focus_entered", self, "_on_child_focus_entered")
-		_AdjustRadialButtons()
-		_AdjustRadialButtonSizeAndPos()
+		call_deferred("_AdjustRadialButtons")
+		call_deferred("_AdjustRadialButtonSizeAndPos")
 
 func _on_child_focus_entered() -> void:
 	grab_focus()
@@ -403,7 +516,7 @@ func _on_about_to_show() -> void:
 	_RecalcScreenSize()
 	if not has_focus():
 		for child in get_children():
-			if child is RadialButton:
+			if child is OBSRadialButton:
 				child.grab_focus()
 				grab_focus()
 				break
