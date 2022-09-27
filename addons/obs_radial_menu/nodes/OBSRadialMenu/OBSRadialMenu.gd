@@ -78,7 +78,7 @@ func _ready() -> void:
 	set_focus_mode(Control.FOCUS_ALL)
 	var _res : int = 0
 	if not Engine.editor_hint:
-		_res = get_tree().get_root().connect("size_changed", self, "_on_screen_size_changed")
+		_res = get_viewport().connect("size_changed", self, "_on_viewport_changed")
 	_res = connect("child_entered_tree", self, "_on_child_entered")
 	_res = connect("child_exiting_tree", self, "_on_child_exited")
 	_res = connect("about_to_show", self, "_on_about_to_show")
@@ -341,10 +341,7 @@ func _ClampInnerRadii(value : float) -> float:
 	return value
 
 func _RecalcScreenSize() -> void:
-	# TODO: Why does get_tree().get_root().size return the correct value but
-	# get_viewport_rect() does not?
-	#rect_size = get_viewport_rect().size
-	rect_size = get_tree().get_root().size
+	rect_size = get_viewport_rect().size
 	if _is_subradial and _clamp_to_parent:
 		_AdjustToParent()
 	else:
@@ -488,10 +485,9 @@ func _on_property_changed_notify() -> void:
 	property_list_changed_notify()
 
 
-func _on_screen_size_changed() -> void:
-	# Have to defer the call or the screen doesn't adjust properly.
+func _on_viewport_changed() -> void:
 	if not Engine.editor_hint:
-		call_deferred("_RecalcScreenSize")
+		_RecalcScreenSize()
 
 func _on_child_entered(child : Node) -> void:
 	if child is OBSRadialButton:
