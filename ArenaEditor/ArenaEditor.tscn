@@ -74,84 +74,144 @@ anchor_bottom = 1.0
 focus_mode = 2
 script = ExtResource( 6 )
 max_arc_degrees = 360.0
-outer_radius = 0.5
-outer_radius_pixels = 150.0
-inner_radius = 0.5
-inner_radius_pixels = 75.0
+outer_radius = 0.535
+outer_radius_pixels = 160.5
+inner_radius = 0.449
+inner_radius_pixels = 72.0645
 offset_angle = 0.0
 gap_degrees = 10.0
 force_neighboring = true
 
-[node name="NewArena" type="Control" parent="UI/RadialMenu"]
-margin_left = -150.0
-margin_top = -150.0
-margin_right = 150.0
-margin_bottom = 150.0
+[node name="File" type="Control" parent="UI/RadialMenu"]
+margin_left = 351.5
+margin_top = 139.5
+margin_right = 672.5
+margin_bottom = 460.5
 mouse_filter = 1
 script = ExtResource( 5 )
-icon = ExtResource( 7 )
+icon = null
 arc_start_degree = 5.0
 arc_end_degree = 67.0
 arc_offset_degree = 0.0
-inner_radius = 0.5
+inner_radius = 0.449
 pressed = false
 
-[node name="SaveArena" type="Control" parent="UI/RadialMenu"]
-margin_left = -150.0
-margin_top = -150.0
-margin_right = 150.0
-margin_bottom = 150.0
+[node name="Something" type="Control" parent="UI/RadialMenu"]
+margin_left = 351.5
+margin_top = 139.5
+margin_right = 672.5
+margin_bottom = 460.5
 mouse_filter = 1
 script = ExtResource( 5 )
-icon = ExtResource( 9 )
+icon = null
 arc_start_degree = 77.0
 arc_end_degree = 139.0
 arc_offset_degree = 0.0
-inner_radius = 0.5
+inner_radius = 0.449
 pressed = false
 
-[node name="LoadArena" type="Control" parent="UI/RadialMenu"]
-margin_left = -150.0
-margin_top = -150.0
-margin_right = 150.0
-margin_bottom = 150.0
+[node name="SomethingElse" type="Control" parent="UI/RadialMenu"]
+margin_left = 351.5
+margin_top = 139.5
+margin_right = 672.5
+margin_bottom = 460.5
 mouse_filter = 1
 script = ExtResource( 5 )
-icon = ExtResource( 8 )
+icon = null
 arc_start_degree = 149.0
 arc_end_degree = 211.0
 arc_offset_degree = 0.0
-inner_radius = 0.5
+inner_radius = 0.449
 pressed = false
 
 [node name="OBSRadialButton4" type="Control" parent="UI/RadialMenu"]
-margin_left = -150.0
-margin_top = -150.0
-margin_right = 150.0
-margin_bottom = 150.0
+margin_left = 351.5
+margin_top = 139.5
+margin_right = 672.5
+margin_bottom = 460.5
 mouse_filter = 1
 script = ExtResource( 5 )
 icon = null
 arc_start_degree = 221.0
 arc_end_degree = 283.0
 arc_offset_degree = 0.0
-inner_radius = 0.5
+inner_radius = 0.449
 pressed = false
 
 [node name="OBSRadialButton" type="Control" parent="UI/RadialMenu"]
-margin_left = -150.0
-margin_top = -150.0
-margin_right = 150.0
-margin_bottom = 150.0
+margin_left = 351.5
+margin_top = 139.5
+margin_right = 672.5
+margin_bottom = 460.5
 mouse_filter = 1
 script = ExtResource( 5 )
 icon = null
 arc_start_degree = 293.0
 arc_end_degree = 355.0
 arc_offset_degree = 0.0
-inner_radius = 0.5
+inner_radius = 0.449
 pressed = false
 
-[connection signal="pressed" from="UI/RadialMenu/NewArena" to="." method="_on_NewArena_pressed"]
-[connection signal="pressed" from="UI/RadialMenu/SaveArena" to="." method="_on_SaveArena_pressed"]
-[connection signal="pressed" from="UI/RadialMenu/LoadArena" to="." method="_on_LoadArena_pressed"]
+[node name="OBSRadialMenu" type="Popup" parent="UI/RadialMenu"]
+visible = true
+anchor_right = 1.0
+anchor_bottom = 1.0
+focus_mode = 2
+script = ExtResource( 6 )
+max_arc_degrees = 180.0
+outer_radius = 0.748333
+outer_radius_pixels = 224.5
+inner_radius = 0.714922
+inner_radius_pixels = 160.5
+offset_angle = 307.445
+gap_degrees = 5.966
+force_neighboring = true
+clamp_type = 3
+sticky_thickness = 64.0
+
+[node name="NewArena" type="Control" parent="UI/RadialMenu/OBSRadialMenu"]
+margin_left = 287.5
+margin_top = 75.5
+margin_right = 736.5
+margin_bottom = 524.5
+mouse_filter = 1
+script = ExtResource( 5 )
+icon = ExtResource( 7 )
+arc_start_degree = 2.983
+arc_end_degree = 57.017
+arc_offset_degree = 307.445
+inner_radius = 0.714922
+pressed = false
+
+[node name="SaveArena" type="Control" parent="UI/RadialMenu/OBSRadialMenu"]
+margin_left = 287.5
+margin_top = 75.5
+margin_right = 736.5
+margin_bottom = 524.5
+mouse_filter = 1
+script = ExtResource( 5 )
+icon = ExtResource( 9 )
+arc_start_degree = 62.983
+arc_end_degree = 117.017
+arc_offset_degree = 307.445
+inner_radius = 0.714922
+pressed = false
+
+[node name="LoadArena" type="Control" parent="UI/RadialMenu/OBSRadialMenu"]
+margin_left = 287.5
+margin_top = 75.5
+margin_right = 736.5
+margin_bottom = 524.5
+mouse_filter = 1
+script = ExtResource( 5 )
+icon = ExtResource( 8 )
+arc_start_degree = 122.983
+arc_end_degree = 177.017
+arc_offset_degree = 307.445
+inner_radius = 0.714922
+pressed = false
+
+[connection signal="pressed" from="UI/RadialMenu/File" to="UI/RadialMenu/OBSRadialMenu" method="popup_centered"]
+[connection signal="pressed" from="UI/RadialMenu/OBSRadialMenu/NewArena" to="." method="_on_NewArena_pressed"]
+[connection signal="pressed" from="UI/RadialMenu/OBSRadialMenu/SaveArena" to="." method="_on_SaveArena_pressed"]
+[connection signal="pressed" from="UI/RadialMenu/OBSRadialMenu/LoadArena" to="." method="_on_LoadArena_pressed"]

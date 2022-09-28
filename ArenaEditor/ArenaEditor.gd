@@ -179,3 +179,4 @@ func _on_close_file_dialog(fd : FileDialog) -> void:
 		print("Removing file dialog")
 		_ui.remove_child(fd)
 		fd.queue_free()
+

@@ -108,16 +108,23 @@ func set_pressed(p : bool) -> void:
 # Override Methods
 # ------------------------------------------------------------------------------
 func _ready() -> void:
+	# Building the material here because if this node is spawned via the editor "Add Child Node"
+	# option, or via duplicating an already instanced OBSRadialButton, the underlaying material and
+	# shader will not be unique to the newly created OBSRadialButton. Therefore, I have to assume
+	# all OBSRadialButton instances have this little issue, and create a new material for all instances.
+	# At least until I figure out a better way.
+	var mat : ShaderMaterial = ShaderMaterial.new()
+	mat.shader = preload("res://addons/obs_radial_menu/shaders/Arc.shader")
+	mat.resource_local_to_scene = true
+
 	var crect = get_node_or_null("ColorRect")
 	if crect == null:
-		var mat : ShaderMaterial = ShaderMaterial.new()
-		mat.shader = preload("res://addons/obs_radial_menu/shaders/Arc.shader")
-		mat.resource_local_to_scene = true
 		crect = ColorRect.new()
 		crect.material = mat
 		crect.mouse_filter = MOUSE_FILTER_IGNORE
 		add_child(crect)
 	_crect_node = crect
+	_crect_node.material = mat
 
 	var _res : int = connect("resized", self, "_on_resized")
 	if not Engine.editor_hint:
@@ -171,7 +178,7 @@ func _set(property : String, value) -> bool:
 	
 	match property:
 		"icon":
-			if value is Texture:
+			if value is Texture or value == null:
 				set_icon(value)
 			else : success = false
 		"arc_start_degree":

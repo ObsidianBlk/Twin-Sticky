@@ -1,0 +1,102 @@
+[gd_scene load_steps=2 format=2]
+
+[ext_resource path="res://UI/ArenaEditor/ArenaEditor.theme" type="Theme" id=1]
+
+[node name="AESaveDialog" type="CenterContainer"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+theme = ExtResource( 1 )
+
+[node name="VBC" type="VBoxContainer" parent="."]
+margin_left = 332.0
+margin_top = 256.0
+margin_right = 691.0
+margin_bottom = 344.0
+custom_constants/separation = 0
+
+[node name="TitleBar" type="PanelContainer" parent="VBC"]
+margin_right = 359.0
+margin_bottom = 20.0
+theme_type_variation = "AETitleBarPanel"
+
+[node name="Label" type="Label" parent="VBC/TitleBar"]
+margin_left = 6.0
+margin_top = 4.0
+margin_right = 353.0
+margin_bottom = 18.0
+text = "Save Arena"
+
+[node name="Content" type="PanelContainer" parent="VBC"]
+margin_top = 20.0
+margin_right = 359.0
+margin_bottom = 88.0
+theme_type_variation = "AEContentPanel"
+
+[node name="Layout" type="VBoxContainer" parent="VBC/Content"]
+margin_left = 6.0
+margin_top = 6.0
+margin_right = 353.0
+margin_bottom = 62.0
+
+[node name="ArenaName" type="HBoxContainer" parent="VBC/Content/Layout"]
+margin_right = 347.0
+margin_bottom = 24.0
+
+[node name="Label" type="Label" parent="VBC/Content/Layout/ArenaName"]
+margin_top = 5.0
+margin_right = 87.0
+margin_bottom = 19.0
+text = "Arena Name: "
+
+[node name="LineEdit" type="LineEdit" parent="VBC/Content/Layout/ArenaName"]
+margin_left = 91.0
+margin_right = 347.0
+margin_bottom = 24.0
+rect_min_size = Vector2( 256, 0 )
+focus_neighbour_left = NodePath("../../Options/Cancel")
+focus_neighbour_top = NodePath(".")
+focus_neighbour_right = NodePath("../../Options/Save")
+focus_neighbour_bottom = NodePath("../../Options/Save")
+focus_next = NodePath("../../Options/Save")
+focus_previous = NodePath("../../Options/Cancel")
+
+[node name="HSeparator" type="HSeparator" parent="VBC/Content/Layout"]
+margin_top = 28.0
+margin_right = 347.0
+margin_bottom = 32.0
+
+[node name="Options" type="HBoxContainer" parent="VBC/Content/Layout"]
+margin_top = 36.0
+margin_right = 347.0
+margin_bottom = 56.0
+
+[node name="Save" type="Button" parent="VBC/Content/Layout/Options"]
+margin_right = 113.0
+margin_bottom = 20.0
+focus_neighbour_left = NodePath("../../ArenaName/LineEdit")
+focus_neighbour_top = NodePath("../../ArenaName/LineEdit")
+focus_neighbour_right = NodePath("../Cancel")
+focus_neighbour_bottom = NodePath(".")
+focus_next = NodePath("../Cancel")
+focus_previous = NodePath("../../ArenaName/LineEdit")
+size_flags_horizontal = 3
+text = "Save"
+
+[node name="Control" type="Control" parent="VBC/Content/Layout/Options"]
+margin_left = 117.0
+margin_right = 230.0
+margin_bottom = 20.0
+size_flags_horizontal = 3
+
+[node name="Cancel" type="Button" parent="VBC/Content/Layout/Options"]
+margin_left = 234.0
+margin_right = 347.0
+margin_bottom = 20.0
+focus_neighbour_left = NodePath("../Save")
+focus_neighbour_top = NodePath("../../ArenaName/LineEdit")
+focus_neighbour_right = NodePath("../../ArenaName/LineEdit")
+focus_neighbour_bottom = NodePath(".")
+focus_next = NodePath("../../ArenaName/LineEdit")
+focus_previous = NodePath("../Save")
+size_flags_horizontal = 3
+text = "Cancel"

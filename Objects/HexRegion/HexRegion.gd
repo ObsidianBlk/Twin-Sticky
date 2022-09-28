@@ -49,6 +49,9 @@ func _Build() -> void:
 # Public Methods
 # ------------------------------------------------------------------------------
 func clear() -> void:
+	if not hex_container_node:
+		return
+	
 	for child in hex_container_node.get_children():
 		hex_container_node.remove_child(child)
 		child.queue_free()
@@ -72,6 +75,9 @@ func highlight_cells(cells : Array) -> void:
 # Handler Methods
 # ------------------------------------------------------------------------------
 func _on_region_hex_added(hex_cell : HexCell) -> void:
+	if not hex_container_node:
+		return
+	
 	var hex : Spatial = HEX.instance()
 	hex_container_node.add_child(hex)
 	hex.qrs = hex_cell.qrs

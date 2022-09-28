@@ -41,6 +41,7 @@ onready var hexregion_node : Spatial = $HexRegion
 func _ready() -> void:
 	var _res : int = Net.connect("add_player", self, "_on_add_player")
 	_res = Net.connect("remove_player", self, "_on_remove_player")
+	hexregion_node.region_resource = preload("res://Arenas/Map1.tres")
 
 # -----------------------------------------------------------------------------
 # Private Methods
