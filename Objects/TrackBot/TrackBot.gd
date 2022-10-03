@@ -86,8 +86,6 @@ func _ProcessImpulses(delta : float) -> void:
 			apply_central_impulse(Vector3.UP * _boost_jump_strength)
 		_boost_jump_strength = 0.0
 	hat_node.transform.basis = Basis(transform.basis.get_rotation_quat().inverse())
-	#print(hat_node.global_transform.basis.y)
-	#print(hat_node.translation)
 
 
 func _UpdateHatRotation() -> void:
@@ -114,6 +112,24 @@ puppet func r_update(pos : Vector3, basis : Basis) -> void:
 	transform.basis = basis
 	hat_node.transform.basis = Basis(basis.get_rotation_quat().inverse())
 
+puppet func r_hit(dmg : float, knockback : Vector3) -> void:
+	pass
+
+# ------------------------------------------------------------------------------
+# Private Methods
+# ------------------------------------------------------------------------------
+func _ConnectBooster(booster : Spatial) -> void:
+	var _res : int = _booster_node.connect("booster_facing_changed", self, "_on_booster_facing_changed")
+	_res = _booster_node.connect("booster_ignited", self, "_on_booster_ignited")
+	_res = _booster_node.connect("booster_off", self, "_on_booster_off")
+	_res = _booster_node.connect("booster_jump", self, "_on_booster_jump")
+
+func _DisconnectBooster(booster : Spatial) -> void:
+	_booster_node.disconnect("booster_facing_changed", self, "_on_booster_facing_changed")
+	_booster_node.disconnect("booster_ignited", self, "_on_booster_ignited")
+	_booster_node.disconnect("booster_off", self, "_on_booster_off")
+	_booster_node.disconnect("booster_jump", self, "_on_booster_jump")
+
 # ------------------------------------------------------------------------------
 # Public Methods
 # ------------------------------------------------------------------------------
@@ -128,10 +144,12 @@ func add_booster(booster : Spatial) -> void:
 		_booster_node = booster
 		hat_node.add_child(_booster_node)
 		
-		var _res : int = _booster_node.connect("booster_facing_changed", self, "_on_booster_facing_changed")
-		_res = _booster_node.connect("booster_ignited", self, "_on_booster_ignited")
-		_res = _booster_node.connect("booster_off", self, "_on_booster_off")
-		_res = _booster_node.connect("booster_jump", self, "_on_booster_jump")
+		if _network_mode:
+			if is_network_master():
+				_ConnectBooster(_booster_node)
+		else:
+			_ConnectBooster(_booster_node)
+		
 		_boost_direction = _booster_node.get_facing()
 
 func remove_booster() -> Spatial:
@@ -139,10 +157,13 @@ func remove_booster() -> Spatial:
 		_boost_strength = 0.0
 		_boost_jump_strength = 0.0
 		_boost_direction = Vector3.ZERO
-		_booster_node.disconnect("booster_facing_changed", self, "_on_booster_facing_changed")
-		_booster_node.disconnect("booster_ignited", self, "_on_booster_ignited")
-		_booster_node.disconnect("booster_off", self, "_on_booster_off")
-		_booster_node.disconnect("booster_jump", self, "_on_booster_jump")
+		
+		if _network_mode:
+			if is_network_master():
+				_DisconnectBooster(_booster_node)
+		else:
+			_DisconnectBooster(_booster_node)
+		
 		hat_node.remove_child(_booster_node)
 		var t = _booster_node
 		_booster_node = null
@@ -179,10 +200,8 @@ func unmount_item(id : int) -> Spatial:
 	return _weaponmount_node.unmount_item(id)
 
 func hit(dmg : float, knockback : Vector3) -> void:
-	# TODO: Make this network aware!
 	if _hp > 0.0:
 		_hp -= dmg
-		print("HP: ", _hp)
 		emit_signal("hp_changed", owner_id, _hp, max_hp)
 		if _hp <= 0.0:
 			if _weaponmount_node:

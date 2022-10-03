@@ -72,18 +72,20 @@ func _unhandled_input(event : InputEvent) -> void:
 
 
 func _physics_process(delta : float) -> void:
-	face(-Vector2(_dx[0] + _dx[1], _dy[0] + _dy[1]).normalized())
-	var target_angle = Vector3.FORWARD.angle_to(_target_facing)
-	
-	if rotation.y != target_angle:
-		var target_position = transform.origin + _target_facing
-		var new_transform = transform.looking_at(target_position, Vector3.UP)
-		transform = transform.interpolate_with(new_transform, deg2rad(dps) * delta)
+	if _networked:
+		if is_network_master():
+			_ProcessOrientation(delta)
+			rpc("r_transform_update", transform)
+	else:
+		_ProcessOrientation(delta)
 
 
 # ------------------------------------------------------------------------------
 # Romote Methods
 # ------------------------------------------------------------------------------
+puppet func r_transform_update(t : Transform) -> void:
+	transform = t
+
 remotesync func r_fire(id) -> void:
 	if id in _mounted_items:
 		if _mounted_items[id].has_method("fire"):
@@ -104,17 +106,33 @@ remotesync func r_facing_degrees(angle : float) -> void:
 	_target_facing = Vector3.FORWARD.rotated(Vector3.UP, deg2rad(angle))
 
 # ------------------------------------------------------------------------------
+# Private Methods
+# ------------------------------------------------------------------------------
+func _ProcessOrientation(delta : float) -> void:
+	face(-Vector2(_dx[0] + _dx[1], _dy[0] + _dy[1]).normalized())
+	var target_angle = Vector3.FORWARD.angle_to(_target_facing)
+	
+	if rotation.y != target_angle:
+		var target_position = transform.origin + _target_facing
+		var new_transform = transform.looking_at(target_position, Vector3.UP)
+		transform = transform.interpolate_with(new_transform, deg2rad(dps) * delta)
+
+# ------------------------------------------------------------------------------
 # Public Methods
 # ------------------------------------------------------------------------------
 func fire(id) -> void:
 	if _networked:
-		rpc("r_fire", id)
+		if not is_network_master():
+			rpc_id(0, "r_fire", id)
+		else:
+			r_fire(id)
 	else:
 		r_fire(id)
 
 func set_facing(facing : Vector2) -> void:
 	if _networked:
-		rpc("r_set_facing", facing)
+		if is_network_master():
+			rpc("r_set_facing", facing)
 	else:
 		r_set_facing(facing)
 
@@ -124,13 +142,15 @@ func get_facing() -> Vector3:
 
 func face(facing : Vector2) -> void:
 	if _networked:
-		rpc("r_face", facing)
+		if is_network_master():
+			rpc("r_face", facing)
 	else:
 		r_face(facing)
 
 func facing_degrees(angle : float) -> void:
 	if _networked:
-		rpc("r_facing_degrees", angle)
+		if is_network_master():
+			rpc("r_facing_degrees", angle)
 	else:
 		r_facing_degrees(angle)
 

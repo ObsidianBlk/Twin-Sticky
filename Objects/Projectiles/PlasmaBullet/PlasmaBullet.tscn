@@ -82,5 +82,3 @@ shape = SubResource( 5 )
 light_color = Color( 1, 0.792157, 0.47451, 1 )
 omni_range = 4.0
 omni_attenuation = 4.28709
-
-[connection signal="body_entered" from="Area" to="." method="_on_body_entered"]

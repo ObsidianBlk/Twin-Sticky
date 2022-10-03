@@ -51,6 +51,11 @@ func set_lifetime(l : float) -> void:
 # ------------------------------------------------------------------------------
 func _ready() -> void:
 	_networked = get_tree().has_network_peer()
+	if _networked:
+		if is_network_master():
+			_ConnectArea()
+	else:
+		_ConnectArea()
 	_UpdateSprite()
 	_UpdateCollision()
 
@@ -72,6 +77,12 @@ func _physics_process(delta : float) -> void:
 # ------------------------------------------------------------------------------
 # Private Methods
 # ------------------------------------------------------------------------------
+func _ConnectArea() -> void:
+	var area = get_node_or_null("Area")
+	if area:
+		if not area.is_connected("body_entered", self, "_on_body_entered"):
+			area.connect("body_entered", self, "_on_body_entered")
+
 func _UpdateSprite() -> void:
 	# TODO: Store baseline value if size is going to vary
 	sprite_node.pixel_size *= size

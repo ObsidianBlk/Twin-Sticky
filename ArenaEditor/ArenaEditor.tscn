@@ -158,16 +158,16 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 focus_mode = 2
 script = ExtResource( 6 )
+backdrop_color = Color( 0, 0, 0, 0.611765 )
 max_arc_degrees = 180.0
-outer_radius = 0.748333
-outer_radius_pixels = 224.5
-inner_radius = 0.714922
-inner_radius_pixels = 160.5
+clamp_type = 3
+radial_width = 64.0
+radial_gap = 0.0
 offset_angle = 307.445
 gap_degrees = 5.966
+relative_offset_x = 0.0
+relative_offset_y = 0.0
 force_neighboring = true
-clamp_type = 3
-sticky_thickness = 64.0
 
 [node name="NewArena" type="Control" parent="UI/RadialMenu/OBSRadialMenu"]
 margin_left = 287.5

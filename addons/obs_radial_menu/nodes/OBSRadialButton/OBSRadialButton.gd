@@ -55,6 +55,7 @@ var _override_constants : Dictionary = {
 # ------------------------------------------------------------------------------
 # Variables
 # ------------------------------------------------------------------------------
+var _debug_draw : bool = false
 var _property_updated : bool = false
 var _in_focus : bool = false
 var _btn_state : int = BUTTON_STATE.Normal
@@ -126,6 +127,7 @@ func _ready() -> void:
 	_crect_node = crect
 	_crect_node.material = mat
 
+	set_process(_debug_draw)
 	var _res : int = connect("resized", self, "_on_resized")
 	if not Engine.editor_hint:
 		#set_focus_mode(Control.FOCUS_ALL)
@@ -146,6 +148,13 @@ func _enter_tree():
 func _gui_input(event : InputEvent) -> void:
 	if _ProcessGUIInput(event):
 		accept_event()
+
+func _draw() -> void:
+	if _debug_draw:
+		draw_rect(Rect2(Vector2.ZERO, rect_size), Color.red, false)
+
+func _process(delta):
+	update()
 
 func _get(property : String):
 	match property:
@@ -509,10 +518,6 @@ func _ProcessGUIInput(event : InputEvent, processed : bool = false, notify_immed
 			BUTTON_STATE.Hover:
 				if event is InputEventMouseButton and _MousePositionOver(event.position):
 					if event.button_index == BUTTON_LEFT and event.pressed == true:
-#						var parent = get_parent()
-#						if parent:
-#							if parent.has_method("_GrabButtonFocus"):
-#								parent._GrabButtonFocus(self)
 						grab_focus()
 						set_pressed(true)
 						processed = true

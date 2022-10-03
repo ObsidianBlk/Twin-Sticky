@@ -51,6 +51,7 @@ func _MountWeapon(weapon_name : String, trackbot : Spatial, mount_id : int) -> i
 		if trackbot.has_method("mount_item"):
 			if not trackbot.item_mounted(mount_id):
 				var weapon = WEAPON[weapon_name].instance()
+				#weapon.set_network_master(remote_id)
 				if weapon.has_signal("spawn_projectile"):
 					weapon.connect("spawn_projectile", self, "_on_spawn_projectile", [trackbot])
 				trackbot.mount_item(weapon, mount_id)
