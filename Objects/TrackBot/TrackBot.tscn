@@ -1,7 +1,7 @@
 [gd_scene load_steps=16 format=2]
 
 [ext_resource path="res://Objects/TrackBot/TrackBot.gd" type="Script" id=1]
-[ext_resource path="res://Assets/Models/Trackballs/CyberSmiley/CyberSmiley.glb" type="PackedScene" id=2]
+[ext_resource path="res://Assets/Models/Trackballs/CyberSmiley/CyberSmiley.tscn" type="PackedScene" id=2]
 
 [sub_resource type="VisualShaderNodeColorUniform" id=12]
 uniform_name = "Color"
@@ -152,7 +152,6 @@ double_sided = false
 text = "Trackbot"
 
 [node name="CyberSmiley" parent="." instance=ExtResource( 2 )]
-transform = Transform( -1, 0, -8.74228e-08, 0, 1, 0, 8.74228e-08, 0, -1, 0, 0, 0 )
 
 [node name="Ball" type="MeshInstance" parent="."]
 visible = false

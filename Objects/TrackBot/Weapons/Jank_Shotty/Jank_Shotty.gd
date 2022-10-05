@@ -25,6 +25,8 @@ var _fire_lock_timer : float = 0.0
 # Onready Variables
 # ------------------------------------------------------------------------------
 onready var trajectories_node : Spatial = $Trajectories
+onready var particle_node : Particles = $Particles
+onready var blastlight_node : OmniLight = $BlastLight
 
 # ------------------------------------------------------------------------------
 # Setters
@@ -105,7 +107,21 @@ func fire() -> void:
 						bodies.append({"node":body, "hits":1})
 					else:
 						bodies[bidx].hits += 1
+	
+	particle_node.emitting = true
+	blastlight_node.visible = true
+	
+	var timer = get_tree().create_timer(particle_node.lifetime)
+	timer.connect("timeout", self, "_on_blastlight_timeout")
+	
 	for body in bodies:
 		# TODO: Damage fallout due to distance from weapon?
 		body.node.hit(damage * body.hits, global_transform.basis.z * knockback_strength)
 	_RandomizeTrajectories()
+
+
+# ------------------------------------------------------------------------------
+# Handler Methods
+# ------------------------------------------------------------------------------
+func _on_blastlight_timeout() -> void:
+	blastlight_node.visible = false
