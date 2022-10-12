@@ -1,13 +1,7 @@
 [gd_scene load_steps=5 format=2]
 
 [ext_resource path="res://Assets/Models/Trackballs/CyberSmiley/Smiley.material" type="Material" id=1]
-
-[sub_resource type="SpatialMaterial" id=3]
-next_pass = ExtResource( 1 )
-flags_unshaded = true
-flags_no_depth_test = true
-params_depth_draw_mode = 1
-albedo_color = Color( 0.882353, 0.85098, 0.631373, 1 )
+[ext_resource path="res://Assets/Models/Trackballs/CyberSmiley/Smiley_WithHighlight.material" type="Material" id=2]
 
 [sub_resource type="ArrayMesh" id=1]
 resource_name = "CyberSmiley_Cube"
@@ -18,7 +12,7 @@ surfaces/0 = {
 "blend_shape_data": [  ],
 "format": 2194711,
 "index_count": 5592,
-"material": SubResource( 3 ),
+"material": ExtResource( 2 ),
 "primitive": 4,
 "skeleton_aabb": [  ],
 "vertex_count": 943
