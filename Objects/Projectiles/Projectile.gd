@@ -9,6 +9,7 @@ export var damage : float = 100.0					setget set_damage
 export var speed : float = 10.0						setget set_speed
 export var direction : Vector3 = Vector3.BACK		setget set_direction
 export var lifetime : float = 3.0					setget set_lifetime
+export var owner_name : String = ""
 
 
 # ------------------------------------------------------------------------------
@@ -103,7 +104,7 @@ puppet func r_Die() -> void:
 # Handler Methods
 # ------------------------------------------------------------------------------
 func _on_body_entered(body):
-	if body.has_method("hit"):
+	if body.name != owner_name and body.has_method("hit"):
 		body.hit(damage, Vector3.ZERO)
 		call_deferred("_Die")
 

@@ -13,14 +13,6 @@ const TRACKBOT : PackedScene = preload("res://Objects/TrackBot/TrackBot.tscn")
 const BOOSTER : PackedScene = preload("res://Objects/TrackBot/Boosters/Jank_Booster.tscn")
 const WEAPONMOUNT : PackedScene = preload("res://Objects/TrackBot/WeaponMount/WeaponMount.tscn")
 
-const WEAPON : Dictionary = {
-	"SHOTTY" : preload("res://Objects/TrackBot/Weapons/Jank_Shotty/Jank_Shotty.tscn"),
-	"PLASMA" : preload("res://Objects/TrackBot/Weapons/Jank_Plasma/Jank_Plasma.tscn"),
-}
-
-const PROJECTILE : Dictionary = {
-	"PlasmaBullet": preload("res://Objects/Projectiles/PlasmaBullet/PlasmaBullet.tscn"),
-}
 # -----------------------------------------------------------------------------
 # Export Variables
 # -----------------------------------------------------------------------------
@@ -47,10 +39,10 @@ func _ready() -> void:
 # Private Methods
 # -----------------------------------------------------------------------------
 func _MountWeapon(weapon_name : String, trackbot : Spatial, mount_id : int) -> int:
-	if weapon_name in WEAPON:
+	var weapon : Spatial = AssetDB.get_by_name("WEAPONS.%s"%[weapon_name])
+	if weapon:
 		if trackbot.has_method("mount_item"):
 			if not trackbot.item_mounted(mount_id):
-				var weapon = WEAPON[weapon_name].instance()
 				#weapon.set_network_master(remote_id)
 				if weapon.has_signal("spawn_projectile"):
 					weapon.connect("spawn_projectile", self, "_on_spawn_projectile", [trackbot])
@@ -65,12 +57,15 @@ func _MountWeapon(weapon_name : String, trackbot : Spatial, mount_id : int) -> i
 # -----------------------------------------------------------------------------
 # Remote Methods
 # -----------------------------------------------------------------------------
-remotesync func r_spawn_projectile(projectile_name : String, position : Vector3, direction : Vector3) -> void:
-	if projectile_name in PROJECTILE:
-		var projectile = PROJECTILE[projectile_name].instance()
-		projectile.direction = direction
-		add_child(projectile)
-		projectile.global_transform.origin = position
+remotesync func r_spawn_projectile(projectile_name : String, position : Vector3, direction : Vector3, owner_name : String = "") -> void:
+	var pkey : String = "PROJECTILES.%s"%[projectile_name]
+	if AssetDB.key_exists(pkey):
+		var projectile = AssetDB.get_by_name(pkey)
+		if projectile:
+			projectile.owner_name = owner_name
+			projectile.direction = direction
+			add_child(projectile)
+			projectile.global_transform.origin = position
 
 
 # -----------------------------------------------------------------------------
@@ -101,9 +96,9 @@ func spawn_player(pid : int, remote_pid : int, player_name : String = "") -> voi
 		wmount.set_network_master(remote_pid)
 		tb.add_weapon_mount(wmount)
 		
-		var res : int = _MountWeapon("SHOTTY", tb, 1)
+		var res : int = _MountWeapon("CyberShotgun", tb, 1)
 		if res != OK:
-			printerr("Failed to mount SHOTTY to Trackbot ID ", pid)
+			printerr("Failed to mount CyberShotgun to Trackbot ID ", pid)
 		
 		res = _MountWeapon("PLASMA", tb, 2)
 		if res != OK:
@@ -135,11 +130,11 @@ func _on_remove_player(local_pid, remote_pid) -> void:
 		remove_child(nodes[0])
 		nodes[0].queue_free()
 
-func _on_spawn_projectile(projectile_name : String, position : Vector3, direction : Vector3, _trackbot : Spatial) -> void:
+func _on_spawn_projectile(projectile_name : String, position : Vector3, direction : Vector3, trackbot : Spatial) -> void:
 	if get_tree().has_network_peer():
-		rpc("r_spawn_projectile", projectile_name, position, direction)
+		rpc("r_spawn_projectile", projectile_name, position, direction, trackbot.name)
 	else:
-		r_spawn_projectile(projectile_name, position, direction)
+		r_spawn_projectile(projectile_name, position, direction, trackbot.name)
 #	if projectile_name in PROJECTILE:
 #		var projectile = PROJECTILE[projectile_name].instance()
 #		projectile.direction = direction

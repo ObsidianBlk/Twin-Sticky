@@ -92,7 +92,7 @@ func _UpdateHeight() -> void:
 		if top != null:
 			top.visible = true
 	elif height+1 > _hexes.size():
-		var new_hexes : Array = AssetDB.get_hexes_by_id(hex_id, (height + 1) - _hexes.size())
+		var new_hexes : Array = AssetDB.get_multiple_by_db_id("HEX", hex_id, (height + 1) - _hexes.size())
 		if new_hexes.size() > 0:
 			var top : Spatial = null
 			if _hexes.size() > 0:
