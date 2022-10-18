@@ -64,8 +64,9 @@ remotesync func r_spawn_projectile(projectile_name : String, position : Vector3,
 		if projectile:
 			projectile.owner_name = owner_name
 			projectile.direction = direction
+			projectile.translation = position
+			#projectile.transform.origin = position
 			add_child(projectile)
-			projectile.global_transform.origin = position
 
 
 # -----------------------------------------------------------------------------

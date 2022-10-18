@@ -15,6 +15,7 @@ const DB : Dictionary = {
 	},
 	"PROJECTILES":{
 		"PlasmaBullet": "res://Objects/Projectiles/PlasmaBullet/PlasmaBullet.tscn",
+		"CyberShot": "res://Objects/Projectiles/CyberShot/CyberShot.tscn",
 	}
 }
 

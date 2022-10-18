@@ -1,3 +1,4 @@
+tool
 extends "res://Objects/Projectiles/Projectile.gd"
 
 
@@ -31,23 +32,23 @@ func _ready() -> void:
 	_UpdateCollision()
 
 
-
-
 # ------------------------------------------------------------------------------
 # Private Methods
 # ------------------------------------------------------------------------------
 func _UpdateSprite() -> void:
 	# TODO: Store baseline value if size is going to vary
-	sprite_node.pixel_size *= size
-	light_node.omni_range *= size
+	sprite_node.pixel_size *= _size
+	light_node.omni_range *= _size
 
 func _UpdateCollision() -> void:
 	# TODO: Store baseline value if size is going to vary
-	area_collision_node.shape.radius *= size
+	area_collision_node.shape.radius *= _size
 
 # ------------------------------------------------------------------------------
-# Remote Methods
+# Public Methods
 # ------------------------------------------------------------------------------
+func get_class() -> String:
+	return "PlasmaBullet"
 
 # ------------------------------------------------------------------------------
 # Handler Methods

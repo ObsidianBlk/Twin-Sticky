@@ -52,7 +52,7 @@ Net="*res://Scripts/Auto/Net.gd"
 
 [editor_plugins]
 
-enabled=PoolStringArray( "res://addons/imrp/plugin.cfg", "res://addons/obs_radial_menu/plugin.cfg" )
+enabled=PoolStringArray( "res://addons/Trail/plugin.cfg", "res://addons/imrp/plugin.cfg", "res://addons/obs_radial_menu/plugin.cfg" )
 
 [input]
 

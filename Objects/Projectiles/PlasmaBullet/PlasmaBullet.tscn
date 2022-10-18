@@ -63,6 +63,14 @@ radius = 0.4
 
 [node name="PlasmaBullet" type="Spatial"]
 script = ExtResource( 4 )
+collision_type = 0
+area_node_path = NodePath("Area")
+size = 1.0
+damage = 100.0
+speed = 10.0
+direction = Vector3( 0, 0, 1 )
+lifetime = 3.0
+owner_name = ""
 
 [node name="Sprite3D" type="Sprite3D" parent="."]
 material_override = SubResource( 2 )

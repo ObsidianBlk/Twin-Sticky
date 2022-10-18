@@ -5,6 +5,8 @@
 
 [node name="CyberShotgun" type="Spatial"]
 script = ExtResource( 2 )
+projectile_name = "CyberShot"
+spread = 10.0
 
 [node name="CyberShotgun" parent="." instance=ExtResource( 1 )]
 
