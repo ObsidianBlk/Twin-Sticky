@@ -63,7 +63,10 @@ func _unhandled_input(event : InputEvent) -> void:
 		return
 
 	if event.is_action_pressed("ui_cancel"):
-		ui.show_menu("MainMenu")
+		if _game_node == null:
+			ui.show_menu("MainMenu")
+		else:
+			ui.show_menu("GameMenu")
 	elif event.is_action_pressed("terminal"):
 		ui.show_menu("Terminal")
 	else:
@@ -158,20 +161,15 @@ func _CreateGame() -> void:
 
 func _RemoveGame() -> void:
 	if _game_node != null:
+		if _game_node.is_connected("local_player_2", self, "_on_local_player_2"):
+			_game_node.disconnect("local_player_2", self, "_on_local_player_2")
 		viewport_p1.world = viewport_p1_world
 		viewport_p2.world = viewport_p2_world
+		vp2c.visible = false
 		viewport_game.remove_child(_game_node)
 		_game_node.queue_free()
 		_game_node = null
-
-func _CloseGame() -> void:
-	if _game_node != null:
-		Net.disconnect_network()
-		viewport_p1.world = viewport_p1_world
-		viewport_p2.world = viewport_p2_world
-		viewport_game.remove_child(_game_node)
-		_game_node.queue_free()
-		_game_node = null
+		_local_player_info = [null, null]
 
 
 
@@ -212,7 +210,8 @@ func _on_remove_game_world() -> void:
 	ui.show_menu("MainMenu")
 
 func _on_close_game():
-	_CloseGame()
+	_RemoveGame()
+	var _res : int = Lobby.remove_all_players()
 
 func _on_MainMenu_area_editor() -> void:
 	set_process_unhandled_input(false)

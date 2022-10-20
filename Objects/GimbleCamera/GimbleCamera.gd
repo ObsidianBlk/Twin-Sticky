@@ -136,7 +136,7 @@ func _physics_process(delta : float) -> void:
 	if target == null:
 		_UpdateVelocity(delta)
 		_GetTarget()
-	else:
+	elif target.is_inside_tree():
 		global_translation = target.global_translation
 
 # ------------------------------------------------------------------------------

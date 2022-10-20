@@ -42,6 +42,10 @@ func set_spread(s : float) -> void:
 # ------------------------------------------------------------------------------
 # Override Methods
 # ------------------------------------------------------------------------------
+func _ready() -> void:
+	# Let's preload our projectile...
+	AssetDB.preload_by_name("PROJECTILES.%s"%[projectile_name])
+
 
 func _physics_process(delta : float) -> void:
 	if _fire_lock_timer > 0.0:

@@ -1,4 +1,4 @@
-[gd_scene load_steps=4 format=2]
+[gd_scene load_steps=9 format=2]
 
 [ext_resource path="res://Objects/Projectiles/CyberShot/CyberShot.gd" type="Script" id=2]
 
@@ -10,6 +10,30 @@ albedo_color = Color( 0.929412, 0.717647, 0.317647, 1 )
 material = SubResource( 1 )
 radius = 0.1
 mid_height = 0.04
+
+[sub_resource type="Gradient" id=3]
+offsets = PoolRealArray( 0, 0.44335, 0.866995, 1 )
+colors = PoolColorArray( 1, 0.890503, 0.460938, 1, 0.470588, 0.470588, 0.470588, 1, 0.780392, 0.780392, 0.780392, 1, 1, 1, 1, 0 )
+
+[sub_resource type="GradientTexture" id=4]
+gradient = SubResource( 3 )
+width = 128
+
+[sub_resource type="ParticlesMaterial" id=5]
+emission_shape = 1
+emission_sphere_radius = 0.2
+scale = 0.2
+color = Color( 0.537255, 0.537255, 0.537255, 1 )
+color_ramp = SubResource( 4 )
+
+[sub_resource type="SpatialMaterial" id=6]
+flags_unshaded = true
+vertex_color_use_as_albedo = true
+params_billboard_mode = 1
+
+[sub_resource type="QuadMesh" id=7]
+material = SubResource( 6 )
+size = Vector2( 0.2, 0.2 )
 
 [node name="CyberShot" type="Spatial"]
 script = ExtResource( 2 )
@@ -24,3 +48,10 @@ owner_name = ""
 
 [node name="MeshInstance" type="MeshInstance" parent="."]
 mesh = SubResource( 2 )
+
+[node name="Particles" type="Particles" parent="."]
+amount = 20
+lifetime = 0.5
+local_coords = false
+process_material = SubResource( 5 )
+draw_pass_1 = SubResource( 7 )

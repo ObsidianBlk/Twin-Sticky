@@ -240,11 +240,17 @@ func _ConnectArea() -> void:
 
 func _CheckRayCollision() -> void:
 	var space_state = get_world().get_direct_space_state()
+	# First look for collision going "forward"
 	var result = space_state.intersect_ray(_last_location, global_transform.origin, 
 		[self], _ray_collision_mask, true, false)
-	if result:
+	if not result: # If not result
+		# Look for collision going "backward"
+		# Solves issue with spawn point being INSIDE a collision object.
+		result = space_state.intersect_ray(global_transform.origin, _last_location, 
+			[self], _ray_collision_mask, true, false)
+	if result: # If one of the above two checks generate a result... handle it!
 		if result.collider.has_method("hit"):
-			result.collider.hit(_damage, _direction)
+			result.collider.hit(_damage, _direction * 5)
 		call_deferred("_Die")
 
 
@@ -279,5 +285,5 @@ func get_class() -> String:
 func _on_body_entered(body):
 	if body.name != _owner_name and body.has_method("hit"):
 		body.hit(_damage, Vector3.ZERO)
-		call_deferred("_Die")
+	call_deferred("_Die")
 

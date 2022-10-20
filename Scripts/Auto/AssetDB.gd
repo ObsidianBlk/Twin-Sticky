@@ -6,16 +6,34 @@ extends Node
 # ------------------------------------------------------------------------------
 const DB : Dictionary = {
 	"HEX": {
-		"Default": "res://Objects/Hex/HexTypes/Default.tscn"
+		"Default": {
+			"res": "res://Objects/Hex/HexTypes/Default.tscn",
+			"scene": null
+		}
 	},
 	"WEAPONS":{
-		"SHOTTY" : "res://Objects/TrackBot/Weapons/Jank_Shotty/Jank_Shotty.tscn",
-		"PLASMA" : "res://Objects/TrackBot/Weapons/Jank_Plasma/Jank_Plasma.tscn",
-		"CyberShotgun": "res://Objects/TrackBot/Weapons/CyberShotgun/CyberShotgun.tscn"
+		"SHOTTY" : {
+			"res": "res://Objects/TrackBot/Weapons/Jank_Shotty/Jank_Shotty.tscn",
+			"scene": null
+		},
+		"PLASMA" : {
+			"res": "res://Objects/TrackBot/Weapons/Jank_Plasma/Jank_Plasma.tscn",
+			"scene": null
+		},
+		"CyberShotgun": {
+			"res": "res://Objects/TrackBot/Weapons/CyberShotgun/CyberShotgun.tscn",
+			"scene": null
+		}
 	},
 	"PROJECTILES":{
-		"PlasmaBullet": "res://Objects/Projectiles/PlasmaBullet/PlasmaBullet.tscn",
-		"CyberShot": "res://Objects/Projectiles/CyberShot/CyberShot.tscn",
+		"PlasmaBullet": {
+			"res": "res://Objects/Projectiles/PlasmaBullet/PlasmaBullet.tscn",
+			"scene": null
+		},
+		"CyberShot": {
+			"res": "res://Objects/Projectiles/CyberShot/CyberShot.tscn",
+			"scene": null
+		}
 	}
 }
 
@@ -43,6 +61,17 @@ func _SplitName(key_name : String) -> Array:
 		printerr("Database key \"", key_name, "\" is invalid.")
 	return [_active_db, ""]
 
+func _GetScene(db_name : String, item_name : String) -> PackedScene:
+	if db_name in DB:
+		if item_name in DB[db_name]:
+			var dbitem : Dictionary = DB[db_name][item_name]
+			if dbitem.scene == null:
+				dbitem.scene = load(dbitem.res)
+				if not dbitem.scene is PackedScene:
+					dbitem.scene = null
+			return dbitem.scene
+	return null
+
 # ------------------------------------------------------------------------------
 # Public Methods
 # ------------------------------------------------------------------------------
@@ -56,18 +85,24 @@ func set_active_db(db_name : String) -> void:
 func get_active_db() -> String:
 	return _active_db
 
+func preload_by_name(key_name : String) -> bool:
+	var keys : Array = _SplitName(key_name)
+	var db_name = keys[0]
+	var item_name = keys[1]
+	return _GetScene(db_name, item_name) != null
+
 func get_by_name(key_name : String) -> Spatial:
 	var keys : Array = _SplitName(key_name)
 	var db_name = keys[0]
 	var item_name = keys[1]
 	
-	if item_name in DB[db_name]:
-		var scene = load(DB[db_name][item_name])
-		if scene is PackedScene:
-			var node = scene.instance()
-			if node is Spatial:
-				return node
-			node.queue_free()
+	var scene : PackedScene = _GetScene(db_name, item_name)
+				
+	if scene != null:
+		var node = scene.instance()
+		if node is Spatial:
+			return node
+		node.queue_free()
 	return null
 
 func get_multiple_by_name(key_name : String, amount : int) -> Array:
@@ -79,15 +114,14 @@ func get_multiple_by_name(key_name : String, amount : int) -> Array:
 	var item_name = keys[1]
 	
 	var res : Array = []
-	if item_name in DB[db_name]:
-		var scene = load(DB[db_name][item_name])
-		if scene is PackedScene:
-			for _i in range(amount):
-				var node = scene.instance()
-				if node is Spatial:
-					res.append(node)
-				else:
-					node.queue_free()
+	var scene : PackedScene = _GetScene(db_name, item_name)
+	if scene != null:
+		for _i in range(amount):
+			var node = scene.instance()
+			if node is Spatial:
+				res.append(node)
+			else:
+				node.queue_free()
 	return res
 
 func get_by_db_id(db_name : String, id : int) -> Spatial:
