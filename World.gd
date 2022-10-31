@@ -148,6 +148,7 @@ func _ClearLocalPlayerInputMap(pid : int) -> void:
 	for action_name in INPUT_DEVICE_ACTION_BASES:
 		var naction_name : String = "%s_%s"%[action_name, String(pid+1)]
 		if InputMap.has_action(naction_name):
+			print("Removing Action: ", naction_name)
 			InputMap.erase_action(naction_name)
 
 
@@ -169,6 +170,10 @@ func _RemoveGame() -> void:
 		viewport_game.remove_child(_game_node)
 		_game_node.queue_free()
 		_game_node = null
+		if _local_player_info[0] != null:
+			_ClearLocalPlayerInputMap(0)
+		if _local_player_info[1] != null:
+			_ClearLocalPlayerInputMap(1)
 		_local_player_info = [null, null]
 
 

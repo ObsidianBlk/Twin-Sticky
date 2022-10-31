@@ -42,6 +42,7 @@ ray_collision_mask = 15
 size = 1.0
 damage = 100.0
 speed = 50.0
+collision_force = 100.0
 direction = Vector3( 0, 0, 1 )
 lifetime = 3.0
 owner_name = ""

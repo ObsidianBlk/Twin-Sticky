@@ -16,6 +16,7 @@ var _area_node_path : NodePath = "Area"
 var _ray_collision_mask : int = 1
 var _damage : float = 100.0
 var _speed : float = 10.0
+var _collision_force : float = 100.0
 var _direction : Vector3 = Vector3.BACK
 var _lifetime : float = 3.0
 var _owner_name : String = ""
@@ -38,6 +39,10 @@ func set_size(s : float) -> void:
 func set_collision_type(t : int) -> void:
 	if COLLISION_TYPE.values().find(t) >= 0:
 		_collision_type = t
+
+func set_collision_force(f : float) -> void:
+	if f >= 0.0:
+		_collision_force = f
 
 func set_area_node_path(p : NodePath) -> void:
 	_area_node_path = p
@@ -86,6 +91,8 @@ func _get(property : String):
 			return _size
 		"collision_type":
 			return _collision_type
+		"collision_force":
+			return _collision_force
 		"area_node_path":
 			return _area_node_path
 		"ray_collision_mask":
@@ -113,6 +120,10 @@ func _set(property : String, value) -> bool:
 		"collision_type":
 			if typeof(value) == TYPE_INT:
 				set_collision_type(value)
+			else : success = false
+		"collision_force":
+			if typeof(value) == TYPE_REAL:
+				set_collision_force(value)
 			else : success = false
 		"area_node_path":
 			if typeof(value) == TYPE_NODE_PATH:
@@ -195,6 +206,11 @@ func _get_property_list() -> Array:
 			usage = PROPERTY_USAGE_DEFAULT
 		},
 		{
+			name = "collision_force",
+			type = TYPE_REAL,
+			usage = PROPERTY_USAGE_DEFAULT
+		},
+		{
 			name = "direction",
 			type = TYPE_VECTOR3,
 			usage = PROPERTY_USAGE_DEFAULT
@@ -250,7 +266,7 @@ func _CheckRayCollision() -> void:
 			[self], _ray_collision_mask, true, false)
 	if result: # If one of the above two checks generate a result... handle it!
 		if result.collider.has_method("hit"):
-			result.collider.hit(_damage, _direction * 5)
+			result.collider.hit(_damage, _direction * _collision_force)
 		call_deferred("_Die")
 
 
