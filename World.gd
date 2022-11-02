@@ -49,6 +49,10 @@ onready var viewport_p2_world : World = $GameView/Viewports/VP2C/Viewport_P2.wor
 # Override Methods
 # -----------------------------------------------------------------------------
 func _ready() -> void:
+	for action in INPUT_DEVICE_ACTION_BASES:
+		MUI.register_action_name(action)
+	MUI.set_user_count(2)
+	
 	var _res : int = Log.connect("entry_logged", self, "_on_entry_logged")
 	_res = Net.connect("add_game_world", self, "_on_add_game_world")
 	_res = Net.connect("remove_game_world", self, "_on_remove_game_world")
@@ -71,85 +75,28 @@ func _unhandled_input(event : InputEvent) -> void:
 		ui.show_menu("Terminal")
 	else:
 		if event is InputEventKey:
-			if not _KeyboardDeviceInUse():
-				if _local_player_info[0] == null:
-					call_deferred("_SetLocalPlayerInputMap", 0, "kb", 0)
-				elif _local_player_info[1] == null:
-					call_deferred("_SetLocalPlayerInputMap", 1, "kb", 0)
+			if not MUI.keyboard_device_in_use():
+				var pid : int = MUI.get_unassigned_user_id()
+				if pid >= 0:
+					call_deferred("_SpawnPlayer", pid, MUI.DEVICE_TYPE.Keyboard, 0)
 		elif event is InputEventJoypadButton:
-			if not _JoypadDeviceInUse(event.device):
-				if _local_player_info[0] == null:
-					call_deferred("_SetLocalPlayerInputMap", 0, "jp", event.device)
-				elif _local_player_info[1] == null:
-					call_deferred("_SetLocalPlayerInputMap", 1, "jp", event.device)
+			if not MUI.joypad_device_in_use(event.device):
+				var pid : int = MUI.get_unassigned_user_id()
+				if pid >= 0:
+					call_deferred("_SpawnPlayer", pid, MUI.DEVICE_TYPE.Joypad, event.device)
 
 # -----------------------------------------------------------------------------
 # Private Methods
 # -----------------------------------------------------------------------------
-func _PlayerUsingJoypadDevice(device_id : int) -> int:
-	for pid in range(_local_player_info.size()):
-		if _local_player_info[pid] != null and _local_player_info[pid].device_type == "jp":
-			if _local_player_info[pid].device_id == device_id:
-				return pid
-	return -1
 
-func _JoypadDeviceInUse(device_id : int) -> bool:
-	return _PlayerUsingJoypadDevice(device_id) >= 0
+func _SpawnPlayer(pid : int, device_type : int, device_id : int = 0) -> void:
+	if MUI.is_uid_valid(pid):
+		MUI.assign_user_input_device(pid, device_type, device_id)
+		if get_tree().has_network_peer():
+			_game_node.spawn_player(pid, get_tree().get_network_unique_id())
+		else:
+			_game_node.spawn_player(pid, 0)
 
-func _KeyboardDeviceInUse() -> bool:
-	if _local_player_info[0] != null and _local_player_info[0].device_type == "kb":
-		return true
-	if _local_player_info[1] != null and _local_player_info[1].device_type == "kb":
-		return true
-	return false 
-
-
-func _SetLocalPlayerInputMap(pid : int, device_type : String, device_id : int = 0) -> void:
-	if not (pid >= 0 and pid < 2):
-		return
-	if _local_player_info[pid] != null:
-		return
-	
-	_local_player_info[pid] = {
-		"device_type":device_type,
-		"device_id":device_id
-	}
-	
-	for action_name in INPUT_DEVICE_ACTION_BASES:
-		if InputMap.has_action(action_name):
-			var naction_name : String = "%s_%s"%[action_name, String(pid+1)]
-			for input in InputMap.get_action_list(action_name):
-				match device_type:
-					"kb":
-						if input.get_class() == "InputEventKey":
-							var kinput : InputEventKey = input.duplicate()
-							InputMap.add_action(naction_name)
-							InputMap.action_add_event(naction_name, kinput)
-							break
-					"jp":
-						var icls = input.get_class()
-						if icls == "InputEventJoypadButton" or icls == "InputEventJoypadMotion":
-							var jinput = input.duplicate()
-							jinput.device = device_id
-							if not InputMap.has_action(naction_name):
-								InputMap.add_action(naction_name)
-							InputMap.action_add_event(naction_name, jinput)
-	if get_tree().has_network_peer():
-		_game_node.spawn_player(pid, get_tree().get_network_unique_id())
-	else:
-		_game_node.spawn_player(pid, 0)
-
-func _ClearLocalPlayerInputMap(pid : int) -> void:
-	if not (pid >= 0 and pid < 2):
-		return
-	if _local_player_info[pid] == null:
-		pass
-	
-	for action_name in INPUT_DEVICE_ACTION_BASES:
-		var naction_name : String = "%s_%s"%[action_name, String(pid+1)]
-		if InputMap.has_action(naction_name):
-			print("Removing Action: ", naction_name)
-			InputMap.erase_action(naction_name)
 
 
 func _CreateGame() -> void:
@@ -170,11 +117,7 @@ func _RemoveGame() -> void:
 		viewport_game.remove_child(_game_node)
 		_game_node.queue_free()
 		_game_node = null
-		if _local_player_info[0] != null:
-			_ClearLocalPlayerInputMap(0)
-		if _local_player_info[1] != null:
-			_ClearLocalPlayerInputMap(1)
-		_local_player_info = [null, null]
+		MUI.clear_all_user_input_devices()
 
 
 
@@ -188,9 +131,9 @@ func _on_entry_logged(e : Dictionary) -> void:
 
 func _on_joy_connection_changed(device_id : int, connected : bool) -> void:
 	if not connected:
-		var pid : int = _PlayerUsingJoypadDevice(device_id)
+		var pid : int = MUI.device_user(MUI.DEVICE_TYPE.Joypad, device_id)
 		if pid >= 0:
-			_ClearLocalPlayerInputMap(pid)
+			var _res : int = MUI.clear_user_input_device(pid)
 
 func _on_local_player_2(joined : bool) -> void:
 	vp2c.visible = joined

@@ -46,6 +46,7 @@ config/icon="res://icon.png"
 
 Utils="*res://Scripts/Auto/Utils.gd"
 Log="*res://Scripts/Auto/Log.gd"
+MUI="*res://Scripts/Auto/MUI.gd"
 AssetDB="*res://Scripts/Auto/AssetDB.gd"
 Lobby="*res://Scripts/Auto/Lobby.gd"
 Net="*res://Scripts/Auto/Net.gd"
