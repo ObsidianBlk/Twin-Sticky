@@ -133,6 +133,12 @@ func _DisconnectBooster(booster : Spatial) -> void:
 # ------------------------------------------------------------------------------
 # Public Methods
 # ------------------------------------------------------------------------------
+func set_static(enable : bool = true) -> void:
+	if enable:
+		mode = MODE_KINEMATIC
+	elif is_network_master():
+		mode = MODE_RIGID
+
 func get_booster() -> Spatial:
 	return _booster_node
 

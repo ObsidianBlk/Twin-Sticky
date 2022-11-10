@@ -213,9 +213,21 @@ func view_camera(item : Spatial) -> void:
 	item.look_at(cpos, Vector3.UP)
 
 
-func orbit(yaw : float, pitch : float) -> void:
-	rotation.y = wrapf(rotation.y - (yaw * sensitivity.x), 0.0, TAU)
-	rotation.x = clamp(rotation.x - (pitch * sensitivity.y), deg2rad(pitch_degree_min), deg2rad(pitch_degree_max))
+func orbit(yaw : float, pitch : float, ignore_sensitivity : bool = false) -> void:
+	var senx : float = sensitivity.x if not ignore_sensitivity else 1.0
+	var seny : float = sensitivity.y if not ignore_sensitivity else 1.0
+	rotation.y = wrapf(rotation.y - (yaw * senx), 0.0, TAU)
+	rotation.x = clamp(rotation.x - (pitch * seny), deg2rad(pitch_degree_min), deg2rad(pitch_degree_max))
+
+func reset_orbit() -> void:
+	rotation.x = clamp(deg2rad(-initial_pitch_degree), deg2rad(pitch_degree_min), deg2rad(pitch_degree_max))
+	rotation.y = 0.0
+
+func get_yaw() -> float:
+	return rotation.y
+
+func get_pitch() -> float:
+	return rotation.x 
 
 func set_zoom(level : float) -> void:
 	var dist : float = (ZOOM_MAX - ZOOM_MIN) * level

@@ -5,6 +5,7 @@ extends Node2D
 # Constants
 # -----------------------------------------------------------------------------
 const GAME = preload("res://Game/Game.tscn")
+const TRACKBOT_BUILDER = preload("res://TrackBotBuilder/TrackBotBuilder.tscn")
 const EDITOR = preload("res://ArenaEditor/ArenaEditor.tscn")
 const INPUT_DEVICE_ACTION_BASES = [
 	"booster_forward",
@@ -73,17 +74,6 @@ func _unhandled_input(event : InputEvent) -> void:
 			ui.show_menu("GameMenu")
 	elif event.is_action_pressed("terminal"):
 		ui.show_menu("Terminal")
-	else:
-		if event is InputEventKey:
-			if not MUI.keyboard_device_in_use():
-				var pid : int = MUI.get_unassigned_user_id()
-				if pid >= 0:
-					call_deferred("_SpawnPlayer", pid, MUI.DEVICE_TYPE.Keyboard, 0)
-		elif event is InputEventJoypadButton:
-			if not MUI.joypad_device_in_use(event.device):
-				var pid : int = MUI.get_unassigned_user_id()
-				if pid >= 0:
-					call_deferred("_SpawnPlayer", pid, MUI.DEVICE_TYPE.Joypad, event.device)
 
 # -----------------------------------------------------------------------------
 # Private Methods
@@ -98,14 +88,29 @@ func _SpawnPlayer(pid : int, device_type : int, device_id : int = 0) -> void:
 			_game_node.spawn_player(pid, 0)
 
 
+func _AddTrackbotBuilder(player_count : int = 1) -> void:
+	var tb1 : Spatial = TRACKBOT_BUILDER.instance()
+	tb1.pid = 0
+	viewport_p1.add_child(tb1)
+	tb1.initialize()
+	if player_count == 2:
+		#var tb2 : Spatial = TRACKBOT_BUILDER.instance()
+		#tb2.pid = 1
+		#viewport_p2.add_child(tb2)
+		#print("Path: ", tb2.get_path_to(tb1))
+		#tb2.companion_builder_path = tb2.get_path_to(tb1)
+		vp2c.visible = true
+		#tb2.initialize()
 
-func _CreateGame() -> void:
+
+func _CreateGame(player_count : int = 1) -> void:
 	if _game_node == null:
 		_game_node = GAME.instance()
 		var _res : int = _game_node.connect("local_player_2", self, "_on_local_player_2")
 		viewport_game.add_child(_game_node)
 		viewport_p1.world = viewport_game.world
 		viewport_p2.world = viewport_game.world
+
 
 func _RemoveGame() -> void:
 	if _game_node != null:
@@ -143,8 +148,12 @@ func _on_MainMenu_quit():
 
 func _on_MainMenu_local_start():
 	if _game_node == null:
-		ui.show_menu("")
-		_CreateGame()
+		ui.show_menu("LocalPlayerSetup")
+		#_CreateGame()
+
+func _on_local_play_requested(player_count : int) -> void:
+	ui.show_menu("")
+	_AddTrackbotBuilder(player_count)
 
 func _on_MainMenu_online_start():
 	ui.show_menu("Network")
@@ -179,3 +188,6 @@ func _on_arena_editor_exited() -> void:
 		_editor_node.queue_free()
 		ui.show_menu("MainMenu")
 		set_process_unhandled_input(true)
+
+
+

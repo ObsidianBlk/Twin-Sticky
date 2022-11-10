@@ -1,4 +1,4 @@
-[gd_scene load_steps=9 format=2]
+[gd_scene load_steps=10 format=2]
 
 [ext_resource path="res://UI/Network/Network.tscn" type="PackedScene" id=1]
 [ext_resource path="res://World.gd" type="Script" id=2]
@@ -8,6 +8,7 @@
 [ext_resource path="res://UI/Terminal/Terminal.tscn" type="PackedScene" id=6]
 [ext_resource path="res://UI/LobbyBoard/LobbyBoard.tscn" type="PackedScene" id=7]
 [ext_resource path="res://Objects/GimbleCamera/GimbleCamera.tscn" type="PackedScene" id=8]
+[ext_resource path="res://UI/LocalPlayerSetup/LocalPlayerSetup.tscn" type="PackedScene" id=9]
 
 [node name="World" type="Node2D"]
 script = ExtResource( 2 )
@@ -52,7 +53,7 @@ size_override_stretch = true
 handle_input_locally = false
 render_target_update_mode = 3
 
-[node name="GimbleCamera" parent="GameView/Viewports/VP1C/Viewport_P1" instance=ExtResource( 8 )]
+[node name="GimbleCamera" parent="GameView/Viewports/VP1C/Viewport_P1" groups=["Camera_P1"] instance=ExtResource( 8 )]
 current = true
 local_id = 1
 initial_zoom = 0.25
@@ -77,7 +78,7 @@ size_override_stretch = true
 handle_input_locally = false
 render_target_update_mode = 0
 
-[node name="GimbleCamera" parent="GameView/Viewports/VP2C/Viewport_P2" instance=ExtResource( 8 )]
+[node name="GimbleCamera" parent="GameView/Viewports/VP2C/Viewport_P2" groups=["Camera_P2"] instance=ExtResource( 8 )]
 current = true
 local_id = 2
 initial_zoom = 0.25
@@ -94,6 +95,9 @@ script = ExtResource( 5 )
 [node name="MainMenu" parent="UI" instance=ExtResource( 4 )]
 start_visible = true
 
+[node name="LocalPlayerSetup" parent="UI" instance=ExtResource( 9 )]
+visible = false
+
 [node name="Network" parent="UI" instance=ExtResource( 1 )]
 visible = false
 
@@ -106,5 +110,6 @@ mouse_filter = 2
 [connection signal="local_start" from="UI/MainMenu" to="." method="_on_MainMenu_local_start"]
 [connection signal="online_start" from="UI/MainMenu" to="." method="_on_MainMenu_online_start"]
 [connection signal="quit" from="UI/MainMenu" to="." method="_on_MainMenu_quit"]
+[connection signal="local_play_requested" from="UI/LocalPlayerSetup" to="." method="_on_local_play_requested"]
 [connection signal="close_game" from="UI/Network" to="." method="_on_close_game"]
 [connection signal="quit_game" from="UI/GameMenu" to="." method="_on_remove_game_world"]
