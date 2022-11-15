@@ -13,6 +13,9 @@ const TRACKBOT : PackedScene = preload("res://Objects/TrackBot/TrackBot.tscn")
 const BOOSTER : PackedScene = preload("res://Objects/TrackBot/Boosters/Jank_Booster.tscn")
 const WEAPONMOUNT : PackedScene = preload("res://Objects/TrackBot/WeaponMount/WeaponMount.tscn")
 
+const ZOOM_LEVEL : float = 0.25
+const PITCH_DEGREE : float = 60.0
+
 # -----------------------------------------------------------------------------
 # Export Variables
 # -----------------------------------------------------------------------------
@@ -53,6 +56,17 @@ func _MountWeapon(weapon_name : String, trackbot : Spatial, mount_id : int) -> i
 		else:
 			return ERR_METHOD_NOT_FOUND
 	return ERR_DOES_NOT_EXIST
+
+
+func _ConfigCamera(pid : int) -> void:
+	var cnode = get_tree().get_nodes_in_group("Camera_P%s"%[pid + 1])
+	if cnode.size() <= 0:
+		printerr("Cannot find Camera_P", pid + 1)
+		return
+	
+	cnode[0].set_zoom(ZOOM_LEVEL)
+	cnode[0].initial_pitch_degree = PITCH_DEGREE
+	cnode[0].reset_orbit()
 
 # -----------------------------------------------------------------------------
 # Remote Methods
@@ -109,13 +123,15 @@ func spawn_player(pid : int, remote_pid : int, player_name : String = "") -> voi
 		booster.local_player_id = pid + 1
 		booster.set_network_master(remote_pid)
 		tb.add_booster(booster)
+		_ConfigCamera(pid)
+		
 		if get_tree().has_network_peer():
 			if remote_pid == get_tree().get_network_unique_id():
-				if pid == 1:
-					emit_signal("local_player_2", true)
+#				if pid == 1:
+#					emit_signal("local_player_2", true)
 				Net.announce_local_player(pid, remote_pid, Lobby.get_player_name(remote_pid, pid))
-		elif pid == 1:
-			emit_signal("local_player_2", true)
+#		elif pid == 1:
+#			emit_signal("local_player_2", true)
 
 # -----------------------------------------------------------------------------
 # Handler Methods

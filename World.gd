@@ -74,48 +74,55 @@ func _unhandled_input(event : InputEvent) -> void:
 			ui.show_menu("GameMenu")
 	elif event.is_action_pressed("terminal"):
 		ui.show_menu("Terminal")
+	elif _game_node != null:
+		if MUI.get_unassigned_user_id() >= 0:
+			var pid = MUI.get_unassigned_user_id()
+			if event is InputEventKey:
+				if not MUI.keyboard_device_in_use():
+					MUI.assign_user_input_device(pid, MUI.DEVICE_TYPE.Keyboard, 0)
+					_AddTrackbotBuilder(pid)
+					#emit_signal("device_obtained", pid, MUI.DEVICE_TYPE.Keyboard, 0)
+			elif event is InputEventJoypadButton:
+				if not MUI.joypad_device_in_use(event.device):
+					MUI.assign_user_input_device(pid, MUI.DEVICE_TYPE.Joypad, event.device)
+					_AddTrackbotBuilder(pid)
+					#emit_signal("device_obtained", pid, MUI.DEVICE_TYPE.Keyboard, 0)
 
 # -----------------------------------------------------------------------------
 # Private Methods
 # -----------------------------------------------------------------------------
 
-func _SpawnPlayer(pid : int, device_type : int, device_id : int = 0) -> void:
-	if MUI.is_uid_valid(pid):
-		MUI.assign_user_input_device(pid, device_type, device_id)
-		if get_tree().has_network_peer():
-			_game_node.spawn_player(pid, get_tree().get_network_unique_id())
-		else:
-			_game_node.spawn_player(pid, 0)
+func _SpawnPlayer(pid : int) -> void:
+	if get_tree().has_network_peer():
+		_game_node.spawn_player(pid, get_tree().get_network_unique_id())
+	else:
+		_game_node.spawn_player(pid, 0)
 
 
-func _AddTrackbotBuilder(player_count : int = 1) -> void:
-	var tb1 : Spatial = TRACKBOT_BUILDER.instance()
-	tb1.pid = 0
-	viewport_p1.add_child(tb1)
-	tb1.initialize()
-	if player_count == 2:
-		#var tb2 : Spatial = TRACKBOT_BUILDER.instance()
-		#tb2.pid = 1
-		#viewport_p2.add_child(tb2)
-		#print("Path: ", tb2.get_path_to(tb1))
-		#tb2.companion_builder_path = tb2.get_path_to(tb1)
+func _AddTrackbotBuilder(pid : int) -> void:
+	if not MUI.is_uid_valid(pid):
+		printerr("Player ID ", pid, " is not valid.")
+		return
+	var tbb : Spatial = TRACKBOT_BUILDER.instance()
+	tbb.pid = pid
+	if pid == 0:
+		viewport_p1.add_child(tbb)
+	else:
+		viewport_p2.add_child(tbb)
 		vp2c.visible = true
-		#tb2.initialize()
+	tbb.connect("start_game", self, "_on_start_game", [tbb])
 
 
-func _CreateGame(player_count : int = 1) -> void:
+func _CreateGame() -> void:
 	if _game_node == null:
 		_game_node = GAME.instance()
-		var _res : int = _game_node.connect("local_player_2", self, "_on_local_player_2")
 		viewport_game.add_child(_game_node)
-		viewport_p1.world = viewport_game.world
-		viewport_p2.world = viewport_game.world
+		#viewport_p1.world = viewport_game.world
+		#viewport_p2.world = viewport_game.world
 
 
 func _RemoveGame() -> void:
 	if _game_node != null:
-		if _game_node.is_connected("local_player_2", self, "_on_local_player_2"):
-			_game_node.disconnect("local_player_2", self, "_on_local_player_2")
 		viewport_p1.world = viewport_p1_world
 		viewport_p2.world = viewport_p2_world
 		vp2c.visible = false
@@ -140,20 +147,26 @@ func _on_joy_connection_changed(device_id : int, connected : bool) -> void:
 		if pid >= 0:
 			var _res : int = MUI.clear_user_input_device(pid)
 
-func _on_local_player_2(joined : bool) -> void:
-	vp2c.visible = joined
-
 func _on_MainMenu_quit():
 	get_tree().quit()
 
 func _on_MainMenu_local_start():
 	if _game_node == null:
-		ui.show_menu("LocalPlayerSetup")
-		#_CreateGame()
+		ui.show_menu("")
+		#ui.show_menu("LocalPlayerSetup")
+		_CreateGame()
 
-func _on_local_play_requested(player_count : int) -> void:
-	ui.show_menu("")
-	_AddTrackbotBuilder(player_count)
+func _on_start_game(pid : int, tb : Spatial) -> void:
+	_CreateGame()
+	if pid == 0:
+		viewport_p1.world = viewport_game.world
+	elif pid == 1:
+		viewport_p2.world = viewport_game.world
+	var parent = tb.get_parent()
+	if parent:
+		parent.remove_child(tb)
+		tb.queue_free()
+	_SpawnPlayer(pid)
 
 func _on_MainMenu_online_start():
 	ui.show_menu("Network")
