@@ -11,6 +11,18 @@ const DB : Dictionary = {
 			"scene": null
 		}
 	},
+	"TRACKBOTS":{
+		"CyberSmiley": {
+			"res": "res://Assets/Models/Trackballs/CyberSmiley/CyberSmiley.tscn",\
+			"scene": null
+		}
+	},
+	"WEAPONMOUNTS":{
+		"CyberSmiley": {
+			"res": "res://Objects/TrackBot/WeaponMount/WM_CyberSmiley.tscn",
+			"scene": null
+		}
+	},
 	"WEAPONS":{
 		"SHOTTY" : {
 			"res": "res://Objects/TrackBot/Weapons/Jank_Shotty/Jank_Shotty.tscn",
@@ -84,6 +96,11 @@ func set_active_db(db_name : String) -> void:
 
 func get_active_db() -> String:
 	return _active_db
+
+func get_database_keys(db_name : String) -> Array:
+	if db_name in DB:
+		return DB[db_name].keys()
+	return []
 
 func preload_by_name(key_name : String) -> bool:
 	var keys : Array = _SplitName(key_name)

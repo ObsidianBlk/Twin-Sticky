@@ -53,6 +53,7 @@ size = Vector2( 1024, 600 )
 size_override_stretch = true
 world = SubResource( 2 )
 handle_input_locally = false
+render_target_update_mode = 3
 
 [node name="GimbleCamera" parent="GameView/Viewports/VP1C/Viewport_P1" groups=["Camera_P1"] instance=ExtResource( 8 )]
 current = true

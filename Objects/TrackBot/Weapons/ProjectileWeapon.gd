@@ -9,6 +9,7 @@ signal spawn_projectile(projectile_name, position, direction)
 # ------------------------------------------------------------------------------
 # Export Variables
 # ------------------------------------------------------------------------------
+export var asset_key : String = ""
 export var projectile_name : String = ""			setget set_projectile_name
 export var rate_of_fire : float = 1.0				setget set_rate_of_fire
 export var spread : float = 0.0						setget set_spread

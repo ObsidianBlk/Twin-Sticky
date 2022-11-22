@@ -177,9 +177,9 @@ func assign_user_input_device(uid : int, device_type : int, device_id : int = 0)
 							var kinput : InputEventKey = input.duplicate()
 							if not InputMap.has_action(naction_name):
 								InputMap.add_action(naction_name)
+								if naction_name.begins_with(UI_ACTION_BASE_NAME):
+									_mu_ui_action_names.append({"action":naction_name, "core_action":action_name, "uid":uid})
 							InputMap.action_add_event(naction_name, kinput)
-							if naction_name.begins_with(UI_ACTION_BASE_NAME):
-								_mu_ui_action_names.append({"action":naction_name, "core_action":action_name, "uid":uid})
 					DEVICE_TYPE.Joypad:
 						var icls = input.get_class()
 						if icls == "InputEventJoypadButton" or icls == "InputEventJoypadMotion":
@@ -187,9 +187,9 @@ func assign_user_input_device(uid : int, device_type : int, device_id : int = 0)
 							jinput.device = device_id
 							if not InputMap.has_action(naction_name):
 								InputMap.add_action(naction_name)
+								if naction_name.begins_with(UI_ACTION_BASE_NAME):
+									_mu_ui_action_names.append({"action":naction_name, "core_action":action_name, "uid":uid})
 							InputMap.action_add_event(naction_name, jinput)
-							if naction_name.begins_with(UI_ACTION_BASE_NAME):
-								_mu_ui_action_names.append({"action":naction_name, "core_action":action_name, "uid":uid})
 	return OK
 
 
@@ -207,6 +207,7 @@ func clear_user_input_device(uid : int) -> int:
 							if _mu_ui_action_names[i].action == naction_name:
 								_mu_ui_action_names.remove(i)
 								break
+		_users[uid] = null
 	return OK
 
 func clear_all_user_input_devices() -> void:

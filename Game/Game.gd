@@ -11,7 +11,7 @@ signal local_player_2(joined)
 # -----------------------------------------------------------------------------
 const TRACKBOT : PackedScene = preload("res://Objects/TrackBot/TrackBot.tscn")
 const BOOSTER : PackedScene = preload("res://Objects/TrackBot/Boosters/Jank_Booster.tscn")
-const WEAPONMOUNT : PackedScene = preload("res://Objects/TrackBot/WeaponMount/WeaponMount.tscn")
+#const WEAPONMOUNT : PackedScene = preload("res://Objects/TrackBot/WeaponMount/WeaponMount.tscn")
 
 const ZOOM_LEVEL : float = 0.25
 const PITCH_DEGREE : float = 60.0
@@ -86,9 +86,13 @@ remotesync func r_spawn_projectile(projectile_name : String, position : Vector3,
 # -----------------------------------------------------------------------------
 # Public Methods
 # -----------------------------------------------------------------------------
-func spawn_player(pid : int, remote_pid : int, player_name : String = "") -> void:
+func spawn_player(pid : int, remote_pid : int, def : Dictionary) -> void:
 	if not hexregion_node:
 		return
+	
+	var player_name : String = ""
+	if "playername" in def:
+		player_name = def["playername"]
 	
 	var group_name : String = "Player_%s"%[pid + 1]
 	if remote_pid > 0:
@@ -98,6 +102,7 @@ func spawn_player(pid : int, remote_pid : int, player_name : String = "") -> voi
 	if bots.size() <= 0:
 		var y : float = hexregion_node.region_resource.get_height_at(Vector3.ZERO)
 		var tb : Spatial = TRACKBOT.instance()
+		tb.asset_key = "TRACKBOTS.CyberSmiley"
 		tb.set_name("%s_%s"%[remote_pid, pid + 1])
 		tb.add_to_group(group_name)
 		tb.set_network_master(remote_pid)
@@ -106,7 +111,7 @@ func spawn_player(pid : int, remote_pid : int, player_name : String = "") -> voi
 		var _res : int = Lobby.add_local_player(remote_pid, pid, player_name)
 		tb.bot_name = Lobby.get_player_name(remote_pid, pid)
 		
-		var wmount = WEAPONMOUNT.instance()
+		var wmount = AssetDB.get_by_name("WEAPONMOUNTS.CyberSmiley")#WEAPONMOUNT.instance()
 		wmount.local_player_id = pid + 1
 		wmount.set_network_master(remote_pid)
 		tb.add_weapon_mount(wmount)
@@ -129,15 +134,16 @@ func spawn_player(pid : int, remote_pid : int, player_name : String = "") -> voi
 			if remote_pid == get_tree().get_network_unique_id():
 #				if pid == 1:
 #					emit_signal("local_player_2", true)
-				Net.announce_local_player(pid, remote_pid, Lobby.get_player_name(remote_pid, pid))
+				def["playername"] = Lobby.get_player_name(remote_pid, pid)
+				Net.announce_local_player(pid, remote_pid, def)
 #		elif pid == 1:
 #			emit_signal("local_player_2", true)
 
 # -----------------------------------------------------------------------------
 # Handler Methods
 # -----------------------------------------------------------------------------
-func _on_add_player(local_pid : int , remote_pid : int, player_name : String) -> void:
-	spawn_player(local_pid, remote_pid, player_name)
+func _on_add_player(local_pid : int , remote_pid : int, def : Dictionary) -> void:
+	spawn_player(local_pid, remote_pid, def)
 
 func _on_remove_player(local_pid, remote_pid) -> void:
 	var _res : int = Lobby.remove_local_player(remote_pid, local_pid)

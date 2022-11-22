@@ -11,7 +11,7 @@ signal network_init_failed()
 
 signal add_game_world()
 signal remove_game_world()
-signal add_player(local_pid, remote_pid, player_name)
+signal add_player(local_pid, remote_pid, def)
 signal remove_player(local_pid, remote_pid)
 
 
@@ -151,8 +151,8 @@ func send_data(data, to_id : int = -1) -> void:
 	else:
 		rpc_id(1, "r_receive_data", data, to_id)
 
-func announce_local_player(pid : int, _rid : int, player_name : String) -> void:
-	rpc("r_announce_local_player", pid, player_name)
+func announce_local_player(pid : int, _rid : int, def : Dictionary) -> void:
+	rpc("r_announce_local_player", pid, def)
 
 # -----------------------------------------------------------------------------
 # Remote Methods
@@ -177,13 +177,16 @@ master func r_network_readied() -> void:
 				Log.debug("Announcing for local 1")
 				rpc_id(rid, "r_host_announce_local_player", id, 1, info)
 
-remotesync func r_announce_local_player(local_id : int, player_name : String) -> void:
+remotesync func r_announce_local_player(local_id : int, def : Dictionary) -> void:
 	var id = get_tree().get_network_unique_id()
 	var remote_pid = get_tree().get_rpc_sender_id()
 	
 	if remote_pid != id:
+		var player_name : String = ""
+		if "playername" in def:
+			player_name = def["playername"]
 		Log.info("Announced player %s:%s \"%s\"."%[remote_pid, local_id, player_name])
-		emit_signal("add_player", local_id, remote_pid, player_name)
+		emit_signal("add_player", local_id, remote_pid, def)
 
 puppet func r_host_announce_local_player(remote_id : int, local_id : int, player_info : Dictionary):
 	Log.debug("Host Announced to [%s] a player from [%s]"%[get_tree().get_network_unique_id(), remote_id])

@@ -1,7 +1,6 @@
-[gd_scene load_steps=16 format=2]
+[gd_scene load_steps=15 format=2]
 
 [ext_resource path="res://Objects/TrackBot/TrackBot.gd" type="Script" id=1]
-[ext_resource path="res://Assets/Models/Trackballs/CyberSmiley/CyberSmiley.tscn" type="PackedScene" id=2]
 
 [sub_resource type="VisualShaderNodeColorUniform" id=12]
 uniform_name = "Color"
@@ -151,10 +150,7 @@ billboard = 1
 double_sided = false
 text = "Trackbot"
 
-[node name="CyberSmiley" parent="." instance=ExtResource( 2 )]
-
 [node name="Ball" type="MeshInstance" parent="."]
-visible = false
 mesh = SubResource( 3 )
 
 [node name="CollisionShape" type="CollisionShape" parent="."]

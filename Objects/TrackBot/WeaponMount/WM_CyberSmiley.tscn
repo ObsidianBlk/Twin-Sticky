@@ -3,8 +3,9 @@
 [ext_resource path="res://Objects/TrackBot/WeaponMount.gd" type="Script" id=1]
 [ext_resource path="res://Assets/Models/Trackballs/CyberSmiley/CyberGimble.tscn" type="PackedScene" id=2]
 
-[node name="WeaponMount" type="Spatial"]
+[node name="WM_CyberSmiley" type="Spatial"]
 script = ExtResource( 1 )
+asset_key = "WEAPONMOUNTS.CyberSmiley"
 
 [node name="MountPoint_1" type="Position3D" parent="."]
 transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, -1.5, 0, 0 )

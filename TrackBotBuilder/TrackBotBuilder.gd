@@ -14,7 +14,7 @@ signal start_game(pid)
 const CLASS_NAME : String = "TrackBotBuilder"
 const TRACKBOT : PackedScene = preload("res://Objects/TrackBot/TrackBot.tscn")
 const BOOSTER : PackedScene = preload("res://Objects/TrackBot/Boosters/Jank_Booster.tscn")
-const WEAPONMOUNT : PackedScene = preload("res://Objects/TrackBot/WeaponMount/WeaponMount.tscn")
+#const WEAPONMOUNT : PackedScene = preload("res://Objects/TrackBot/WeaponMount/WeaponMount.tscn")
 
 # ------------------------------------------------------------------------------
 # Export Variables
@@ -31,6 +31,7 @@ var _camera : Spatial = null
 var _orbit_x : Array = [0.0, 0.0]
 var _orbit_y : Array = [0.0, 0.0]
 
+var _trackbot : Spatial = null
 
 # ------------------------------------------------------------------------------
 # Onready Variables
@@ -79,7 +80,10 @@ func _unhandled_input(event : InputEvent) -> void:
 		_orbit_x[1] = 0.0
 	
 	if event.is_action_pressed("wm_fire_l_%s"%[pid + 1]) or event.is_action_pressed("wm_fire_r_%s"%[pid + 1]):
-		emit_signal("start_game", pid)
+		emit_signal("start_game", pid, {
+			"trackbot": _trackbot.get_build_dict(),
+			"playername": ""
+		})
 
 
 func _process(delta : float) -> void:
@@ -91,13 +95,15 @@ func _process(delta : float) -> void:
 # Private Methods
 # ------------------------------------------------------------------------------
 func _StartBuilder() -> void:
-	var tb : Spatial = TRACKBOT.instance()
-	tb.set_static()
-	_trackbot_container.add_child(tb)
-	var wmount = WEAPONMOUNT.instance()
-	wmount.local_player_id = pid + 1
-	wmount.lock_player_control(true)
-	tb.add_weapon_mount(wmount)
+	if _trackbot == null:
+		_trackbot = TRACKBOT.instance()
+		_trackbot.asset_key = "TRACKBOTS.CyberSmiley"
+		_trackbot.set_static()
+		_trackbot_container.add_child(_trackbot)
+		var wmount = AssetDB.get_by_name("WEAPONMOUNTS.CyberSmiley")#WEAPONMOUNT.instance()
+		wmount.local_player_id = pid + 1
+		wmount.lock_player_control(true)
+		_trackbot.add_weapon_mount(wmount)
 	
 
 # ------------------------------------------------------------------------------

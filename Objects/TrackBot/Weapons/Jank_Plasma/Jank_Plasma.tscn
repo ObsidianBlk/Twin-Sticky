@@ -13,6 +13,9 @@ size = Vector3( 0.2, 0.1, 0.05 )
 
 [node name="Jank_Plasma" type="Spatial"]
 script = ExtResource( 1 )
+asset_key = "WEAPONS.PLASMA"
+projectile_name = "PlasmaBullet"
+rate_of_fire = 0.1
 
 [node name="Handle" type="MeshInstance" parent="."]
 mesh = SubResource( 1 )

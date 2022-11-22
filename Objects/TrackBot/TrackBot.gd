@@ -11,10 +11,12 @@ signal hp_changed(owner_id, current_hp, max_hp)
 export var owner_id : int = 0
 export var max_hp : float = 100.0					setget set_max_hp
 export var bot_name : String = ""					setget set_bot_name
+export var asset_key : String = ""					setget set_asset_key
 
 # ------------------------------------------------------------------------------
 # Variables
 # ------------------------------------------------------------------------------
+var _is_ready : bool = false
 var _network_mode : bool = false
 
 var _boost_direction : Vector3 = Vector3.ZERO
@@ -22,10 +24,11 @@ var _boost_strength : float = 0.0
 var _boost_jump_strength : float = 0.0
 
 var _hp : float = 0.0
-var _base_color : Color = Color.white
+#var _base_color : Color = Color.white
 
 var _booster_node : Spatial = null
 var _weaponmount_node : Spatial = null
+var _asset_ball_node : Spatial = null
 
 # ------------------------------------------------------------------------------
 # Onready Variables
@@ -50,10 +53,15 @@ func set_bot_name(n : String) -> void:
 	if label_name_node:
 		label_name_node.text = bot_name
 
+func set_asset_key(akey : String) -> void:
+	asset_key = akey
+	_UpdateAssetKey()
+
 # ------------------------------------------------------------------------------
 # Override Methods
 # ------------------------------------------------------------------------------
 func _ready() -> void:
+	_is_ready = true
 	label_name_node.text = bot_name
 	_network_mode = get_tree().has_network_peer()
 	if _network_mode:
@@ -61,10 +69,7 @@ func _ready() -> void:
 			mode = MODE_KINEMATIC
 	
 	_hp = max_hp
-	if ball_node.get_surface_material_count() > 0:
-		var material : Material = ball_node.get_surface_material(0)
-		if material is ShaderMaterial:
-			_base_color = material.get_shader_param("Color")
+	_UpdateAssetKey()
 
 func _physics_process(delta : float) -> void:
 	if _network_mode:
@@ -103,6 +108,21 @@ func _SetBallColor(color : Color) -> void:
 		var material = ball_node.get_active_material(0)
 		if material is ShaderMaterial:
 			material.set_shader_param("Color", color)
+
+func _UpdateAssetKey() -> void:
+	if not _is_ready:
+		return
+	
+	if asset_key == null:
+		if _asset_ball_node != null:
+			remove_child(_asset_ball_node)
+		ball_node.visible = true
+	else:
+		var asset_node : Spatial = AssetDB.get_by_name(asset_key)
+		if asset_node:
+			_asset_ball_node = asset_node
+			add_child_below_node(ball_node, _asset_ball_node)
+			ball_node.visible = false
 
 # ------------------------------------------------------------------------------
 # Remote Methods
@@ -225,7 +245,21 @@ func revive() -> void:
 		_weaponmount_node.lock_player_control(false)
 	if _booster_node:
 		_booster_node.lock_player_control(false)
-	_SetBallColor(_base_color)
+	#_SetBallColor(_base_color)
+
+func get_build_dict() -> Dictionary:
+	var bd : Dictionary = {
+		"trackbot": asset_key,
+		"weaponmount": "",
+		"weapon_1": "",
+		"weapon_2": "",
+		"booster": ""
+	}
+	if _weaponmount_node != null:
+		bd.weaponmount = _weaponmount_node.asset_key
+		bd.weapon_1 = _weaponmount_node.get_mount_asset_key(0)
+		bd.weapon_2 = _weaponmount_node.get_mount_asset_key(1)
+	return bd
 
 # ------------------------------------------------------------------------------
 # Handler Methods

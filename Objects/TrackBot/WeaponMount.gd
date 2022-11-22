@@ -10,6 +10,7 @@ extends Spatial
 # ------------------------------------------------------------------------------
 # Export Variables
 # ------------------------------------------------------------------------------
+export var asset_key : String = ""
 export (int, 0, 2) var local_player_id : int = 0
 export var dps : float = 180.0						setget set_dps
 
@@ -191,6 +192,11 @@ func lock_player_control(lock : bool = true) -> void:
 	# TODO: Handle AIs if needed.
 	if local_player_id > 0:
 		set_process_unhandled_input(not lock)
+
+func get_mount_asset_key(id : int) -> String:
+	if id in _mounted_items:
+		return _mounted_items[id].asset_key
+	return ""
 
 # ------------------------------------------------------------------------------
 # Handler Methods

@@ -92,11 +92,11 @@ func _unhandled_input(event : InputEvent) -> void:
 # Private Methods
 # -----------------------------------------------------------------------------
 
-func _SpawnPlayer(pid : int) -> void:
+func _SpawnPlayer(pid : int, def : Dictionary) -> void:
 	if get_tree().has_network_peer():
-		_game_node.spawn_player(pid, get_tree().get_network_unique_id())
+		_game_node.spawn_player(pid, get_tree().get_network_unique_id(), def)
 	else:
-		_game_node.spawn_player(pid, 0)
+		_game_node.spawn_player(pid, 0, def)
 
 
 func _AddTrackbotBuilder(pid : int) -> void:
@@ -156,7 +156,7 @@ func _on_MainMenu_local_start():
 		#ui.show_menu("LocalPlayerSetup")
 		_CreateGame()
 
-func _on_start_game(pid : int, tb : Spatial) -> void:
+func _on_start_game(pid : int, def : Dictionary, tb : Spatial) -> void:
 	_CreateGame()
 	if pid == 0:
 		viewport_p1.world = viewport_game.world
@@ -166,7 +166,7 @@ func _on_start_game(pid : int, tb : Spatial) -> void:
 	if parent:
 		parent.remove_child(tb)
 		tb.queue_free()
-	_SpawnPlayer(pid)
+	_SpawnPlayer(pid, def)
 
 func _on_MainMenu_online_start():
 	ui.show_menu("Network")
