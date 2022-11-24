@@ -2,6 +2,11 @@ extends Node
 
 
 # ------------------------------------------------------------------------------
+# Signal
+# ------------------------------------------------------------------------------
+signal ui_user_changed(uid)
+
+# ------------------------------------------------------------------------------
 # Constants
 # ------------------------------------------------------------------------------
 const UI_ACTION_BASE_NAME : String = "ui_"
@@ -13,6 +18,7 @@ enum DEVICE_TYPE {Keyboard=0, Joypad=1}
 var _mu_ui_action_names : Array = []
 var _mu_input_action_names : Array = []
 var _users : Array = []
+var _ui_user_uid : int = -1
 
 
 # ------------------------------------------------------------------------------
@@ -22,41 +28,41 @@ func _ready() -> void:
 	pass
 
 
-func _input(event : InputEvent) -> void:
-	for ui in _mu_ui_action_names:
-		if _users[ui.uid].ui_control != null:
-			if event.is_action_pressed(ui.action):
-				var success : bool = true
-				match ui.core_action:
-					"ui_accept":
-						pass
-					"ui_select":
-						pass
-					"ui_cancel":
-						pass
-					"ui_focus_next":
-						pass
-					"ui_focus_prev":
-						pass
-					"ui_left":
-						pass
-					"ui_right":
-						pass
-					"ui_up":
-						pass
-					"ui_down":
-						pass
-					"ui_page_up":
-						pass
-					"ui_page_down":
-						pass
-					"ui_home":
-						pass
-					"ui_end":
-						pass
-				var st : SceneTree = get_tree()
-				if st and success:
-					st.set_input_as_handled()
+#func _input(event : InputEvent) -> void:
+#	for ui in _mu_ui_action_names:
+#		if _users[ui.uid].ui_control != null:
+#			if event.is_action_pressed(ui.action):
+#				var success : bool = true
+#				match ui.core_action:
+#					"ui_accept":
+#						pass
+#					"ui_select":
+#						pass
+#					"ui_cancel":
+#						pass
+#					"ui_focus_next":
+#						pass
+#					"ui_focus_prev":
+#						pass
+#					"ui_left":
+#						pass
+#					"ui_right":
+#						pass
+#					"ui_up":
+#						pass
+#					"ui_down":
+#						pass
+#					"ui_page_up":
+#						pass
+#					"ui_page_down":
+#						pass
+#					"ui_home":
+#						pass
+#					"ui_end":
+#						pass
+#				var st : SceneTree = get_tree()
+#				if st and success:
+#					st.set_input_as_handled()
 
 
 # ------------------------------------------------------------------------------
@@ -163,8 +169,7 @@ func assign_user_input_device(uid : int, device_type : int, device_id : int = 0)
 	
 	_users[uid] = {
 		"device_type":device_type,
-		"device_id":device_id,
-		"ui_control":null
+		"device_id":device_id
 	}
 	
 	for action_name in InputMap.get_actions():
@@ -215,6 +220,22 @@ func clear_all_user_input_devices() -> void:
 		var _res : int = clear_user_input_device(uid)
 
 
+func give_user_ui_control(uid : int) -> bool:
+	if uid >= 0 and uid < _users.size() and uid != _ui_user_uid:
+		_ui_user_uid = uid
+		emit_signal("ui_user_changed", _ui_user_uid)
+		return true
+	return false
+
+func free_ui_control() -> void:
+	_ui_user_uid = -1
+	emit_signal("ui_user_changed", _ui_user_uid)
+
+func user_has_ui_control(uid : int) -> bool:
+	return uid == _ui_user_uid
+
+func get_ui_control_user() -> int:
+	return _ui_user_uid
 
 
 

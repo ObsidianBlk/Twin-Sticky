@@ -1,6 +1,7 @@
-[gd_scene load_steps=6 format=2]
+[gd_scene load_steps=7 format=2]
 
 [ext_resource path="res://TrackBotBuilder/TrackBotBuilder.gd" type="Script" id=1]
+[ext_resource path="res://TrackBotBuilder/UI/TBOptions.tscn" type="PackedScene" id=2]
 
 [sub_resource type="SpatialMaterial" id=1]
 albedo_color = Color( 0.411765, 0.329412, 0.141176, 1 )
@@ -45,3 +46,7 @@ mesh = SubResource( 4 )
 [node name="MeshInstance3" type="MeshInstance" parent="Turntable/Platform"]
 transform = Transform( -4.37114e-08, 1, -4.37114e-08, 0, -4.37114e-08, -1, -1, -4.37114e-08, 1.91069e-15, 1.404, 0, 0 )
 mesh = SubResource( 4 )
+
+[node name="UI" type="CanvasLayer" parent="."]
+
+[node name="TBOptions" parent="UI" instance=ExtResource( 2 )]

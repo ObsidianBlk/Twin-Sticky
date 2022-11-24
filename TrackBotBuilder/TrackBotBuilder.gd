@@ -32,21 +32,31 @@ var _orbit_x : Array = [0.0, 0.0]
 var _orbit_y : Array = [0.0, 0.0]
 
 var _trackbot : Spatial = null
+var _playername : String = ""
 
 # ------------------------------------------------------------------------------
 # Onready Variables
 # ------------------------------------------------------------------------------
 onready var _trackbot_container : Spatial = $Turntable/TrackBotContainer
+onready var _ui : Control = $UI/TBOptions
 
 # ------------------------------------------------------------------------------
 # Override Methods
 # ------------------------------------------------------------------------------
 func _ready() -> void:
+	_ui.connect("part_changed", self, "_on_part_changed")
+	_ui.connect("playername_changed", self, "_on_playername_changed")
 	if not MUI.is_uid_valid(pid):
 		printerr("TrackBotBuilder given invalid Player ID, ", pid)
 		# TODO: Lock away more stuff?
 		return
 	_StartBuilder()
+	MUI.connect("ui_user_changed", self, "_on_ui_user_changed")
+	if MUI.get_ui_control_user() < 0:
+		if MUI.give_user_ui_control(pid):
+			_ui.visible = true
+	else:
+		_ui.visible = false
 
 func _enter_tree() -> void:
 	var nodes = get_tree().get_nodes_in_group("Camera_P%s"%[pid + 1])
@@ -63,6 +73,9 @@ func _enter_tree() -> void:
 
 func _exit_tree() -> void:
 	_camera = null
+	MUI.disconnect("ui_user_changed", self, "_on_ui_user_changed")
+	if MUI.get_ui_control_user() == pid:
+		MUI.free_ui_control()
 
 func _unhandled_input(event : InputEvent) -> void:
 	if not _camera:
@@ -82,7 +95,7 @@ func _unhandled_input(event : InputEvent) -> void:
 	if event.is_action_pressed("wm_fire_l_%s"%[pid + 1]) or event.is_action_pressed("wm_fire_r_%s"%[pid + 1]):
 		emit_signal("start_game", pid, {
 			"trackbot": _trackbot.get_build_dict(),
-			"playername": ""
+			"playername": _playername
 		})
 
 
@@ -97,14 +110,41 @@ func _process(delta : float) -> void:
 func _StartBuilder() -> void:
 	if _trackbot == null:
 		_trackbot = TRACKBOT.instance()
-		_trackbot.asset_key = "TRACKBOTS.CyberSmiley"
+#		_trackbot.asset_key = "TRACKBOTS.CyberSmiley"
 		_trackbot.set_static()
 		_trackbot_container.add_child(_trackbot)
-		var wmount = AssetDB.get_by_name("WEAPONMOUNTS.CyberSmiley")#WEAPONMOUNT.instance()
-		wmount.local_player_id = pid + 1
-		wmount.lock_player_control(true)
-		_trackbot.add_weapon_mount(wmount)
-	
+#		var wmount = AssetDB.get_by_name("WEAPONMOUNTS.CyberSmiley")
+#		wmount.local_player_id = pid + 1
+#		wmount.lock_player_control(true)
+#		_trackbot.add_weapon_mount(wmount)
+
+func _SwapBody(body_key : String) -> void:
+	if _trackbot != null:
+		_trackbot.asset_key = body_key
+
+func _SwapMount(mount_key : String) -> void:
+	if _trackbot != null:
+		var lw : Spatial = null
+		var rw : Spatial = null
+		var wm : Spatial = _trackbot.remove_weapon_mount()
+		if wm != null:
+			lw = wm.unmount_item(1)
+			rw = wm.unmount_item(2)
+		wm = AssetDB.get_by_name(mount_key)
+		if wm:
+			wm.local_player_id = pid + 1
+			wm.lock_player_control(true)
+			_trackbot.add_weapon_mount(wm)
+			if lw != null:
+				wm.mount_item(lw, 1)
+			if rw != null:
+				wm.mount_item(rw, 2)
+
+func _SwapWeapon(weapon_key : String, mount_id : int) -> void:
+	if _trackbot != null:
+		var item : Spatial = AssetDB.get_by_name(weapon_key)
+		if item:
+			_trackbot.mount_item(item, mount_id, true)
 
 # ------------------------------------------------------------------------------
 # Public Methods
@@ -116,7 +156,29 @@ func get_class() -> String:
 # ------------------------------------------------------------------------------
 # Handler Methods
 # ------------------------------------------------------------------------------
+func _on_ui_user_changed(ui_pid : int) -> void:
+	if ui_pid < 0:
+		MUI.give_user_ui_control(pid)
+	elif ui_pid == pid:
+		_ui.visible = true
+		_ui.grab_focus()
+	else:
+		var fowner = _ui.get_focus_owner()
+		fowner.release_focus()
+		_ui.visible = false
 
+func _on_playername_changed(player_name : String) -> void:
+	_playername = player_name
 
-
+func _on_part_changed(req : Dictionary):
+	if "part" in req and "key" in req:
+		match req["part"]:
+			"Body":
+				_SwapBody(req["key"])
+			"Mount":
+				_SwapMount(req["key"])
+			"LeftWeapon":
+				_SwapWeapon(req["key"], 1)
+			"RightWeapon":
+				_SwapWeapon(req["key"], 2)
 
