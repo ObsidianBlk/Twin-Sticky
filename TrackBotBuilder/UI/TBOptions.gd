@@ -6,6 +6,7 @@ extends Control
 # ------------------------------------------------------------------------------
 signal part_changed(req)
 signal playername_changed(player_name)
+signal enter_arena_requested()
 
 
 # ------------------------------------------------------------------------------
@@ -16,6 +17,7 @@ onready var tbbody_menu : MenuButton = $MC/VBC/TBBody
 onready var tbwm_menu : MenuButton = $MC/VBC/TBWM
 onready var tblw_menu : MenuButton = $MC/VBC/TBLeftWeapon
 onready var tbrw_menu : MenuButton = $MC/VBC/TBRightWeapon
+onready var enterarena_button : Button = $MC/VBC/EnterArena
 
 # ------------------------------------------------------------------------------
 # Override Methods
@@ -50,9 +52,20 @@ func _ready() -> void:
 	pop.connect("index_pressed", self, "_on_item_index_press", [tbrw_menu, "RightWeapon"])
 
 # ------------------------------------------------------------------------------
+# Public Methods
+# ------------------------------------------------------------------------------
+func grab_focus() -> void:
+	tbbody_menu.grab_focus()
+
+# ------------------------------------------------------------------------------
 # Handler Methods
 # ------------------------------------------------------------------------------
 func _on_item_index_press(idx : int, mb : MenuButton, part_name : String) -> void:
+	if mb == tbwm_menu:
+		tblw_menu.disabled = false
+		tbrw_menu.disabled = false
+		enterarena_button.disabled = false
+	
 	var pop : PopupMenu = mb.get_popup()
 	mb.text = pop.get_item_text(idx)
 	var key : String = pop.get_item_metadata(idx)
@@ -62,3 +75,5 @@ func _on_item_index_press(idx : int, mb : MenuButton, part_name : String) -> voi
 func _on_PlayerName_text_changed(new_text : String) -> void:
 	emit_signal("playername_changed", new_text)
 
+func _on_EnterArena_pressed():
+	emit_signal("enter_arena_requested")

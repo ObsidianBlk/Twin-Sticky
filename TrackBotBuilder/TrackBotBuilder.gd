@@ -46,6 +46,7 @@ onready var _ui : Control = $UI/TBOptions
 func _ready() -> void:
 	_ui.connect("part_changed", self, "_on_part_changed")
 	_ui.connect("playername_changed", self, "_on_playername_changed")
+	_ui.connect("enter_arena_requested", self, "_on_enter_arena_requested")
 	if not MUI.is_uid_valid(pid):
 		printerr("TrackBotBuilder given invalid Player ID, ", pid)
 		# TODO: Lock away more stuff?
@@ -92,11 +93,11 @@ func _unhandled_input(event : InputEvent) -> void:
 	elif event.is_action_released(ename):
 		_orbit_x[1] = 0.0
 	
-	if event.is_action_pressed("wm_fire_l_%s"%[pid + 1]) or event.is_action_pressed("wm_fire_r_%s"%[pid + 1]):
-		emit_signal("start_game", pid, {
-			"trackbot": _trackbot.get_build_dict(),
-			"playername": _playername
-		})
+#	if event.is_action_pressed("wm_fire_l_%s"%[pid + 1]) or event.is_action_pressed("wm_fire_r_%s"%[pid + 1]):
+#		emit_signal("start_game", pid, {
+#			"trackbot": _trackbot.get_build_dict(),
+#			"playername": _playername
+#		})
 
 
 func _process(delta : float) -> void:
@@ -110,13 +111,8 @@ func _process(delta : float) -> void:
 func _StartBuilder() -> void:
 	if _trackbot == null:
 		_trackbot = TRACKBOT.instance()
-#		_trackbot.asset_key = "TRACKBOTS.CyberSmiley"
 		_trackbot.set_static()
 		_trackbot_container.add_child(_trackbot)
-#		var wmount = AssetDB.get_by_name("WEAPONMOUNTS.CyberSmiley")
-#		wmount.local_player_id = pid + 1
-#		wmount.lock_player_control(true)
-#		_trackbot.add_weapon_mount(wmount)
 
 func _SwapBody(body_key : String) -> void:
 	if _trackbot != null:
@@ -166,6 +162,12 @@ func _on_ui_user_changed(ui_pid : int) -> void:
 		var fowner = _ui.get_focus_owner()
 		fowner.release_focus()
 		_ui.visible = false
+
+func _on_enter_arena_requested() -> void:
+	emit_signal("start_game", pid, {
+		"trackbot": _trackbot.get_build_dict(),
+		"playername": _playername
+	})
 
 func _on_playername_changed(player_name : String) -> void:
 	_playername = player_name

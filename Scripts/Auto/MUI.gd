@@ -10,12 +10,12 @@ signal ui_user_changed(uid)
 # Constants
 # ------------------------------------------------------------------------------
 const UI_ACTION_BASE_NAME : String = "ui_"
+const UI_ACTION_BACKUP_PREFIX : String = "bk_"
 enum DEVICE_TYPE {Keyboard=0, Joypad=1}
 
 # ------------------------------------------------------------------------------
 # Variables
 # ------------------------------------------------------------------------------
-var _mu_ui_action_names : Array = []
 var _mu_input_action_names : Array = []
 var _users : Array = []
 var _ui_user_uid : int = -1
@@ -25,45 +25,12 @@ var _ui_user_uid : int = -1
 # Override Methods
 # ------------------------------------------------------------------------------
 func _ready() -> void:
-	pass
-
-
-#func _input(event : InputEvent) -> void:
-#	for ui in _mu_ui_action_names:
-#		if _users[ui.uid].ui_control != null:
-#			if event.is_action_pressed(ui.action):
-#				var success : bool = true
-#				match ui.core_action:
-#					"ui_accept":
-#						pass
-#					"ui_select":
-#						pass
-#					"ui_cancel":
-#						pass
-#					"ui_focus_next":
-#						pass
-#					"ui_focus_prev":
-#						pass
-#					"ui_left":
-#						pass
-#					"ui_right":
-#						pass
-#					"ui_up":
-#						pass
-#					"ui_down":
-#						pass
-#					"ui_page_up":
-#						pass
-#					"ui_page_down":
-#						pass
-#					"ui_home":
-#						pass
-#					"ui_end":
-#						pass
-#				var st : SceneTree = get_tree()
-#				if st and success:
-#					st.set_input_as_handled()
-
+	for action_name in InputMap.get_actions():
+		if action_name.begins_with(UI_ACTION_BASE_NAME):
+			var new_action_name : String = "%s%s"%[UI_ACTION_BACKUP_PREFIX, action_name]
+			InputMap.add_action(new_action_name)
+			for input in InputMap.get_action_list(action_name):
+				InputMap.action_add_event(new_action_name, input)
 
 # ------------------------------------------------------------------------------
 # Public Methods
@@ -174,7 +141,7 @@ func assign_user_input_device(uid : int, device_type : int, device_id : int = 0)
 	
 	for action_name in InputMap.get_actions():
 		var naction_name : String = "%s_%s"%[action_name, String(uid+1)]
-		if action_name.begins_with(UI_ACTION_BASE_NAME) or _mu_input_action_names.find(action_name) >= 0:
+		if _mu_input_action_names.find(action_name) >= 0:
 			for input in InputMap.get_action_list(action_name):
 				match device_type:
 					DEVICE_TYPE.Keyboard:
@@ -182,8 +149,6 @@ func assign_user_input_device(uid : int, device_type : int, device_id : int = 0)
 							var kinput : InputEventKey = input.duplicate()
 							if not InputMap.has_action(naction_name):
 								InputMap.add_action(naction_name)
-								if naction_name.begins_with(UI_ACTION_BASE_NAME):
-									_mu_ui_action_names.append({"action":naction_name, "core_action":action_name, "uid":uid})
 							InputMap.action_add_event(naction_name, kinput)
 					DEVICE_TYPE.Joypad:
 						var icls = input.get_class()
@@ -192,8 +157,6 @@ func assign_user_input_device(uid : int, device_type : int, device_id : int = 0)
 							jinput.device = device_id
 							if not InputMap.has_action(naction_name):
 								InputMap.add_action(naction_name)
-								if naction_name.begins_with(UI_ACTION_BASE_NAME):
-									_mu_ui_action_names.append({"action":naction_name, "core_action":action_name, "uid":uid})
 							InputMap.action_add_event(naction_name, jinput)
 	return OK
 
@@ -204,14 +167,9 @@ func clear_user_input_device(uid : int) -> int:
 	if _users[uid] != null:
 		for action_name in InputMap.get_actions():
 			var naction_name : String = "%s_%s"%[action_name, String(uid+1)]
-			if naction_name.begins_with(UI_ACTION_BASE_NAME) or _mu_input_action_names.find(action_name) >= 0:
+			if _mu_input_action_names.find(action_name) >= 0:
 				if InputMap.has_action(naction_name):
 					InputMap.erase_action(naction_name)
-					if naction_name.begins_with(UI_ACTION_BASE_NAME):
-						for i in range(_mu_ui_action_names.size()):
-							if _mu_ui_action_names[i].action == naction_name:
-								_mu_ui_action_names.remove(i)
-								break
 		_users[uid] = null
 	return OK
 
@@ -223,12 +181,34 @@ func clear_all_user_input_devices() -> void:
 func give_user_ui_control(uid : int) -> bool:
 	if uid >= 0 and uid < _users.size() and uid != _ui_user_uid:
 		_ui_user_uid = uid
+
+		for action_name in InputMap.get_actions():
+			if action_name.begins_with(UI_ACTION_BASE_NAME):
+				var bk_action_name : String = "%s%s"%[UI_ACTION_BACKUP_PREFIX, action_name]
+				InputMap.action_erase_events(action_name)
+				for input in InputMap.get_action_list(bk_action_name):
+					# TODO(?): Duplicate input instead of using it directly?
+					match _users[uid].device_type:
+						DEVICE_TYPE.Keyboard:
+							if input is InputEventKey:
+								InputMap.action_add_event(action_name, input)
+						DEVICE_TYPE.Joypad:
+							if input is InputEventJoypadButton or input is InputEventJoypadMotion:
+								input.device = _users[uid].device_id
+								InputMap.action_add_event(action_name, input)
+
 		emit_signal("ui_user_changed", _ui_user_uid)
 		return true
 	return false
 
 func free_ui_control() -> void:
 	_ui_user_uid = -1
+	for action_name in InputMap.get_actions():
+		if action_name.begins_with(UI_ACTION_BASE_NAME):
+			var bk_action_name : String = "%s%s"%[UI_ACTION_BACKUP_PREFIX, action_name]
+			InputMap.action_erase_events(action_name)
+			for input in InputMap.get_action_list(bk_action_name):
+				InputMap.action_add_event(action_name, input)
 	emit_signal("ui_user_changed", _ui_user_uid)
 
 func user_has_ui_control(uid : int) -> bool:

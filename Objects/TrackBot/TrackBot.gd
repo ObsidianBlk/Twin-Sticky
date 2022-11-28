@@ -249,7 +249,7 @@ func revive() -> void:
 
 func get_build_dict() -> Dictionary:
 	var bd : Dictionary = {
-		"trackbot": asset_key,
+		"body": asset_key,
 		"weaponmount": "",
 		"weapon_1": "",
 		"weapon_2": "",
@@ -257,8 +257,8 @@ func get_build_dict() -> Dictionary:
 	}
 	if _weaponmount_node != null:
 		bd.weaponmount = _weaponmount_node.asset_key
-		bd.weapon_1 = _weaponmount_node.get_mount_asset_key(0)
-		bd.weapon_2 = _weaponmount_node.get_mount_asset_key(1)
+		bd.weapon_1 = _weaponmount_node.get_mount_asset_key(1)
+		bd.weapon_2 = _weaponmount_node.get_mount_asset_key(2)
 	return bd
 
 # ------------------------------------------------------------------------------

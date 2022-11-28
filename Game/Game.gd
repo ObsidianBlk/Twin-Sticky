@@ -11,7 +11,14 @@ signal local_player_2(joined)
 # -----------------------------------------------------------------------------
 const TRACKBOT : PackedScene = preload("res://Objects/TrackBot/TrackBot.tscn")
 const BOOSTER : PackedScene = preload("res://Objects/TrackBot/Boosters/Jank_Booster.tscn")
-#const WEAPONMOUNT : PackedScene = preload("res://Objects/TrackBot/WeaponMount/WeaponMount.tscn")
+
+const DEFAULT_TRACKBOT_DEFINITION : Dictionary = {
+	"body":"",
+	"weaponmount": "WEAPONMOUNTS.CyberSmile",
+	"weapon_1":"",
+	"weapon_2":"",
+	"booster":""
+}
 
 const ZOOM_LEVEL : float = 0.25
 const PITCH_DEGREE : float = 60.0
@@ -41,8 +48,8 @@ func _ready() -> void:
 # -----------------------------------------------------------------------------
 # Private Methods
 # -----------------------------------------------------------------------------
-func _MountWeapon(weapon_name : String, trackbot : Spatial, mount_id : int) -> int:
-	var weapon : Spatial = AssetDB.get_by_name("WEAPONS.%s"%[weapon_name])
+func _MountWeapon(weapon_key : String, trackbot : Spatial, mount_id : int) -> int:
+	var weapon : Spatial = AssetDB.get_by_name(weapon_key)
 	if weapon:
 		if trackbot.has_method("mount_item"):
 			if not trackbot.item_mounted(mount_id):
@@ -98,11 +105,18 @@ func spawn_player(pid : int, remote_pid : int, def : Dictionary) -> void:
 	if remote_pid > 0:
 		group_name = "%s_%s"%[group_name, remote_pid]
 	
+	var tbdef : Dictionary = {}
+	if "trackbot" in def:
+		tbdef = def.trackbot
+		for key in DEFAULT_TRACKBOT_DEFINITION.keys():
+			if not key in tbdef:
+				tbdef[key] = DEFAULT_TRACKBOT_DEFINITION[key]
+		
 	var bots = get_tree().get_nodes_in_group(group_name)
 	if bots.size() <= 0:
 		var y : float = hexregion_node.region_resource.get_height_at(Vector3.ZERO)
 		var tb : Spatial = TRACKBOT.instance()
-		tb.asset_key = "TRACKBOTS.CyberSmiley"
+		tb.asset_key = tbdef.body
 		tb.set_name("%s_%s"%[remote_pid, pid + 1])
 		tb.add_to_group(group_name)
 		tb.set_network_master(remote_pid)
@@ -111,18 +125,20 @@ func spawn_player(pid : int, remote_pid : int, def : Dictionary) -> void:
 		var _res : int = Lobby.add_local_player(remote_pid, pid, player_name)
 		tb.bot_name = Lobby.get_player_name(remote_pid, pid)
 		
-		var wmount = AssetDB.get_by_name("WEAPONMOUNTS.CyberSmiley")#WEAPONMOUNT.instance()
+		var wmount = AssetDB.get_by_name(tbdef.weaponmount)
 		wmount.local_player_id = pid + 1
 		wmount.set_network_master(remote_pid)
 		tb.add_weapon_mount(wmount)
 		
-		var res : int = _MountWeapon("CyberShotgun", tb, 1)
-		if res != OK:
-			printerr("Failed to mount CyberShotgun to Trackbot ID ", pid)
+		if tbdef.weapon_1 != "":
+			var res : int = _MountWeapon(tbdef.weapon_1, tb, 1)
+			if res != OK:
+				printerr("Failed to mount CyberShotgun to Trackbot ID ", pid)
 		
-		res = _MountWeapon("PLASMA", tb, 2)
-		if res != OK:
-			printerr("Failed to mount PLASMA to Trackbot ID ", pid)
+		if tbdef.weapon_2 != "":
+			var res : int = _MountWeapon(tbdef.weapon_2, tb, 2)
+			if res != OK:
+				printerr("Failed to mount PLASMA to Trackbot ID ", pid)
 		
 		var booster = BOOSTER.instance()
 		booster.local_player_id = pid + 1
@@ -132,12 +148,8 @@ func spawn_player(pid : int, remote_pid : int, def : Dictionary) -> void:
 		
 		if get_tree().has_network_peer():
 			if remote_pid == get_tree().get_network_unique_id():
-#				if pid == 1:
-#					emit_signal("local_player_2", true)
 				def["playername"] = Lobby.get_player_name(remote_pid, pid)
 				Net.announce_local_player(pid, remote_pid, def)
-#		elif pid == 1:
-#			emit_signal("local_player_2", true)
 
 # -----------------------------------------------------------------------------
 # Handler Methods
@@ -158,10 +170,5 @@ func _on_spawn_projectile(projectile_name : String, position : Vector3, directio
 		rpc("r_spawn_projectile", projectile_name, position, direction, trackbot.name)
 	else:
 		r_spawn_projectile(projectile_name, position, direction, trackbot.name)
-#	if projectile_name in PROJECTILE:
-#		var projectile = PROJECTILE[projectile_name].instance()
-#		projectile.direction = direction
-#		add_child(projectile)
-#		projectile.global_transform.origin = position
 
 
