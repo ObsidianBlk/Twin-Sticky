@@ -51,36 +51,44 @@ focus_mode = 2
 text = "Select Body"
 flat = false
 
-[node name="TBWM" type="MenuButton" parent="MC/VBC"]
+[node name="TBBooster" type="MenuButton" parent="MC/VBC"]
 margin_top = 78.0
 margin_right = 196.0
 margin_bottom = 98.0
+focus_mode = 2
+text = "Select Booster"
+flat = false
+
+[node name="TBWM" type="MenuButton" parent="MC/VBC"]
+margin_top = 102.0
+margin_right = 196.0
+margin_bottom = 122.0
 focus_mode = 2
 text = "Select Mount"
 flat = false
 
 [node name="TBLeftWeapon" type="MenuButton" parent="MC/VBC"]
-margin_top = 102.0
+margin_top = 126.0
 margin_right = 196.0
-margin_bottom = 122.0
+margin_bottom = 146.0
 focus_mode = 2
 disabled = true
 text = "Select Left Hand Weapon"
 flat = false
 
 [node name="TBRightWeapon" type="MenuButton" parent="MC/VBC"]
-margin_top = 126.0
+margin_top = 150.0
 margin_right = 196.0
-margin_bottom = 146.0
+margin_bottom = 170.0
 focus_mode = 2
 disabled = true
 text = "Select Right Hand Weapon"
 flat = false
 
 [node name="EnterArena" type="Button" parent="MC/VBC"]
-margin_top = 150.0
+margin_top = 174.0
 margin_right = 196.0
-margin_bottom = 170.0
+margin_bottom = 194.0
 disabled = true
 text = "Enter Arena"
 

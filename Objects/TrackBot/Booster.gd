@@ -16,6 +16,7 @@ const BOOST_POWER_THRESHOLD : float = 0.001
 # ------------------------------------------------------------------------------
 # Export Variables
 # ------------------------------------------------------------------------------
+export var asset_key : String = ""
 export (int, 0, 2) var local_player_id : int = 0
 export var strength : float = 100.0					setget set_strength
 export var jump_strength : float = 100.0			setget set_jump_strength
@@ -29,6 +30,8 @@ var _networked : bool = false
 var _target_facing : Vector3 = Vector3.FORWARD
 var _active : bool = false
 var _tween : Tween = null
+
+var _input_lock : bool = false
 
 var _dx : Array = [0.0, 0.0]
 var _dy : Array = [0.0, 0.0]
@@ -71,6 +74,9 @@ func _ready() -> void:
 	var _res : int = _tween.connect("tween_all_completed", self, "_on_facing_complete")
 
 func _unhandled_input(event : InputEvent) -> void:
+	if _input_lock:
+		return
+	
 	if event.is_action_pressed("booster_left_%s"%[local_player_id]):
 		_dx[0] = -event.get_action_strength("booster_left_%s"%[local_player_id])
 	elif event.is_action_released("booster_left_%s"%[local_player_id]):
@@ -175,7 +181,8 @@ func is_boosting() -> bool:
 func lock_player_control(lock : bool = true) -> void:
 	# TODO: Handle AIs if needed.
 	if local_player_id > 0:
-		set_process_unhandled_input(not lock)
+		_input_lock = lock # I shouldn't need this...
+		set_process_unhandled_input(not lock) # ... but this line seems to be ignored ?!?!?!
 
 # ------------------------------------------------------------------------------
 # Handler Methods

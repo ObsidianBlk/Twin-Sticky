@@ -118,6 +118,15 @@ func _SwapBody(body_key : String) -> void:
 	if _trackbot != null:
 		_trackbot.asset_key = body_key
 
+func _SwapBooster(booster_key : String) -> void:
+	if _trackbot != null:
+		var booster = AssetDB.get_by_name(booster_key)
+		if booster:
+			booster.local_player_id = pid + 1
+			booster.lock_player_control(true)
+			_trackbot.remove_booster()
+			_trackbot.add_booster(booster)
+
 func _SwapMount(mount_key : String) -> void:
 	if _trackbot != null:
 		var lw : Spatial = null
@@ -177,6 +186,8 @@ func _on_part_changed(req : Dictionary):
 		match req["part"]:
 			"Body":
 				_SwapBody(req["key"])
+			"Booster":
+				_SwapBooster(req["key"])
 			"Mount":
 				_SwapMount(req["key"])
 			"LeftWeapon":

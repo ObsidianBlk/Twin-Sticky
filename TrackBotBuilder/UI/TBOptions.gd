@@ -14,6 +14,7 @@ signal enter_arena_requested()
 # ------------------------------------------------------------------------------
 onready var playername_line : LineEdit = $MC/VBC/PlayerName
 onready var tbbody_menu : MenuButton = $MC/VBC/TBBody
+onready var tbbooster_menu : MenuButton = $MC/VBC/TBBooster
 onready var tbwm_menu : MenuButton = $MC/VBC/TBWM
 onready var tblw_menu : MenuButton = $MC/VBC/TBLeftWeapon
 onready var tbrw_menu : MenuButton = $MC/VBC/TBRightWeapon
@@ -29,6 +30,13 @@ func _ready() -> void:
 		pop.add_item(key)
 		pop.set_item_metadata(idx, "TRACKBOTS.%s"%[key])
 	pop.connect("index_pressed", self, "_on_item_index_press", [tbbody_menu, "Body"])
+	
+	pop = tbbooster_menu.get_popup()
+	for key in AssetDB.get_database_keys("BOOSTERS"):
+		var idx : int = pop.get_item_count()
+		pop.add_item(key)
+		pop.set_item_metadata(idx, "BOOSTERS.%s"%[key])
+	pop.connect("index_pressed", self, "_on_item_index_press", [tbbooster_menu, "Booster"])
 	
 	pop = tbwm_menu.get_popup()
 	for key in AssetDB.get_database_keys("WEAPONMOUNTS"):

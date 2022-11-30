@@ -10,14 +10,14 @@ signal local_player_2(joined)
 # Constants
 # -----------------------------------------------------------------------------
 const TRACKBOT : PackedScene = preload("res://Objects/TrackBot/TrackBot.tscn")
-const BOOSTER : PackedScene = preload("res://Objects/TrackBot/Boosters/Jank_Booster.tscn")
+#const BOOSTER : PackedScene = preload("res://Objects/TrackBot/Boosters/Jank_Booster.tscn")
 
 const DEFAULT_TRACKBOT_DEFINITION : Dictionary = {
 	"body":"",
-	"weaponmount": "WEAPONMOUNTS.CyberSmile",
+	"weaponmount": "WEAPONMOUNTS.CyberSmiley",
 	"weapon_1":"",
 	"weapon_2":"",
-	"booster":""
+	"booster":"BOOSTERS.CyberSmiley"
 }
 
 const ZOOM_LEVEL : float = 0.25
@@ -140,7 +140,7 @@ func spawn_player(pid : int, remote_pid : int, def : Dictionary) -> void:
 			if res != OK:
 				printerr("Failed to mount PLASMA to Trackbot ID ", pid)
 		
-		var booster = BOOSTER.instance()
+		var booster = AssetDB.get_by_name(tbdef.booster)
 		booster.local_player_id = pid + 1
 		booster.set_network_master(remote_pid)
 		tb.add_booster(booster)

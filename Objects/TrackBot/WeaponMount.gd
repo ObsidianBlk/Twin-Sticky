@@ -21,6 +21,8 @@ var _networked : bool = false
 var _target_facing : Vector3 = Vector3.FORWARD
 var _mounted_items : Dictionary = {}
 
+var _input_lock : bool = false
+
 var _dx : Array = [0.0, 0.0]
 var _dy : Array = [0.0, 0.0]
 
@@ -46,6 +48,9 @@ func _ready() -> void:
 			set_process_unhandled_input(false)
 	
 func _unhandled_input(event : InputEvent) -> void:
+	if _input_lock:
+		return
+	
 	if event.is_action_pressed("wm_left_%s"%[local_player_id]):
 		_dx[0] = -event.get_action_strength("wm_left_%s"%[local_player_id])
 	elif event.is_action_released("wm_left_%s"%[local_player_id]):
@@ -191,7 +196,8 @@ func unmount_item(id : int) -> Spatial:
 func lock_player_control(lock : bool = true) -> void:
 	# TODO: Handle AIs if needed.
 	if local_player_id > 0:
-		set_process_unhandled_input(not lock)
+		_input_lock = lock # I shouldn't need this...
+		set_process_unhandled_input(not lock) # ... but this line seems to be ignored ?!?!?!
 
 func get_mount_asset_key(id : int) -> String:
 	if id in _mounted_items:

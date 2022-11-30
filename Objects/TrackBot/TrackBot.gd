@@ -259,6 +259,8 @@ func get_build_dict() -> Dictionary:
 		bd.weaponmount = _weaponmount_node.asset_key
 		bd.weapon_1 = _weaponmount_node.get_mount_asset_key(1)
 		bd.weapon_2 = _weaponmount_node.get_mount_asset_key(2)
+	if _booster_node != null:
+		bd.booster = _booster_node.asset_key
 	return bd
 
 # ------------------------------------------------------------------------------
