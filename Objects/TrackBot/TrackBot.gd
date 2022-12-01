@@ -5,6 +5,12 @@ extends RigidBody
 # ------------------------------------------------------------------------------
 signal hp_changed(owner_id, current_hp, max_hp)
 
+
+# ------------------------------------------------------------------------------
+# Constants
+# ------------------------------------------------------------------------------
+const EXPLOSION = preload("res://Objects/TrackBot/Explosion/Explosion.tscn")
+
 # ------------------------------------------------------------------------------
 # Export Variables
 # ------------------------------------------------------------------------------
@@ -234,7 +240,14 @@ func hit(dmg : float, knockback : Vector3) -> void:
 				_weaponmount_node.lock_player_control(true)
 			if _booster_node:
 				_booster_node.lock_player_control(true)
-			_SetBallColor(Color.black)
+			var parent = get_parent()
+			if parent != null:
+				print("EXPLOSION")
+				_asset_ball_node.visible = false
+				var expl = EXPLOSION.instance()
+				parent.add_child(expl)
+				expl.global_transform.origin = global_transform.origin
+				expl.connect("explosion_completed", self, "_on_explosion_completed")
 		if knockback.length() > 0.001:
 			apply_central_impulse(knockback)
 
@@ -266,6 +279,9 @@ func get_build_dict() -> Dictionary:
 # ------------------------------------------------------------------------------
 # Handler Methods
 # ------------------------------------------------------------------------------
+func _on_explosion_completed() -> void:
+	pass # TODO: Figure out how to reset and revive!
+
 func _on_booster_facing_changed(facing : Vector3) -> void:
 	_boost_direction = facing
 
