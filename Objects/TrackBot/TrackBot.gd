@@ -115,19 +115,25 @@ func _SetBallColor(color : Color) -> void:
 		if material is ShaderMaterial:
 			material.set_shader_param("Color", color)
 
+func _SetAssetBall(ball : Spatial) -> void:
+	if _asset_ball_node != null:
+		remove_child(_asset_ball_node)
+		_asset_ball_node = null
+	if ball != null:
+		_asset_ball_node = ball
+		add_child_below_node(ball_node, _asset_ball_node)
+
 func _UpdateAssetKey() -> void:
 	if not _is_ready:
 		return
 	
 	if asset_key == null:
-		if _asset_ball_node != null:
-			remove_child(_asset_ball_node)
+		_SetAssetBall(null)
 		ball_node.visible = true
 	else:
 		var asset_node : Spatial = AssetDB.get_by_name(asset_key)
 		if asset_node:
-			_asset_ball_node = asset_node
-			add_child_below_node(ball_node, _asset_ball_node)
+			_SetAssetBall(asset_node)
 			ball_node.visible = false
 
 # ------------------------------------------------------------------------------

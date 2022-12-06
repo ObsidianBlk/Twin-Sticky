@@ -13,7 +13,11 @@ const DB : Dictionary = {
 	},
 	"TRACKBOTS":{
 		"CyberSmiley": {
-			"res": "res://Assets/Models/Trackballs/CyberSmiley/CyberSmiley.tscn",
+			"res": "res://Assets/Models/Trackballs/CyberSmiley/CyberSmiley.scn",
+			"scene": null
+		},
+		"Goof": {
+			"res": "res://Assets/Models/Trackballs/Goof/GoofSmiley.scn",
 			"scene": null
 		}
 	},
