@@ -31,6 +31,10 @@ const DB : Dictionary = {
 		"CyberSmiley": {
 			"res": "res://Objects/TrackBot/WeaponMount/WM_CyberSmiley.tscn",
 			"scene": null
+		},
+		"Goof": {
+			"res": "res://Objects/TrackBot/WeaponMount/WM_GoofSmiley.tscn",
+			"scene": null
 		}
 	},
 	"WEAPONS":{
